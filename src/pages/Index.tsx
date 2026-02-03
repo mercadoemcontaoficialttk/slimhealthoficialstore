@@ -55,13 +55,13 @@ const Index = () => {
 
               {/* Offer Message */}
               <div className="text-center">
-                <p className="text-xl md:text-2xl whitespace-nowrap">
-                  <span className="font-bold text-black">Você vai garantir nosso produto </span>
-                  <span className="text-gray-500">em</span>
-                </p>
-                <p className="text-xl md:text-2xl text-gray-500">
-                  condição especial.
-                </p>
+              <p className="text-lg md:text-xl whitespace-nowrap">
+                <span className="font-bold text-black">Você vai garantir nosso produto </span>
+                <span className="text-gray-500">em</span>
+              </p>
+              <p className="text-lg md:text-xl text-gray-500">
+                condição especial.
+              </p>
               </div>
 
               {/* Scarcity Alert */}
@@ -118,7 +118,7 @@ const Index = () => {
           <Button 
             onClick={handleContinue}
             disabled={!isButtonEnabled()}
-            className={`w-full h-14 text-lg font-semibold rounded-3xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+            className={`w-full h-14 text-lg font-bold rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
               isButtonEnabled() 
                 ? "bg-cta hover:bg-cta/90 text-white" 
                 : "bg-[#C5CAD4] text-white cursor-not-allowed hover:scale-100"
