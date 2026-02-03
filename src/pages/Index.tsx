@@ -126,6 +126,15 @@ const Index = () => {
           >
             Continuar
           </Button>
+          
+          {/* CIMED Logo - Steps 2 e 3 */}
+          {(step === 2 || step === 3) && (
+            <img 
+              src={cimedLogo} 
+              alt="CIMED" 
+              className="h-8 object-contain opacity-60 mt-4"
+            />
+          )}
         </CardContent>
       </Card>
     </div>
