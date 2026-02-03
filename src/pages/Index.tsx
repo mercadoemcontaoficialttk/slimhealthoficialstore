@@ -55,7 +55,7 @@ const Index = () => {
 
               {/* Offer Message */}
               <div className="text-center">
-                <p className="text-xl md:text-2xl">
+                <p className="text-xl md:text-2xl whitespace-nowrap">
                   <span className="font-bold text-black">Você vai garantir nosso produto </span>
                   <span className="text-gray-500">em</span>
                 </p>
