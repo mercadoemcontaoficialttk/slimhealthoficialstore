@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
-import PrizeWheel from "@/components/PrizeWheel";
+// PrizeWheel disponível em @/components/PrizeWheel para uso futuro
 
 const STOCK_QUANTITY = 19;
 
@@ -21,12 +21,8 @@ const Index = () => {
     } else if (step === 2 && name.trim()) {
       setStep(3);
     } else if (step === 3 && age.trim()) {
-      setStep(4); // Go to prize wheel
+      navigate("/checkout"); // Ir direto para checkout
     }
-  };
-
-  const handleWheelWin = () => {
-    navigate("/checkout");
   };
 
   const isButtonEnabled = () => {
@@ -118,12 +114,8 @@ const Index = () => {
             </>
           )}
 
-          {step === 4 && (
-            <PrizeWheel onWin={handleWheelWin} userName={name} />
-          )}
-
-          {/* CTA Button - Only show for steps 1-3 */}
-          {step < 4 && (
+          {/* CTA Button */}
+          {step <= 3 && (
             <Button 
               onClick={handleContinue}
               disabled={!isButtonEnabled()}
