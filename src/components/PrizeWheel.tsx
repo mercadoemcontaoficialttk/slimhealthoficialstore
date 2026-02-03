@@ -148,7 +148,7 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
   };
 
   const getButtonText = () => {
-    if (showCelebration) return "RESGATAR PRÊMIO";
+    if (showCelebration) return "RESGATAR DESCONTO";
     if (spinCount === 0) return "GIRAR ROLETA";
     return "GIRANDO...";
   };
@@ -205,6 +205,12 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         >
           {/* SVG Wheel Segments */}
           <svg viewBox="0 0 100 100" className="w-full h-full">
+            <defs>
+              <filter id="emboss" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0.4" dy="0.4" stdDeviation="0.15" floodColor="#000" floodOpacity="0.6"/>
+                <feDropShadow dx="-0.25" dy="-0.25" stdDeviation="0.1" floodColor="#fff" floodOpacity="0.5"/>
+              </filter>
+            </defs>
             {SEGMENTS.map((segment, index) => {
               const startAngle = index * SEGMENT_ANGLE - 90; // Start from top
               const endAngle = startAngle + SEGMENT_ANGLE;
@@ -253,10 +259,12 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                       textAnchor="middle"
                       dominantBaseline="middle"
                       transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+                      filter="url(#emboss)"
                       style={{ 
-                        fontSize: "5px", 
+                        fontSize: "6px", 
                         fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
-                        letterSpacing: "0.02em"
+                        fontWeight: 900,
+                        letterSpacing: "0.03em"
                       }}
                       className="fill-[#1a1a2e]"
                     >
@@ -272,27 +280,26 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
             })}
           </svg>
 
-          {/* Center Logo with 3D Effect */}
-          <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-b from-white to-gray-100 flex items-center justify-center"
-            style={{
-              boxShadow: `
-                0 4px 15px rgba(0,0,0,0.3),
-                inset 0 2px 4px rgba(255,255,255,0.8),
-                inset 0 -2px 4px rgba(0,0,0,0.1)
-              `,
-              border: "4px solid",
-              borderImage: "linear-gradient(145deg, #FFE082, #D4A934) 1",
-              borderRadius: "50%",
-              borderColor: "#D4A934",
-            }}
-          >
-            <img
-              src={cimedLogo}
-              alt="CIMED"
-              className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-sm"
-            />
-          </div>
+        </div>
+
+        {/* Center Logo with 3D Effect - OUTSIDE rotating container */}
+        <div 
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-b from-white to-gray-100 flex items-center justify-center z-30"
+          style={{
+            boxShadow: `
+              0 4px 15px rgba(0,0,0,0.3),
+              inset 0 2px 4px rgba(255,255,255,0.8),
+              inset 0 -2px 4px rgba(0,0,0,0.1)
+            `,
+            border: "4px solid #D4A934",
+            borderRadius: "50%",
+          }}
+        >
+          <img
+            src={cimedLogo}
+            alt="CIMED"
+            className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-sm"
+          />
         </div>
       </div>
 
