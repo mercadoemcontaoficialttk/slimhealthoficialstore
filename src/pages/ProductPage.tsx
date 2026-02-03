@@ -43,7 +43,7 @@ const products: Product[] = [
     discountType: "11.11",
     rating: 4.8,
     sold: 2540,
-    link: "/checkout"
+    link: "/mounjaro"
   },
   {
     id: "smarttv43",
