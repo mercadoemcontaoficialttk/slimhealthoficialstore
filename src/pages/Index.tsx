@@ -55,11 +55,12 @@ const Index = () => {
 
               {/* Offer Message */}
               <div className="text-center">
-                <p className="text-2xl md:text-3xl font-bold text-black">
-                  Você vai garantir nosso produto
+                <p className="text-2xl md:text-3xl">
+                  <span className="font-bold text-black">Você vai garantir nosso produto </span>
+                  <span className="text-gray-500">em</span>
                 </p>
                 <p className="text-2xl md:text-3xl text-gray-500">
-                  em condição especial.
+                  condição especial.
                 </p>
               </div>
 
@@ -68,8 +69,8 @@ const Index = () => {
                 <div className="flex-shrink-0 w-11 h-11 rounded-full bg-[#FEF3C7] flex items-center justify-center">
                   <span className="text-2xl">⚠️</span>
                 </div>
-                <p className="text-base font-medium text-[#D97706]">
-                  Restam apenas <span className="font-bold">{STOCK_QUANTITY}</span> unidades em estoque
+                <p className="text-base font-medium text-black">
+                  Restam apenas <span className="font-bold text-[#D97706]">{STOCK_QUANTITY}</span> unidades em estoque
                 </p>
               </div>
             </>
@@ -117,7 +118,7 @@ const Index = () => {
           <Button 
             onClick={handleContinue}
             disabled={!isButtonEnabled()}
-            className={`w-full h-12 text-lg font-semibold rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+            className={`w-full h-14 text-lg font-semibold rounded-3xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
               isButtonEnabled() 
                 ? "bg-cta hover:bg-cta/90 text-white" 
                 : "bg-[#C5CAD4] text-white cursor-not-allowed hover:scale-100"
