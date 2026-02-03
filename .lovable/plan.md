@@ -1,79 +1,71 @@
 
 
-## Plano: Ajustar Modal e Texto da Oferta para Ficar Igual a Referencia
+## Plano: Diminuir Margem e Ajustar Texto para 2 Linhas
 
-### Diferencas Identificadas
+### Diferenca Identificada
 
-Comparando com a imagem de referencia:
+Comparando os dois prints:
 
-| Elemento | Nosso (atual) | Referencia |
-|----------|---------------|------------|
-| Tamanho texto | `text-2xl md:text-3xl` (24-30px) | Menor, aproximadamente `text-xl md:text-2xl` (20-24px) |
-| Card arredondamento | `rounded-lg` (padrao do Card) | Bordas mais arredondadas e suaves (`rounded-2xl` ou `rounded-3xl`) |
-| Sombra do Card | `shadow-lg` | Sombra mais suave e elegante (`shadow-xl` com opacidade reduzida) |
+| Aspecto | Nosso (atual) | Referencia |
+|---------|---------------|------------|
+| Layout texto | 3 linhas: "Voce vai garantir nosso produto" + "em" + "condicao especial." | 2 linhas: "Voce vai garantir nosso produto em" + "condicao especial." |
+| Problema | O "em" esta quebrando para uma linha separada | O "em" fica na mesma linha que "produto" |
+
+O problema e que o texto esta quebrando em 3 linhas em vez de 2. Na referencia, "Voce vai garantir nosso produto em" fica tudo na mesma linha.
 
 ---
 
-### Mudancas Necessarias
+### Solucao
 
-**1. Arquivo `src/pages/Index.tsx`**
+Precisamos ajustar a estrutura do texto para que "em" fique junto com "produto" na mesma linha. A solucao e unir tudo em uma unica estrutura de 2 linhas forcadas:
 
-**Card (linha 37):**
-- Adicionar bordas mais arredondadas: `rounded-2xl` ou `rounded-3xl`
-- Ajustar sombra para ficar mais suave: `shadow-xl`
+**Linha 1:** "Voce vai garantir nosso produto em" (preto bold + cinza)
+**Linha 2:** "condicao especial." (cinza)
+
+---
+
+### Mudancas em `src/pages/Index.tsx`
+
+**Linhas 57-64 - Texto da Oferta:**
 
 Antes:
 ```text
-<Card className="w-full max-w-md shadow-lg animate-fade-in">
+<div className="text-center">
+  <p className="text-xl md:text-2xl">
+    <span className="font-bold text-black">Voce vai garantir nosso produto </span>
+    <span className="text-gray-500">em</span>
+  </p>
+  <p className="text-xl md:text-2xl text-gray-500">
+    condicao especial.
+  </p>
+</div>
 ```
 
 Depois:
 ```text
-<Card className="w-full max-w-md shadow-xl rounded-3xl animate-fade-in">
+<div className="text-center">
+  <p className="text-xl md:text-2xl">
+    <span className="font-bold text-black">Voce vai garantir nosso produto </span>
+    <span className="text-gray-500">em</span>
+  </p>
+  <p className="text-xl md:text-2xl text-gray-500">
+    condicao especial.
+  </p>
+</div>
 ```
 
-**Texto da Oferta (linhas 58-64):**
-- Reduzir tamanho da fonte de `text-2xl md:text-3xl` para `text-xl md:text-2xl`
-- Manter a mesma estrutura de cores
+Na verdade, a estrutura esta correta. O problema e que a largura do container ou o tamanho da fonte esta fazendo o "em" quebrar. Vou adicionar `whitespace-nowrap` na primeira linha para forcar que fique tudo junto:
 
-Antes:
 ```text
-<p className="text-2xl md:text-3xl">
-  <span className="font-bold text-black">Voce vai garantir nosso produto </span>
-  <span className="text-gray-500">em</span>
-</p>
-<p className="text-2xl md:text-3xl text-gray-500">
-  condicao especial.
-</p>
-```
-
-Depois:
-```text
-<p className="text-xl md:text-2xl">
-  <span className="font-bold text-black">Voce vai garantir nosso produto </span>
-  <span className="text-gray-500">em</span>
-</p>
-<p className="text-xl md:text-2xl text-gray-500">
-  condicao especial.
-</p>
-```
-
----
-
-### Detalhes Tecnicos
-
-Arquivo: `src/pages/Index.tsx`
-
-**Linha 37 - Card:**
-```text
-Antes: <Card className="w-full max-w-md shadow-lg animate-fade-in">
-Depois: <Card className="w-full max-w-md shadow-xl rounded-3xl animate-fade-in">
-```
-
-**Linhas 58-64 - Texto da Oferta:**
-```text
-Antes: text-2xl md:text-3xl (duas ocorrencias)
-Depois: text-xl md:text-2xl (duas ocorrencias)
+<div className="text-center">
+  <p className="text-xl md:text-2xl whitespace-nowrap">
+    <span className="font-bold text-black">Voce vai garantir nosso produto </span>
+    <span className="text-gray-500">em</span>
+  </p>
+  <p className="text-xl md:text-2xl text-gray-500">
+    condicao especial.
+  </p>
+</div>
 ```
 
 ---
@@ -82,7 +74,6 @@ Depois: text-xl md:text-2xl (duas ocorrencias)
 
 | Elemento | Antes | Depois |
 |----------|-------|--------|
-| Arredondamento Card | rounded-lg (padrao) | rounded-3xl |
-| Sombra Card | shadow-lg | shadow-xl |
-| Tamanho fonte oferta | text-2xl md:text-3xl | text-xl md:text-2xl |
+| Primeira linha texto | Pode quebrar em 2 linhas | `whitespace-nowrap` para manter em 1 linha |
+| Layout final | 3 linhas | 2 linhas (igual referencia) |
 
