@@ -55,17 +55,18 @@ const Index = () => {
 
               {/* Offer Message */}
               <p className="text-center text-xl md:text-2xl">
-                <span className="font-bold">Você vai garantir nosso produto</span>
-                <br />
-                em condição especial.
+                <span className="font-bold">Você vai garantir nosso produto </span>
+                <span className="text-gray-500">em condição especial.</span>
               </p>
 
               {/* Scarcity Alert */}
-              <div className="w-full border-2 border-[#F5C842] bg-[#FFF8E7] rounded-xl p-4 flex items-center gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#FEF3C7] flex items-center justify-center">
-                  <AlertTriangle className="w-5 h-5 text-[#D97706]" />
+              <div className="w-full border-2 border-[#F5C842] bg-[#FFF8E7] rounded-xl p-5 flex items-center gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#FEF3C7] flex items-center justify-center border-2 border-[#FBBF24]">
+                  <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[18px] border-b-[#D97706] relative">
+                    <span className="absolute -bottom-[14px] left-1/2 -translate-x-1/2 text-white font-bold text-[10px]">!</span>
+                  </div>
                 </div>
-                <p className="text-sm font-medium text-[#D97706]">
+                <p className="text-base font-medium text-[#D97706]">
                   Restam apenas <span className="font-bold">{STOCK_QUANTITY}</span> unidades em estoque
                 </p>
               </div>
@@ -114,7 +115,7 @@ const Index = () => {
           <Button 
             onClick={handleContinue}
             disabled={!isButtonEnabled()}
-            className={`w-full h-12 text-lg font-semibold rounded-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+            className={`w-full h-12 text-lg font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
               isButtonEnabled() 
                 ? "bg-cta hover:bg-cta/90 text-white" 
                 : "bg-[#C5CAD4] text-white cursor-not-allowed hover:scale-100"
