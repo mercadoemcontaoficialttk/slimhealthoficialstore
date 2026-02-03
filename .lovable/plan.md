@@ -1,86 +1,113 @@
 
-
-## Plano: Remover Passo da Roleta do Funil
+## Plano: Criar Pagina de Produto Estilo TikTok Shop
 
 ### Visao Geral
 
-Remover o passo 4 (roleta de premios) do funil de pre-venda, mantendo apenas os 3 primeiros passos. O componente PrizeWheel sera mantido no projeto para uso futuro, apenas removendo sua integracao no fluxo atual.
+Criar uma nova pagina de produto (`/product`) que sera exibida apos o passo 3 (confirmacao de idade) do funil. A pagina tera o visual identico ao arquivo `index-2.html` fornecido, adaptado para o produto Carmed atual.
 
 ---
 
-### Mudancas em `src/pages/Index.tsx`
+### Estrutura da Pagina
 
-#### 1. Remover Import do PrizeWheel
+#### 1. Header Sticky
+- Botao voltar (seta para esquerda)
+- Botao compartilhar
+- Botao carrinho
+- Botao menu (kebab)
 
-```text
-Antes (linha 8):
-import PrizeWheel from "@/components/PrizeWheel";
+#### 2. Galeria de Imagens
+- Carrossel horizontal com snap scroll
+- Contador de imagens (1/3)
+- Setas de navegacao (desktop)
 
-Depois:
-// PrizeWheel removido do fluxo - disponivel em @/components/PrizeWheel
-```
+#### 3. Secao de Preco/Oferta Relampago
+- Gradiente rosa/laranja
+- Badge de desconto (-96%)
+- Preco atual grande (R$ 67,90)
+- Preco antigo riscado
+- Icone de raio + "Oferta Relampago"
+- Countdown timer
 
-#### 2. Ajustar Funcao handleContinue
+#### 4. Secao de Informacoes
+- Faixa promocional rosa
+- Titulo do produto com selo 11.11
+- Rating (estrelas) + vendidos
+- Informacoes de frete gratis + prazo de entrega
 
-O passo 3 agora redireciona diretamente para o checkout em vez de ir para a roleta.
+#### 5. Secao Protecao do Cliente
+- Fundo bege com icone de escudo
+- Lista de beneficios (devolucao, reembolso, etc.)
 
-```text
-Antes:
-} else if (step === 3 && age.trim()) {
-  setStep(4); // Go to prize wheel
-}
+#### 6. Secao de Avaliacoes
+- Resumo com nota 4.9/5
+- Lista de avaliacoes com avatar, nome, estrelas e texto
+- Chips de tags
 
-Depois:
-} else if (step === 3 && age.trim()) {
-  navigate("/checkout"); // Ir direto para checkout
-}
-```
+#### 7. Secao Loja do Vendedor
+- Avatar da loja + nome + selo verificado
+- Botao "Visitar"
 
-#### 3. Remover Funcao handleWheelWin
+#### 8. Secao Sobre o Produto
+- Grid de detalhes (produto, principio ativo, etc.)
+- Descricao longa
 
-Esta funcao nao sera mais necessaria pois nao ha mais roleta.
+#### 9. Secao Recomendados
+- Grid 2 colunas com produtos similares
 
-```text
-Antes:
-const handleWheelWin = () => {
-  navigate("/checkout");
-};
-
-Depois:
-(remover)
-```
-
-#### 4. Remover Renderizacao do Step 4
-
-```text
-Antes (linhas 121-123):
-{step === 4 && (
-  <PrizeWheel onWin={handleWheelWin} userName={name} />
-)}
-
-Depois:
-(remover)
-```
-
-#### 5. Simplificar Condicao do Botao
-
-O botao sempre aparece nos 3 passos.
-
-```text
-Antes (linha 126):
-{step < 4 && (
-
-Depois:
-{step <= 3 && (
-```
-
-(Esta mudanca e apenas para clareza, funcionalmente igual)
+#### 10. Barra de Acao Fixa (Bottom)
+- Botao Loja
+- Botao Chat
+- Botao "Adicionar ao carrinho"
+- Botao "Comprar Agora" (rosa)
 
 ---
 
-### Componente PrizeWheel Mantido
+### Adaptacoes para o Projeto
 
-O arquivo `src/components/PrizeWheel.tsx` permanece intacto e disponivel para uso futuro. Voce pode reativar a roleta a qualquer momento importando-a novamente no Index.tsx.
+| Original | Adaptacao |
+|----------|-----------|
+| Mounjaro (medicamento) | Carmed (produto atual) |
+| Imagens externas | Usar imagem `carmed-product.jpg` |
+| PHP forms | Navegacao React Router |
+| Scripts vanilla JS | React hooks (useState, useEffect) |
+| Tailwind CDN | Tailwind config existente |
+
+---
+
+### Arquivos a Criar/Modificar
+
+| Arquivo | Acao |
+|---------|------|
+| `src/pages/ProductPage.tsx` | Criar nova pagina de produto |
+| `src/App.tsx` | Adicionar rota `/product` |
+| `src/pages/Index.tsx` | Alterar navegacao do passo 3 para `/product` |
+
+---
+
+### Componentes React a Implementar
+
+```text
+ProductPage
+├── Header (sticky)
+├── ImageGallery (carrossel com useState para index)
+├── FlashPriceSection (com useEffect para countdown)
+├── InfoSection (titulo, rating, frete)
+├── CustomerProtection
+├── ReviewsSection
+├── SellerShop
+├── AboutProduct
+├── RecommendedProducts
+└── ActionBar (fixed bottom)
+```
+
+---
+
+### Funcionalidades JavaScript a Converter
+
+1. **Countdown Timer**: useEffect com setInterval
+2. **Image Carousel**: useState para indice + scroll snap CSS
+3. **Sticky Tabs**: IntersectionObserver com useRef
+4. **Dynamic Delivery Date**: Calculo com date-fns
 
 ---
 
@@ -90,14 +117,32 @@ O arquivo `src/components/PrizeWheel.tsx` permanece intacto e disponivel para us
 |-------|----------|---------------|
 | 1 | Landing page com logos e alerta | Ir para passo 2 |
 | 2 | Captura de nome | Ir para passo 3 |
-| 3 | Confirmacao de idade | Ir para /checkout |
+| 3 | Confirmacao de idade | Ir para /product (NOVO) |
+| - | Pagina de Produto | Comprar Agora -> /checkout |
 
 ---
 
-### Arquivo a Modificar
+### Secao Tecnica
 
-| Arquivo | Acao |
-|---------|------|
-| src/pages/Index.tsx | Remover integracao da roleta, redirecionar passo 3 para checkout |
-| src/components/PrizeWheel.tsx | Nenhuma mudanca - manter para uso futuro |
+#### CSS Customizado Necessario
+- `.clamp-2` e `.clamp-3` para truncar texto
+- `.no-scrollbar` para esconder scrollbar
+- Gradiente `from-[#ff3b66] via-[#ff5a5f] to-[#ff8a3d]`
 
+#### Icones a Usar (Lucide React)
+- ChevronLeft, ChevronRight (navegacao)
+- ShoppingCart, Share, MoreHorizontal (header)
+- Star (avaliacoes)
+- Shield, Truck, MessageCircle (protecao/frete/chat)
+- Zap (oferta relampago)
+
+#### Dados Mockados
+- 3 avaliacoes de clientes
+- Detalhes do produto Carmed
+- Lista de produtos recomendados (pode ser estatica inicialmente)
+
+---
+
+### Estimativa de Linhas
+- ProductPage.tsx: ~600-800 linhas (componente completo)
+- Modificacoes menores em App.tsx e Index.tsx
