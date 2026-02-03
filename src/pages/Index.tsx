@@ -35,7 +35,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-md shadow-lg animate-fade-in">
-        <CardContent className="p-8 flex flex-col items-center gap-6">
+        <CardContent className="p-10 flex flex-col items-center gap-8">
           {step === 1 && (
             <>
               {/* Logos Section */}
@@ -60,11 +60,9 @@ const Index = () => {
               </p>
 
               {/* Scarcity Alert */}
-              <div className="w-full border-2 border-[#F5C842] bg-[#FFF8E7] rounded-xl p-5 flex items-center gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-[#FEF3C7] flex items-center justify-center border-2 border-[#FBBF24]">
-                  <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[18px] border-b-[#D97706] relative">
-                    <span className="absolute -bottom-[14px] left-1/2 -translate-x-1/2 text-white font-bold text-[10px]">!</span>
-                  </div>
+              <div className="w-full border border-[#F5C842] bg-[#FFF8E7] rounded-2xl p-5 flex items-center gap-4">
+                <div className="flex-shrink-0 w-11 h-11 rounded-full bg-[#FEF3C7] flex items-center justify-center">
+                  <span className="text-2xl">⚠️</span>
                 </div>
                 <p className="text-base font-medium text-[#D97706]">
                   Restam apenas <span className="font-bold">{STOCK_QUANTITY}</span> unidades em estoque
@@ -115,7 +113,7 @@ const Index = () => {
           <Button 
             onClick={handleContinue}
             disabled={!isButtonEnabled()}
-            className={`w-full h-12 text-lg font-semibold rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+            className={`w-full h-12 text-lg font-semibold rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
               isButtonEnabled() 
                 ? "bg-cta hover:bg-cta/90 text-white" 
                 : "bg-[#C5CAD4] text-white cursor-not-allowed hover:scale-100"
