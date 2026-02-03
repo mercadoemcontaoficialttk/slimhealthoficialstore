@@ -1,65 +1,68 @@
 
-## Plano: Ajustar Texto e Botao para Ficar Mais Estetico
+## Plano: Adicionar Logo CIMED nos Steps 2 e 3
 
-### Mudancas Identificadas
+### O que sera feito
 
-Baseado nas imagens de referencia enviadas, preciso fazer 3 ajustes:
-
-| Elemento | Atual | Solicitado |
-|----------|-------|------------|
-| Tamanho texto oferta | `text-xl md:text-2xl` | Menor para nao encostar nas laterais |
-| Arredondamento botao | `rounded-3xl` (muito arredondado) | Menos arredondado (`rounded-2xl`) |
-| Peso da fonte botao | `font-semibold` | Mais grosso (`font-bold`) |
+Adicionar a logo da CIMED embaixo do botao "Continuar" nos Steps 2 (nome) e 3 (idade), de forma pequena e centralizada para um visual mais profissional.
 
 ---
 
 ### Mudancas em `src/pages/Index.tsx`
 
-**1. Texto da Oferta (linhas 58-63)**
+A logo da CIMED ja esta importada no arquivo (linha 8):
+```
+import cimedLogo from "@/assets/cimed-logo.png";
+```
 
-Reduzir tamanho da fonte de `text-xl md:text-2xl` para `text-lg md:text-xl`:
+Preciso adicionar a logo apenas quando estivermos nos Steps 2 ou 3, logo apos o botao "Continuar".
+
+**Apos o botao (linha 128):**
+
+Adicionar a logo da CIMED com as seguintes caracteristicas:
+- Tamanho pequeno: `h-8` (32px de altura)
+- Centralizada: usando flexbox ou `mx-auto`
+- Opacidade suave para nao competir com o botao: `opacity-60`
+- Pequeno espacamento superior: `mt-4`
+- Condicional: aparece apenas nos steps 2 e 3
 
 Antes:
 ```text
-<p className="text-xl md:text-2xl whitespace-nowrap">
+          </Button>
+        </CardContent>
+      </Card>
 ```
 
 Depois:
 ```text
-<p className="text-lg md:text-xl whitespace-nowrap">
+          </Button>
+          
+          {/* CIMED Logo - Steps 2 e 3 */}
+          {(step === 2 || step === 3) && (
+            <img 
+              src={cimedLogo} 
+              alt="CIMED" 
+              className="h-8 object-contain opacity-60 mt-4"
+            />
+          )}
+        </CardContent>
+      </Card>
 ```
 
-E na segunda linha tambem:
-Antes:
-```text
-<p className="text-xl md:text-2xl text-gray-500">
-```
+---
 
-Depois:
-```text
-<p className="text-lg md:text-xl text-gray-500">
-```
+### Resultado Visual
 
-**2. Botao Continuar (linha 121)**
-
-Reduzir arredondamento de `rounded-3xl` para `rounded-2xl` e aumentar peso da fonte de `font-semibold` para `font-bold`:
-
-Antes:
-```text
-className={`w-full h-14 text-lg font-semibold rounded-3xl transition-all...
-```
-
-Depois:
-```text
-className={`w-full h-14 text-lg font-bold rounded-2xl transition-all...
-```
+| Aspecto | Detalhe |
+|---------|---------|
+| Posicao | Centralizada embaixo do botao |
+| Tamanho | Pequena (32px de altura) |
+| Aparencia | Suave com opacidade 60% |
+| Condicao | Aparece apenas nos Steps 2 e 3 |
 
 ---
 
 ### Resumo das Alteracoes
 
-| Elemento | Antes | Depois |
-|----------|-------|--------|
-| Tamanho fonte texto | text-xl md:text-2xl | text-lg md:text-xl |
-| Arredondamento botao | rounded-3xl | rounded-2xl |
-| Peso fonte botao | font-semibold | font-bold |
+| Arquivo | Mudanca |
+|---------|---------|
+| src/pages/Index.tsx | Adicionar logo CIMED condicional apos o botao |
