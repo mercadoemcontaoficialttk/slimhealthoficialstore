@@ -1,107 +1,65 @@
 
 
-## Plano: Ajustar Estetica do Funil para Corresponder as Referencias
+## Plano: Ajustar Step 1 para Corresponder Exatamente a Referencia
 
-### Visao Geral
-Ajustar os estilos visuais das 3 etapas do funil para corresponder exatamente as imagens de referencia fornecidas.
+### Diferencas Identificadas
 
----
+Comparando o codigo atual com a imagem de referencia:
 
-### Mudancas no Step 1 (Pre-sell)
+1. **Texto da oferta**: Atualmente usa `<br />` para quebrar a linha, mas na referencia o texto flui naturalmente em duas linhas sem quebra forcada. O texto "em condicao especial." deve ter cor cinza clara, nao preta.
 
-**Logos:**
-- Aumentar tamanho do logo SlimHealth para `h-16 md:h-20` (aproximadamente 64-80px)
-- Aumentar tamanho do logo CIMED para `h-12 md:h-14` (aproximadamente 48-56px)
-- O sinal "+" permanece entre eles em cinza
+2. **Botao "Continuar"**: Atualmente tem `rounded-full` (muito arredondado como pilula). Na referencia, o botao tem bordas arredondadas mais moderadas (`rounded-xl` ou `rounded-2xl`).
 
-**Mensagem de Oferta:**
-- Aumentar tamanho do texto para `text-xl md:text-2xl`
-- Manter primeira parte em bold e segunda em peso normal
+3. **Icone de alerta**: O icone atual e muito simples. Na referencia, o triangulo de alerta tem um estilo mais definido com fundo circular amarelo claro e o triangulo com exclamacao mais proeminente.
 
-**Alerta de Escassez:**
-- Fundo creme/amarelo muito claro: `bg-[#FFF8E7]`
-- Borda amarela/dourada: `border-[#F5C842]`
-- Bordas mais arredondadas: `rounded-xl`
-- Icone em circulo amarelo claro
-- Texto em cor laranja/ambar: `text-[#D97706]`
-
-**Botao:**
-- Bordas muito arredondadas (pill): `rounded-full`
-- Verde CTA padrao quando habilitado
+4. **Texto do alerta**: Na referencia, o texto e maior e mais legivel (aproximadamente `text-base` em vez de `text-sm`).
 
 ---
 
-### Mudancas nos Steps 2 e 3 (Nome e Idade)
+### Mudancas em `src/pages/Index.tsx`
 
-**Titulos:**
-- Tamanho maior: `text-2xl md:text-3xl`
-- Peso extra bold: `font-extrabold`
-- Cor quase preta: `text-[#1a1a2e]`
+**Linha 57-61 - Texto da oferta:**
+```text
+Antes:
+- Usa <br /> para quebrar linha
+- Texto "em condicao especial." na mesma cor
 
-**Subtitulos:**
-- Cor cinza mais clara: `text-gray-400`
-- Tamanho mantido
+Depois:
+- Remover <br /> e deixar fluir naturalmente
+- "em condicao especial." em cor cinza: text-gray-500
+```
 
-**Inputs:**
-- Remover borda: `border-0`
-- Fundo cinza claro: `bg-[#F1F3F8]`
-- Bordas muito arredondadas: `rounded-2xl`
-- Altura maior: `h-14`
-- Placeholder em cinza medio
+**Linha 64-71 - Alerta de escassez:**
+```text
+Antes:
+- Icone AlertTriangle simples
+- Texto text-sm
 
-**Botao Desabilitado:**
-- Fundo cinza-azulado: `bg-[#C5CAD4]`
-- Texto branco: `text-white`
-- Bordas muito arredondadas: `rounded-full`
+Depois:
+- Circulo amarelo claro com borda
+- Triangulo de alerta maior e mais definido
+- Texto text-base para melhor leitura
+- Padding maior para mais espaco
+```
 
-**Botao Habilitado:**
-- Verde CTA: `bg-cta`
-- Texto branco
-- Bordas muito arredondadas: `rounded-full`
+**Linha 117 - Botao:**
+```text
+Antes:
+- rounded-full (pilula completa)
 
----
-
-### Arquivo a Modificar
-
-`src/pages/Index.tsx`:
-- Ajustar classes de tamanho dos logos
-- Ajustar estilos do alerta de escassez
-- Ajustar tipografia dos titulos e subtitulos
-- Ajustar estilos dos inputs
-- Ajustar estilos do botao para estados habilitado/desabilitado
+Depois:
+- rounded-xl (arredondamento moderado como na referencia)
+```
 
 ---
 
 ### Detalhes Tecnicos
 
-```text
-Step 1 (Pre-sell):
-+-------------------+
-|  [SlimHealth] +   |  <- Logos maiores
-|     [CIMED]       |
-|                   |
-| Voce vai garantir |  <- Texto maior
-|   nosso produto   |
-|                   |
-| +---------------+ |
-| | ! Restam 19   | |  <- Fundo creme, texto laranja
-| +---------------+ |
-|                   |
-| [  Continuar   ]  |  <- Botao verde pill
-+-------------------+
+Arquivo a modificar: `src/pages/Index.tsx`
 
-Steps 2 e 3 (Nome/Idade):
-+-------------------+
-|                   |
-| Antes de continuar|  <- Titulo grande, bold
-|                   |
-| Precisamos saber..|  <- Subtitulo cinza claro
-|                   |
-| +---------------+ |
-| | Digite seu... | |  <- Input cinza, sem borda
-| +---------------+ |
-|                   |
-| [  Continuar   ]  |  <- Botao cinza-azulado ou verde
-+-------------------+
-```
+Mudancas especificas:
+
+1. Linhas 57-61: Reformatar texto para fluxo natural
+2. Linhas 64-71: Ajustar estilo do alerta e icone
+3. Linha 117: Trocar `rounded-full` por `rounded-xl`
 
