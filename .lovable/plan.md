@@ -1,63 +1,63 @@
 
 
-
-## Plano: Ajustar Texto e Logo para Ficar Identico a Referencia
+## Plano: Ajustar Step 1 para Ficar Identico a Referencia
 
 ### Diferencas Identificadas
 
-Comparando os prints fornecidos:
+Comparando o nosso codigo atual com a imagem de referencia:
 
-**Texto "Voce vai garantir nosso produto em condicao especial.":**
-
-| Aspecto | Nosso (atual) | Referencia |
-|---------|---------------|------------|
-| Layout | 3 linhas (texto quebrando em "produto") | 2 linhas bem definidas |
-| Linha 1 | "Voce vai garantir nosso" | "Voce vai garantir nosso produto" |
-| Linha 2 | "produto em condicao" | "em condicao especial." |
-| Tamanho | text-xl md:text-2xl | Parece ser maior (~text-2xl md:text-3xl) |
-| Estrutura | Tudo em um `<p>` com spans | Deve ser 2 elementos separados para controlar quebra |
-
-**Logo SlimHealth:**
-- Atual: `h-16 md:h-20` (64-80px)
-- Referencia: Precisa ser maior para equilibrar visualmente com CIMED (~h-20 md:h-24)
+| Elemento | Nosso (atual) | Referencia |
+|----------|---------------|------------|
+| Texto oferta | 2 linhas separadas: "Voce vai garantir nosso produto" + "em condicao especial." | 1 linha: "Voce vai garantir nosso produto" em preto bold + "em" em cinza na mesma linha, depois "condicao especial." em cinza |
+| Texto alerta | Todo em laranja (#D97706) | Texto principal em PRETO, apenas "19" em amarelo/laranja |
+| Botao | rounded-2xl, h-12 | Mais alto (~h-14), cantos mais suaves, verde mais vibrante |
 
 ---
 
 ### Mudancas em `src/pages/Index.tsx`
 
-**Linhas 57-60 - Texto da Oferta:**
+**1. Texto da Oferta (linhas 57-64):**
 
-Estrutura atual:
+O layout na referencia mostra:
+- "Voce vai garantir nosso produto" em preto bold
+- "em" comeca na mesma linha em cinza
+- "condicao especial." na linha abaixo em cinza
+
+Estrutura atual separada em 2 `<p>` nao reproduz isso. Preciso usar spans inline:
+
 ```text
-<p className="text-center text-xl md:text-2xl">
-  <span className="font-bold">Voce vai garantir nosso produto </span>
-  <span className="text-gray-500">em condicao especial.</span>
+<p className="text-center text-2xl md:text-3xl">
+  <span className="font-bold text-black">Voce vai garantir nosso produto </span>
+  <span className="text-gray-500">em</span>
+</p>
+<p className="text-center text-2xl md:text-3xl text-gray-500">
+  condicao especial.
 </p>
 ```
 
-Nova estrutura (2 linhas separadas):
+**2. Texto do Alerta (linhas 71-73):**
+
+Na referencia, o texto do alerta e:
+- "Restam apenas" em PRETO
+- "19" em AMARELO/LARANJA e bold
+- "unidades em estoque" em PRETO
+
+Atualmente tudo esta em laranja (#D97706). Mudar para:
+
 ```text
-<div className="text-center">
-  <p className="text-2xl md:text-3xl font-bold text-black">
-    Voce vai garantir nosso produto
-  </p>
-  <p className="text-2xl md:text-3xl text-gray-500">
-    em condicao especial.
-  </p>
-</div>
+<p className="text-base font-medium text-black">
+  Restam apenas <span className="font-bold text-[#D97706]">{STOCK_QUANTITY}</span> unidades em estoque
+</p>
 ```
 
-Isso garante:
-1. Cada frase fica em sua propria linha
-2. Tamanho maior do texto (text-2xl md:text-3xl)
-3. Primeira linha em preto/bold
-4. Segunda linha em cinza
+**3. Botao Continuar (linhas 117-127):**
 
-**Linhas 43-47 - Logo SlimHealth:**
+Na referencia o botao parece:
+- Mais alto (h-14 em vez de h-12)
+- Cantos mais arredondados (rounded-3xl)
+- Verde mais suave/vibrante
 
-Mudanca:
-- Antes: `h-16 md:h-20`
-- Depois: `h-20 md:h-24` (logo maior para melhor proporcao visual)
+Mudar altura para `h-14` e arredondamento para `rounded-3xl`.
 
 ---
 
@@ -65,13 +65,9 @@ Mudanca:
 
 Arquivo: `src/pages/Index.tsx`
 
-**1. Logo SlimHealth (linha 46):**
-- Antes: `className="h-16 md:h-20 object-contain"`
-- Depois: `className="h-20 md:h-24 object-contain"`
-
-**2. Texto da Oferta (linhas 57-60):**
-Substituir o `<p>` atual por:
+**Linha 57-64 - Texto da Oferta:**
 ```text
+Antes:
 <div className="text-center">
   <p className="text-2xl md:text-3xl font-bold text-black">
     Voce vai garantir nosso produto
@@ -80,6 +76,39 @@ Substituir o `<p>` atual por:
     em condicao especial.
   </p>
 </div>
+
+Depois:
+<div className="text-center">
+  <p className="text-2xl md:text-3xl">
+    <span className="font-bold text-black">Voce vai garantir nosso produto </span>
+    <span className="text-gray-500">em</span>
+  </p>
+  <p className="text-2xl md:text-3xl text-gray-500">
+    condicao especial.
+  </p>
+</div>
+```
+
+**Linha 71-73 - Texto do Alerta:**
+```text
+Antes:
+<p className="text-base font-medium text-[#D97706]">
+  Restam apenas <span className="font-bold">{STOCK_QUANTITY}</span> unidades em estoque
+</p>
+
+Depois:
+<p className="text-base font-medium text-black">
+  Restam apenas <span className="font-bold text-[#D97706]">{STOCK_QUANTITY}</span> unidades em estoque
+</p>
+```
+
+**Linha 120 - Botao:**
+```text
+Antes:
+className={`w-full h-12 text-lg font-semibold rounded-2xl ...
+
+Depois:
+className={`w-full h-14 text-lg font-semibold rounded-3xl ...
 ```
 
 ---
@@ -88,9 +117,8 @@ Substituir o `<p>` atual por:
 
 | Elemento | Antes | Depois |
 |----------|-------|--------|
-| Logo SlimHealth | h-16 md:h-20 | h-20 md:h-24 |
-| Estrutura texto | 1 `<p>` com spans | 2 `<p>` separados dentro de div |
-| Tamanho texto | text-xl md:text-2xl | text-2xl md:text-3xl |
-| Quebra de linha | Automatica (3 linhas) | Forcada (2 linhas) |
-
+| Texto oferta linha 1 | Todo em preto bold | "produto " em preto + "em" em cinza na mesma linha |
+| Texto alerta | Todo em laranja | Preto com apenas "19" em laranja |
+| Altura botao | h-12 | h-14 |
+| Arredondamento botao | rounded-2xl | rounded-3xl |
 
