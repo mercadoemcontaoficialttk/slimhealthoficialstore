@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import cimedLogo from "@/assets/cimed-logo.png";
+import carmedProduct from "@/assets/carmed-product.jpg";
 
 interface PrizeWheelProps {
   onWin: () => void;
@@ -169,21 +170,40 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         )}
       </div>
 
-      {/* Wheel Container */}
-      <div className="relative">
+      {/* Wheel Container with 3D Effect */}
+      <div className="relative" style={{ perspective: "1000px" }}>
+        {/* Outer Decorative Ring */}
+        <div className="absolute -inset-3 rounded-full bg-gradient-to-b from-[#F5C842] via-[#D4A934] to-[#B8941F] opacity-60 blur-sm" />
+        <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-[#FFE082] via-[#F5C842] to-[#D4A934]" />
+        
         {/* Pointer */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10">
-          <div className="w-0 h-0 border-l-[15px] border-r-[15px] border-t-[25px] border-l-transparent border-r-transparent border-t-[#D4A934] drop-shadow-lg" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20">
+          <div 
+            className="w-0 h-0 border-l-[18px] border-r-[18px] border-t-[30px] border-l-transparent border-r-transparent border-t-[#D4A934]"
+            style={{
+              filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.4))",
+            }}
+          />
         </div>
 
-        {/* Wheel */}
+        {/* Wheel with 3D Effects */}
         <div
-          className="relative w-64 h-64 md:w-80 md:h-80 rounded-full border-8 border-[#D4A934] shadow-2xl overflow-hidden"
+          className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden"
           style={{
             transform: `rotate(${rotation}deg)`,
             transition: isSpinning
               ? "transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)"
               : "none",
+            boxShadow: `
+              0 10px 40px rgba(0,0,0,0.35),
+              0 5px 15px rgba(0,0,0,0.25),
+              inset 0 -8px 20px rgba(0,0,0,0.15),
+              inset 0 8px 20px rgba(255,255,255,0.1)
+            `,
+            border: "6px solid transparent",
+            backgroundImage: "linear-gradient(145deg, #FFE082, #D4A934, #B8941F)",
+            backgroundOrigin: "border-box",
+            transformStyle: "preserve-3d",
           }}
         >
           {/* SVG Wheel Segments */}
@@ -217,32 +237,59 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                     stroke="#D4A934"
                     strokeWidth="0.5"
                   />
-                  <text
-                    x={textX}
-                    y={textY}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-                    className="text-[5px] font-bold fill-[#1a1a2e]"
-                    style={{ fontSize: "5px" }}
-                  >
-                    {segment.label.split("\n").map((line, i) => (
-                      <tspan key={i} x={textX} dy={i === 0 ? 0 : "6"}>
-                        {line}
-                      </tspan>
-                    ))}
-                  </text>
+                  {index === 3 ? (
+                    /* Carmed segment - show product image */
+                    <image
+                      href={carmedProduct}
+                      x={textX - 8}
+                      y={textY - 8}
+                      width="16"
+                      height="16"
+                      transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+                      style={{ borderRadius: "50%" }}
+                      preserveAspectRatio="xMidYMid slice"
+                    />
+                  ) : (
+                    <text
+                      x={textX}
+                      y={textY}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+                      className="font-bold fill-[#1a1a2e]"
+                      style={{ fontSize: "4px" }}
+                    >
+                      {segment.label.split("\n").map((line, i) => (
+                        <tspan key={i} x={textX} dy={i === 0 ? 0 : "4.5"}>
+                          {line}
+                        </tspan>
+                      ))}
+                    </text>
+                  )}
                 </g>
               );
             })}
           </svg>
 
-          {/* Center Logo */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full bg-white shadow-lg flex items-center justify-center border-4 border-[#D4A934]">
+          {/* Center Logo with 3D Effect */}
+          <div 
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-b from-white to-gray-100 flex items-center justify-center"
+            style={{
+              boxShadow: `
+                0 4px 15px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.8),
+                inset 0 -2px 4px rgba(0,0,0,0.1)
+              `,
+              border: "4px solid",
+              borderImage: "linear-gradient(145deg, #FFE082, #D4A934) 1",
+              borderRadius: "50%",
+              borderColor: "#D4A934",
+            }}
+          >
             <img
               src={cimedLogo}
               alt="CIMED"
-              className="w-10 h-10 md:w-12 md:h-12 object-contain"
+              className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-sm"
             />
           </div>
         </div>
