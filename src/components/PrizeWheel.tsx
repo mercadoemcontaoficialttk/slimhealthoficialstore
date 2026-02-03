@@ -9,14 +9,14 @@ interface PrizeWheelProps {
 }
 
 const SEGMENTS = [
-  { label: "20%", fullLabel: "20% de desconto", color: "#F5C842" },
-  { label: "Tente\nnovamente", fullLabel: "Tente novamente", color: "#FFFFFF" },
-  { label: "40%", fullLabel: "40% de desconto", color: "#F5C842" },
-  { label: "Carmed", fullLabel: "Carmed", color: "#FFFFFF" },
-  { label: "96%", fullLabel: "96% de desconto", color: "#F5C842" },
-  { label: "Tente\nnovamente", fullLabel: "Tente novamente", color: "#FFFFFF" },
-  { label: "30%", fullLabel: "30% de desconto", color: "#F5C842" },
-  { label: "Frete\nGrátis", fullLabel: "Frete Grátis", color: "#FFFFFF" },
+  { label: "20%", fullLabel: "20% de desconto", color: "url(#goldSegment)" },
+  { label: "Tente\nnovamente", fullLabel: "Tente novamente", color: "url(#whiteSegment)" },
+  { label: "40%", fullLabel: "40% de desconto", color: "url(#goldSegment)" },
+  { label: "Carmed", fullLabel: "Carmed", color: "url(#whiteSegment)" },
+  { label: "96%", fullLabel: "96% de desconto", color: "url(#goldSegment)" },
+  { label: "Tente\nnovamente", fullLabel: "Tente novamente", color: "url(#whiteSegment)" },
+  { label: "30%", fullLabel: "30% de desconto", color: "url(#goldSegment)" },
+  { label: "Frete\nGrátis", fullLabel: "Frete Grátis", color: "url(#whiteSegment)" },
 ];
 
 const SEGMENT_ANGLE = 360 / SEGMENTS.length; // 45 degrees per segment
@@ -106,11 +106,8 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
     const targetSegmentIndex = 4;
     
     // Calculate the angle to land on the center of the target segment
-    // The wheel rotates clockwise, and the pointer is at the top (0 degrees)
-    // Each segment spans 45 degrees, starting from the top
     const segmentCenterAngle = targetSegmentIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
     
-    // We need to rotate so that the target segment is at the top (under the pointer)
     // Add extra rotations for effect (4-5 full rotations)
     const extraRotations = (4 + Math.random()) * 360;
     const targetRotation = rotation + extraRotations + (360 - segmentCenterAngle);
@@ -153,6 +150,21 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
     return "GIRANDO...";
   };
 
+  // Generate pin positions for outer ring
+  const generatePins = () => {
+    const pins = [];
+    const numPins = 24;
+    for (let i = 0; i < numPins; i++) {
+      const angle = (i * 360 / numPins - 90) * Math.PI / 180;
+      const x = 50 + 47 * Math.cos(angle);
+      const y = 50 + 47 * Math.sin(angle);
+      pins.push({ x, y, key: i });
+    }
+    return pins;
+  };
+
+  const pins = generatePins();
+
   return (
     <div className="w-full flex flex-col items-center gap-6">
       {/* Title */}
@@ -167,90 +179,184 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         )}
       </div>
 
-      {/* Wheel Container with 3D Effect */}
+      {/* Wheel Container with Casino Style */}
       <div className="relative" style={{ perspective: "1000px" }}>
-        {/* Outer Decorative Ring */}
-        <div className="absolute -inset-3 rounded-full bg-gradient-to-b from-[#F5C842] via-[#D4A934] to-[#B8941F] opacity-60 blur-sm" />
-        <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-[#FFE082] via-[#F5C842] to-[#D4A934]" />
+        {/* Outer Glow Effect */}
+        <div 
+          className="absolute -inset-6 rounded-full opacity-60"
+          style={{
+            background: "radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(255,215,0,0) 70%)",
+            filter: "blur(15px)",
+          }}
+        />
+
+        {/* Outer Decorative Ring with Metallic Effect */}
+        <div 
+          className="absolute -inset-4 rounded-full"
+          style={{
+            background: "linear-gradient(135deg, #FFE082 0%, #FFD700 25%, #B8860B 50%, #FFD700 75%, #FFE082 100%)",
+            boxShadow: `
+              0 0 30px rgba(255,215,0,0.5),
+              inset 0 2px 4px rgba(255,255,255,0.5),
+              inset 0 -2px 4px rgba(0,0,0,0.3)
+            `,
+          }}
+        />
+
+        {/* Second Ring */}
+        <div 
+          className="absolute -inset-2 rounded-full"
+          style={{
+            background: "linear-gradient(180deg, #8B4513 0%, #654321 50%, #8B4513 100%)",
+            boxShadow: "inset 0 2px 8px rgba(0,0,0,0.5)",
+          }}
+        />
         
-        {/* Pointer */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20">
+        {/* Pointer - Premium Casino Style */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 z-30">
+          {/* Pointer base circle */}
           <div 
-            className="w-0 h-0 border-l-[18px] border-r-[18px] border-t-[30px] border-l-transparent border-r-transparent border-t-[#D4A934]"
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full"
             style={{
-              filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.4))",
+              background: "linear-gradient(180deg, #FFD700 0%, #B8860B 100%)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+              border: "2px solid #8B4513",
             }}
           />
+          {/* Pointer arrow */}
+          <svg 
+            width="40" 
+            height="50" 
+            viewBox="0 0 40 50" 
+            className="relative"
+            style={{ filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.4))" }}
+          >
+            <defs>
+              <linearGradient id="pointerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FF4444" />
+                <stop offset="50%" stopColor="#CC0000" />
+                <stop offset="100%" stopColor="#FF4444" />
+              </linearGradient>
+              <linearGradient id="pointerHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.5)" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+              </linearGradient>
+            </defs>
+            <path 
+              d="M20 50 L8 15 L20 0 L32 15 Z" 
+              fill="url(#pointerGradient)"
+              stroke="#8B0000"
+              strokeWidth="2"
+            />
+            <path 
+              d="M20 48 L10 16 L20 3 L20 48 Z" 
+              fill="url(#pointerHighlight)"
+            />
+          </svg>
         </div>
 
-        {/* Wheel with 3D Effects */}
+        {/* Main Wheel */}
         <div
-          className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden"
+          className="relative w-72 h-72 md:w-80 md:h-80 rounded-full overflow-hidden"
           style={{
             transform: `rotate(${rotation}deg)`,
             transition: isSpinning
               ? "transform 7s cubic-bezier(0.17, 0.67, 0.12, 0.99)"
               : "none",
             boxShadow: `
-              0 10px 40px rgba(0,0,0,0.35),
-              0 5px 15px rgba(0,0,0,0.25),
-              inset 0 -8px 20px rgba(0,0,0,0.15),
-              inset 0 8px 20px rgba(255,255,255,0.1)
+              0 10px 40px rgba(0,0,0,0.4),
+              inset 0 0 20px rgba(0,0,0,0.2)
             `,
-            border: "6px solid transparent",
-            backgroundImage: "linear-gradient(145deg, #FFE082, #D4A934, #B8941F)",
-            backgroundOrigin: "border-box",
-            transformStyle: "preserve-3d",
           }}
         >
           {/* SVG Wheel Segments */}
           <svg viewBox="0 0 100 100" className="w-full h-full">
             <defs>
-              <filter id="emboss" x="-50%" y="-50%" width="200%" height="200%">
-                <feDropShadow dx="0.4" dy="0.4" stdDeviation="0.15" floodColor="#000" floodOpacity="0.6"/>
-                <feDropShadow dx="-0.25" dy="-0.25" stdDeviation="0.1" floodColor="#fff" floodOpacity="0.5"/>
+              {/* Gold Segment Gradient */}
+              <linearGradient id="goldSegment" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FFD700" />
+                <stop offset="50%" stopColor="#FFA500" />
+                <stop offset="100%" stopColor="#FF8C00" />
+              </linearGradient>
+              
+              {/* White Segment Gradient */}
+              <linearGradient id="whiteSegment" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#FFFFFF" />
+                <stop offset="50%" stopColor="#F8F8F8" />
+                <stop offset="100%" stopColor="#E8E8E8" />
+              </linearGradient>
+
+              {/* Text Shadow/Emboss Filter */}
+              <filter id="textEmboss" x="-50%" y="-50%" width="200%" height="200%">
+                <feDropShadow dx="0.5" dy="0.5" stdDeviation="0.2" floodColor="#000" floodOpacity="0.7"/>
+                <feDropShadow dx="-0.3" dy="-0.3" stdDeviation="0.15" floodColor="#fff" floodOpacity="0.5"/>
               </filter>
+
+              {/* Pin Gradient */}
+              <radialGradient id="pinGradient">
+                <stop offset="0%" stopColor="#FFE082" />
+                <stop offset="50%" stopColor="#FFD700" />
+                <stop offset="100%" stopColor="#B8860B" />
+              </radialGradient>
             </defs>
+
+            {/* Outer ring with pins */}
+            <circle cx="50" cy="50" r="49" fill="none" stroke="url(#pinGradient)" strokeWidth="3" />
+            
+            {/* Decorative pins */}
+            {pins.map((pin) => (
+              <circle 
+                key={pin.key}
+                cx={pin.x} 
+                cy={pin.y} 
+                r="1.8"
+                fill="url(#pinGradient)"
+                stroke="#8B7500"
+                strokeWidth="0.3"
+              />
+            ))}
+
+            {/* Segments */}
             {SEGMENTS.map((segment, index) => {
-              const startAngle = index * SEGMENT_ANGLE - 90; // Start from top
+              const startAngle = index * SEGMENT_ANGLE - 90;
               const endAngle = startAngle + SEGMENT_ANGLE;
               const startRad = (startAngle * Math.PI) / 180;
               const endRad = (endAngle * Math.PI) / 180;
               
-              const x1 = 50 + 50 * Math.cos(startRad);
-              const y1 = 50 + 50 * Math.sin(startRad);
-              const x2 = 50 + 50 * Math.cos(endRad);
-              const y2 = 50 + 50 * Math.sin(endRad);
+              const x1 = 50 + 44 * Math.cos(startRad);
+              const y1 = 50 + 44 * Math.sin(startRad);
+              const x2 = 50 + 44 * Math.cos(endRad);
+              const y2 = 50 + 44 * Math.sin(endRad);
               
               const largeArcFlag = SEGMENT_ANGLE > 180 ? 1 : 0;
               
-              const pathD = `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+              const pathD = `M 50 50 L ${x1} ${y1} A 44 44 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
               
-              // Calculate text position (center of segment)
+              // Calculate text position
               const midAngle = ((startAngle + endAngle) / 2 * Math.PI) / 180;
-              const textX = 50 + 32 * Math.cos(midAngle);
-              const textY = 50 + 32 * Math.sin(midAngle);
-              const textRotation = (startAngle + endAngle) / 2; // Radial rotation (no +90)
+              const textX = 50 + 30 * Math.cos(midAngle);
+              const textY = 50 + 30 * Math.sin(midAngle);
+              const textRotation = (startAngle + endAngle) / 2;
 
               return (
                 <g key={index}>
                   <path
                     d={pathD}
                     fill={segment.color}
-                    stroke="#D4A934"
-                    strokeWidth="0.5"
+                    stroke="#B8860B"
+                    strokeWidth="1"
                   />
                   {index === 3 ? (
                     /* Carmed segment - show product image */
                     <image
                       href={carmedProduct}
-                      x={textX - 8}
-                      y={textY - 8}
-                      width="16"
-                      height="16"
+                      x={textX - 7}
+                      y={textY - 7}
+                      width="14"
+                      height="14"
                       transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-                      style={{ borderRadius: "50%" }}
                       preserveAspectRatio="xMidYMid slice"
+                      clipPath="circle(7px at 7px 7px)"
                     />
                   ) : (
                     <text
@@ -259,17 +365,17 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                       textAnchor="middle"
                       dominantBaseline="middle"
                       transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-                      filter="url(#emboss)"
+                      filter="url(#textEmboss)"
                       style={{ 
-                        fontSize: "6px", 
+                        fontSize: "5.5px", 
                         fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
                         fontWeight: 900,
-                        letterSpacing: "0.03em"
+                        letterSpacing: "0.02em",
                       }}
                       className="fill-[#1a1a2e]"
                     >
                       {segment.label.split("\n").map((line, i) => (
-                        <tspan key={i} x={textX} dy={i === 0 ? 0 : "5"}>
+                        <tspan key={i} x={textX} dy={i === 0 ? 0 : "4.5"}>
                           {line}
                         </tspan>
                       ))}
@@ -278,27 +384,39 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                 </g>
               );
             })}
-          </svg>
 
+            {/* Inner decorative ring */}
+            <circle 
+              cx="50" 
+              cy="50" 
+              r="15" 
+              fill="none" 
+              stroke="url(#pinGradient)" 
+              strokeWidth="2"
+            />
+          </svg>
         </div>
 
-        {/* Center Logo with 3D Effect - OUTSIDE rotating container */}
+        {/* Center Logo - STATIC (doesn't rotate) */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-b from-white to-gray-100 flex items-center justify-center z-30"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center z-30"
           style={{
+            background: "linear-gradient(180deg, #FFFFFF 0%, #F0F0F0 50%, #E0E0E0 100%)",
             boxShadow: `
-              0 4px 15px rgba(0,0,0,0.3),
-              inset 0 2px 4px rgba(255,255,255,0.8),
-              inset 0 -2px 4px rgba(0,0,0,0.1)
+              0 8px 25px rgba(0,0,0,0.4),
+              inset 0 3px 6px rgba(255,255,255,0.9),
+              inset 0 -3px 6px rgba(0,0,0,0.15)
             `,
-            border: "4px solid #D4A934",
+            border: "5px solid",
+            borderImage: "linear-gradient(180deg, #FFD700 0%, #B8860B 50%, #8B7500 100%) 1",
             borderRadius: "50%",
+            borderColor: "#B8860B",
           }}
         >
           <img
             src={cimedLogo}
             alt="CIMED"
-            className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-sm"
+            className="w-12 h-12 md:w-14 md:h-14 object-contain drop-shadow-md"
           />
         </div>
       </div>
@@ -317,9 +435,9 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
 
       {/* Celebration Message */}
       {showCelebration && (
-        <div className="text-center animate-fade-in bg-gradient-to-r from-[#F5C842] to-[#FFE082] p-4 rounded-2xl">
+        <div className="text-center animate-fade-in bg-gradient-to-r from-[#FFD700] to-[#FFA500] p-4 rounded-2xl shadow-lg">
           <p className="text-lg font-bold text-[#1a1a2e]">
-            🎁 Você ganhou 96% de desconto!
+            🎰 Você ganhou 96% de desconto! 🎰
           </p>
           <p className="text-sm text-[#1a1a2e]/80 mt-1">
             Clique no botão abaixo para resgatar seu prêmio.
@@ -334,7 +452,7 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         className={`w-full h-14 text-lg font-bold rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
           showCelebration
             ? "bg-cta hover:bg-cta/90 text-white"
-            : "bg-[#F5C842] hover:bg-[#D4A934] text-[#1a1a2e]"
+            : "bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-[#1a1a2e] shadow-lg"
         } ${isSpinning ? "opacity-70 cursor-not-allowed hover:scale-100" : ""}`}
       >
         {getButtonText()}
