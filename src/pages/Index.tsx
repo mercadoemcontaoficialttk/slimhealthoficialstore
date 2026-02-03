@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle } from "lucide-react";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
+import PrizeWheel from "@/components/PrizeWheel";
 
 const STOCK_QUANTITY = 19;
 
@@ -21,8 +21,12 @@ const Index = () => {
     } else if (step === 2 && name.trim()) {
       setStep(3);
     } else if (step === 3 && age.trim()) {
-      navigate("/checkout");
+      setStep(4); // Go to prize wheel
     }
+  };
+
+  const handleWheelWin = () => {
+    navigate("/checkout");
   };
 
   const isButtonEnabled = () => {
@@ -114,18 +118,24 @@ const Index = () => {
             </>
           )}
 
-          {/* CTA Button */}
-          <Button 
-            onClick={handleContinue}
-            disabled={!isButtonEnabled()}
-            className={`w-full h-14 text-lg font-bold rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-              isButtonEnabled() 
-                ? "bg-cta hover:bg-cta/90 text-white" 
-                : "bg-[#C5CAD4] text-white cursor-not-allowed hover:scale-100"
-            }`}
-          >
-            Continuar
-          </Button>
+          {step === 4 && (
+            <PrizeWheel onWin={handleWheelWin} userName={name} />
+          )}
+
+          {/* CTA Button - Only show for steps 1-3 */}
+          {step < 4 && (
+            <Button 
+              onClick={handleContinue}
+              disabled={!isButtonEnabled()}
+              className={`w-full h-14 text-lg font-bold rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                isButtonEnabled() 
+                  ? "bg-cta hover:bg-cta/90 text-white" 
+                  : "bg-[#C5CAD4] text-white cursor-not-allowed hover:scale-100"
+              }`}
+            >
+              Continuar
+            </Button>
+          )}
           
           {/* CIMED Logo - Steps 2 e 3 */}
           {(step === 2 || step === 3) && (
