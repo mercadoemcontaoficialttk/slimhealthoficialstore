@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, ShoppingCart, MoreHorizontal, Star, Bookmark, Zap } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart, MoreHorizontal, Star, Bookmark, Zap, Check } from "lucide-react";
 
 // Assets
 import foto1 from "@/assets/mounjaro/foto1.png";
@@ -19,56 +19,56 @@ const reviews = [
     name: "Carlos Silva",
     avatar: "https://picsum.photos/200/200?random=101",
     stars: 5,
-    text: "Excelente medicamento!! O mounjaro ajudou mt no controle da minha diabetes tipo 2. A aplicação semanal é prática e os resultados nos exames de sangue foram surpreendentes ,Recomendo p quem precisa controlar a glicose."
+    text: "Chegou hj!! Embalagem perfeita, tudo certinho. Segunda feira começo o tratamento, to super animado!!"
   },
   {
     id: 2,
     name: "Ana Santos",
     avatar: "https://picsum.photos/200/200?random=102",
     stars: 5,
-    text: "Finalmente encontrei um tratamento q funciona!! O mounjaro não só controla a diabetes como tambem ajudou na perda de peso. A caneta é facil de usar e a dosagem semanal facilita mt o tratamento diario."
+    text: "gente ja perdi 12kg em 2 meses!! to chocada, nunca achei q fosse funcionar assim. recomendo mtooo"
   },
   {
     id: 3,
     name: "João Pereira",
     avatar: "https://picsum.photos/200/200?random=103",
     stars: 4,
-    text: "Medicamento revolucionario!! Alem de controlar perfeitamente a glicemia, o mounjaro ajudou a reduzir meu peso corporal. Os efeitos colaterais foram minimos e o resultado valeu cada centavo investido na saude."
+    text: "minha esposa ta usando há 3 semanas e já perdeu 5kg. Vou comprar mais uma pra mim tbm"
   },
   {
     id: 4,
     name: "Fernanda Lima",
     avatar: "https://picsum.photos/200/200?random=104",
     stars: 5,
-    text: "Impressionada com os resultados! Comecei a usar o Mounjaro há 3 meses e já perdi 12kg. Minha glicose está controlada e me sinto com muito mais energia no dia a dia. Super recomendo!"
+    text: "Recebi ontem, veio rapido demais! Aplicação super facil, nem senti a agulha. Ansiosa pelos resultados"
   },
   {
     id: 5,
     name: "Roberto Mendes",
     avatar: "https://picsum.photos/200/200?random=105",
     stars: 5,
-    text: "Melhor investimento na minha saúde! A caneta é muito prática de usar e os resultados começaram a aparecer já nas primeiras semanas. Meu médico ficou surpreso com a melhora nos exames."
+    text: "Cara mudou minha vida!! Antes eu pesava 98kg, hoje to com 82kg. Melhor investimento q fiz"
   },
   {
     id: 6,
     name: "Mariana Costa",
     avatar: "https://picsum.photos/200/200?random=106",
     stars: 4,
-    text: "Ótimo medicamento! Tive alguns efeitos colaterais leves no início mas passaram rápido. Depois de 2 meses já notei grande diferença no controle da diabetes e na balança."
+    text: "chegou antes do prazo, embalagem refrigerada certinho. Ja apliquei a primeira dose, zero dor!"
   },
   {
     id: 7,
     name: "Paulo Rodrigues",
     avatar: "https://picsum.photos/200/200?random=107",
     stars: 5,
-    text: "Mudou minha vida! Antes eu tinha muita dificuldade em controlar a glicemia mesmo com outros medicamentos. Com o Mounjaro tudo ficou mais fácil e ainda emagreci 8kg."
+    text: "terceira compra já!! Perdi 15kg desde janeiro, meu medico ficou impressionado com os exames"
   },
   {
     id: 8,
     name: "Lucia Ferreira",
     avatar: "https://picsum.photos/200/200?random=108",
     stars: 5,
-    text: "Produto excelente e entrega super rápida! A aplicação é indolor e os resultados são visíveis. Minha hemoglobina glicada baixou bastante e estou muito feliz com o tratamento."
+    text: "Produto original, lacrado. Entrega super rapida. To no segundo mês e ja emagreci 8kg, feliz demais"
   }
 ];
 
@@ -260,7 +260,7 @@ const MounjaroPage = () => {
               4.9
             </span>
             <span className="text-sky-600">(8)</span>
-            <span className="text-slate-500">• 2.977 vendidos</span>
+            <span className="text-slate-500">• 39.8k vendido(s)</span>
           </div>
 
           <div className="my-3 border-b" />
@@ -348,11 +348,14 @@ const MounjaroPage = () => {
               <div className="flex items-center gap-2">
                 <img src={review.avatar} alt={review.name} className="w-6 h-6 rounded-full object-cover" />
                 <div className="text-[13px] font-medium">{review.name}</div>
+                <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600">
+                  <Check className="w-3 h-3" />
+                  Compra confirmada
+                </span>
               </div>
               <div className="mt-1 text-amber-500 text-[12px]">
                 {"★".repeat(review.stars)}{"☆".repeat(5 - review.stars)}
               </div>
-              <div className="text-[11px] text-slate-500">Compra Verificada</div>
               <p className="mt-2 text-[13px] text-slate-800 line-clamp-3">{review.text}</p>
             </article>
           ))}
@@ -385,7 +388,7 @@ const MounjaroPage = () => {
         <section className="bg-white px-3 py-3 border-t">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={slimHealthLogo} alt="SlimHealth Logo" className="w-12 h-12 rounded-full object-contain ring-2 ring-emerald-100 bg-white p-1" />
+              <img src={slimHealthLogo} alt="SlimHealth Logo" className="w-12 h-12 rounded-full object-contain bg-white p-1" />
               <div className="leading-tight">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-[15px]">SlimHealth Oficial</span>
@@ -394,7 +397,7 @@ const MounjaroPage = () => {
                     <polygon fill="#fff" points="21.396,31.255 14.899,24.76 17.021,22.639 21.428,27.046 30.996,17.772 33.084,19.926" />
                   </svg>
                 </div>
-                <div className="text-xs text-slate-500">18.8K vendido(s)</div>
+                <div className="text-xs text-slate-500">498.2K vendido(s)</div>
               </div>
             </div>
             <button 
