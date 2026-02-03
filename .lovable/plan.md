@@ -54,4 +54,3 @@ Recriar o funil de vendas do site mjpre.lovable.app, começando pela página de 
 1. ✅ Implementar Página 1 (Pré-Conversão)
 2. ⏳ Você envia referência da Página 2
 3. ⏳ Implementar Página 2 (Checkout/Vendas)
-
