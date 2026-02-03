@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, ShoppingCart, MoreHorizontal, Star, Bookmark, Zap, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart, MoreHorizontal, Star, Bookmark, Zap, Check, Truck, Store, MessageCircle, Shield } from "lucide-react";
 
 // Assets
 import foto1 from "@/assets/mounjaro/foto1.png";
@@ -133,26 +133,20 @@ const MounjaroPage = () => {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b">
         <div className="max-w-screen-sm mx-auto px-3">
           <div className="h-12 flex items-center justify-between">
-            <button 
-              onClick={() => navigate(-1)}
-              className="p-2 rounded-lg hover:bg-slate-100 active:scale-95 transition"
-            >
+            <div className="p-2">
               <ChevronLeft className="w-5 h-5" />
-            </button>
+            </div>
 
             <div className="flex items-center gap-4">
-              <button className="p-2 rounded-lg hover:bg-slate-100 active:scale-95 transition">
+              <div className="p-2">
                 <img src={seta} alt="Compartilhar" className="w-5 h-5 object-contain" />
-              </button>
-              <button 
-                onClick={() => navigate("/product")}
-                className="p-2 rounded-lg hover:bg-slate-100 active:scale-95 transition"
-              >
+              </div>
+              <div className="p-2">
                 <ShoppingCart className="w-[22px] h-[22px]" />
-              </button>
-              <button className="p-2 rounded-lg hover:bg-slate-100 active:scale-95 transition">
+              </div>
+              <div className="p-2">
                 <MoreHorizontal className="w-6 h-6" />
-              </button>
+              </div>
             </div>
           </div>
         </div>
@@ -269,7 +263,7 @@ const MounjaroPage = () => {
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-[13px]">
-                <span className="text-lg">🚚</span>
+                <Truck className="w-5 h-5 text-slate-500" />
                 <span className="px-2 py-[2px] rounded bg-emerald-50 text-emerald-600 font-semibold">
                   Frete grátis
                 </span>
@@ -289,7 +283,7 @@ const MounjaroPage = () => {
         <section className="bg-[#fdf4e9] text-[#8b5e34]">
           <div className="flex items-center justify-between px-3 py-1.5">
             <div className="inline-flex items-center gap-2 font-semibold text-[13px]">
-              <span className="text-lg">🛡️</span>
+              <Shield className="w-5 h-5 text-[#8b5e34]" />
               Proteção do cliente
             </div>
             <ChevronRight className="w-5 h-5" />
@@ -484,13 +478,13 @@ const MounjaroPage = () => {
             onClick={() => navigate("/product")}
             className="flex flex-col items-center justify-center w-12 shrink-0 text-[11px] text-slate-700"
           >
-            <span className="text-xl">🏪</span>
+            <Store className="w-6 h-6 text-slate-500" />
             <span className="mt-0.5 leading-none">Loja</span>
           </button>
 
           {/* Chat */}
           <button className="flex flex-col items-center justify-center w-12 shrink-0 text-[11px] text-slate-700">
-            <span className="text-xl">💬</span>
+            <MessageCircle className="w-6 h-6 text-slate-500" />
             <span className="mt-0.5 leading-none">Chat</span>
           </button>
 
@@ -502,7 +496,7 @@ const MounjaroPage = () => {
           {/* Buy Now */}
           <button 
             onClick={() => navigate("/checkout")}
-            className="flex-1 h-11 rounded-xl bg-[#ff3b66] text-white font-semibold text-[14px] leading-none"
+            className="flex-1 h-11 rounded-xl bg-[#ff3b66] text-white font-semibold text-[13px] leading-none"
           >
             Comprar Agora
           </button>
