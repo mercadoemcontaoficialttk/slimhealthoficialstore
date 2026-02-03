@@ -2,98 +2,86 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ChevronLeft, 
-  ChevronRight, 
   Share2, 
   ShoppingCart, 
   MoreHorizontal,
   Zap,
   Star,
   Truck,
-  Shield,
-  MessageCircle,
-  Store,
-  BadgeCheck
+  CheckCircle2,
+  Store
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import carmedProduct from "@/assets/carmed-product.jpg";
-import { format, addDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
-// Imagens do produto (usando a mesma imagem 3x para demo)
-const productImages = [carmedProduct, carmedProduct, carmedProduct];
+// Product images
+import foto1 from "@/assets/product/foto1.png";
+import foto2 from "@/assets/product/foto2.webp";
+import foto3 from "@/assets/product/foto3.webp";
+import foto4 from "@/assets/product/foto4.jpg";
 
-// Dados mockados das avaliações
+// Review images
+import carlosSilva from "@/assets/reviews/carlos_silva.jpeg";
+import carlosProva from "@/assets/reviews/carlos_prova.jpeg";
+import anaSantos from "@/assets/reviews/ana_santos.jpeg";
+import anaProva from "@/assets/reviews/ana_prova.jpeg";
+import joaoPereira from "@/assets/reviews/joao_pereira.jpeg";
+import joaoProva from "@/assets/reviews/joao_prova.jpeg";
+import fernandaLima from "@/assets/reviews/fernanda_lima.jpeg";
+import fernandaProva from "@/assets/reviews/fernanda_prova.jpeg";
+import robertoMendes from "@/assets/reviews/roberto_mendes.jpeg";
+import robertoProva from "@/assets/reviews/roberto_prova.jpeg";
+
+// Shop logo
+import slimhealthLogo from "@/assets/slimhealth-shop-logo.png";
+
+// Chat icon
+import chatIcon from "@/assets/icons/chat.png";
+
+const productImages = [foto1, foto2, foto3, foto4];
+
 const reviews = [
   {
     id: 1,
-    name: "Maria S.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    rating: 5,
-    date: "2024-01-15",
-    text: "Produto maravilhoso! Chegou super rápido e a qualidade é excelente. Recomendo demais!",
-    tags: ["Entrega rápida", "Ótima qualidade"]
+    name: "Carlos Silva",
+    avatar: carlosSilva,
+    provaImage: carlosProva,
+    text: "Acabei de receber hoje, vou tomar hoje mesmo!! Chegou super rapido e bem embalado. Ansiosa pelos resultados 🙌"
   },
   {
     id: 2,
-    name: "João P.",
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    rating: 5,
-    date: "2024-01-10",
-    text: "Já é a terceira vez que compro. Sempre satisfeito com o produto e o atendimento.",
-    tags: ["Compra repetida", "Satisfeito"]
+    name: "Ana Santos",
+    avatar: anaSantos,
+    provaImage: anaProva,
+    text: "Gente funciona demais!! Ja perdi 4kg em 2 semanas. Super recomendo p qm quer emagrecer de vdd"
   },
   {
     id: 3,
-    name: "Ana C.",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-    rating: 4,
-    date: "2024-01-05",
-    text: "Muito bom! Hidrata muito bem os lábios. Só achei a embalagem um pouco pequena.",
-    tags: ["Hidratante", "Eficaz"]
-  }
-];
-
-// Produtos recomendados
-const recommendedProducts = [
-  {
-    id: 1,
-    name: "Carmed Fini",
-    price: 29.90,
-    originalPrice: 49.90,
-    image: carmedProduct,
-    sold: 1234
-  },
-  {
-    id: 2,
-    name: "Carmed BFF",
-    price: 34.90,
-    originalPrice: 59.90,
-    image: carmedProduct,
-    sold: 856
-  },
-  {
-    id: 3,
-    name: "Carmed Gloss",
-    price: 24.90,
-    originalPrice: 39.90,
-    image: carmedProduct,
-    sold: 2341
+    name: "João Pereira",
+    avatar: joaoPereira,
+    provaImage: joaoProva,
+    text: "Melhor compra q fiz!! O preco ta mt bom comparado as farmacias. Ja é a segunda vez q compro aqui"
   },
   {
     id: 4,
-    name: "Kit Carmed 3x",
-    price: 79.90,
-    originalPrice: 149.90,
-    image: carmedProduct,
-    sold: 567
+    name: "Fernanda Lima",
+    avatar: fernandaLima,
+    provaImage: fernandaProva,
+    text: "Chegou certinho!! Produto original, lacrado. Minha endocrinologista aprovou. Ja to na segunda dose e sem efeitos colaterais"
+  },
+  {
+    id: 5,
+    name: "Roberto Mendes",
+    avatar: robertoMendes,
+    provaImage: robertoProva,
+    text: "Recomendo demais! Minha esposa perdeu 6kg no primeiro mes. Agora to comprando pra mim tbm haha"
   }
 ];
 
 const ProductPage = () => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState({ hours: 2, minutes: 45, seconds: 30 });
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 9, seconds: 35 });
   const galleryRef = useRef<HTMLDivElement>(null);
 
   // Countdown timer
@@ -120,16 +108,6 @@ const ProductPage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Scroll gallery
-  const scrollToImage = (index: number) => {
-    if (galleryRef.current) {
-      const scrollAmount = index * galleryRef.current.offsetWidth;
-      galleryRef.current.scrollTo({ left: scrollAmount, behavior: 'smooth' });
-      setCurrentImageIndex(index);
-    }
-  };
-
-  // Handle gallery scroll
   const handleScroll = () => {
     if (galleryRef.current) {
       const scrollPosition = galleryRef.current.scrollLeft;
@@ -139,15 +117,12 @@ const ProductPage = () => {
     }
   };
 
-  // Calcular data de entrega
-  const deliveryDate = format(addDays(new Date(), 5), "d 'de' MMMM", { locale: ptBR });
-
   const formatTime = (num: number) => num.toString().padStart(2, '0');
 
   return (
     <div className="min-h-screen bg-white pb-20">
       {/* Header Sticky */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-100">
         <div className="flex items-center justify-between px-4 py-3">
           <button 
             onClick={() => navigate(-1)}
@@ -162,7 +137,7 @@ const ProductPage = () => {
             </button>
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
               <ShoppingCart className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 bg-[#ff3b66] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-[#fe2c55] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
                 1
               </span>
             </button>
@@ -174,7 +149,7 @@ const ProductPage = () => {
       </header>
 
       {/* Image Gallery */}
-      <div className="relative">
+      <div className="relative bg-gray-50">
         <div 
           ref={galleryRef}
           onScroll={handleScroll}
@@ -184,66 +159,36 @@ const ProductPage = () => {
           {productImages.map((img, index) => (
             <div 
               key={index} 
-              className="min-w-full snap-center"
+              className="min-w-full snap-center flex items-center justify-center p-4"
             >
               <img 
                 src={img} 
                 alt={`Produto ${index + 1}`}
-                className="w-full aspect-square object-cover"
+                className="max-h-[350px] w-auto object-contain"
               />
             </div>
           ))}
         </div>
         
         {/* Image counter */}
-        <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
           {currentImageIndex + 1}/{productImages.length}
-        </div>
-
-        {/* Navigation arrows (desktop) */}
-        <button 
-          onClick={() => scrollToImage(Math.max(0, currentImageIndex - 1))}
-          className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full items-center justify-center shadow-lg hover:bg-white transition-colors"
-          disabled={currentImageIndex === 0}
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <button 
-          onClick={() => scrollToImage(Math.min(productImages.length - 1, currentImageIndex + 1))}
-          className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full items-center justify-center shadow-lg hover:bg-white transition-colors"
-          disabled={currentImageIndex === productImages.length - 1}
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-
-        {/* Dots indicator */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-          {productImages.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => scrollToImage(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentImageIndex ? 'bg-white w-4' : 'bg-white/50'
-              }`}
-            />
-          ))}
         </div>
       </div>
 
       {/* Flash Price Section */}
-      <div className="bg-gradient-to-r from-[#ff3b66] via-[#ff5a5f] to-[#ff8a3d] p-4 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="bg-[#ffeb3b] text-[#ff3b66] font-bold text-sm px-2 py-0.5 rounded">
-              -96%
-            </span>
-            <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">R$ 67,90</span>
-                <span className="text-white/70 line-through text-sm">R$ 1.799,00</span>
-              </div>
-            </div>
+      <div className="bg-gradient-to-r from-[#fe2c55] to-[#ff6b35] p-4 text-white">
+        <div className="flex items-center gap-3">
+          <span className="bg-[#ffeb3b] text-[#fe2c55] font-bold text-sm px-2 py-0.5 rounded">
+            -96%
+          </span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold">R$ 67,90</span>
           </div>
+        </div>
+        
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-white/80 line-through text-sm">R$ 1.789,87</span>
         </div>
         
         <div className="flex items-center justify-between mt-3">
@@ -252,145 +197,115 @@ const ProductPage = () => {
             <span className="font-semibold">Oferta Relâmpago</span>
           </div>
           
-          <div className="flex items-center gap-1 bg-black/20 px-3 py-1.5 rounded-lg">
-            <span className="text-sm">Termina em</span>
-            <div className="flex gap-1 font-mono font-bold">
-              <span className="bg-black/30 px-1.5 py-0.5 rounded">{formatTime(timeLeft.hours)}</span>
+          <div className="flex items-center gap-1 text-sm">
+            <span>Termina em</span>
+            <div className="flex font-mono font-bold">
+              <span>{formatTime(timeLeft.hours)}</span>
               <span>:</span>
-              <span className="bg-black/30 px-1.5 py-0.5 rounded">{formatTime(timeLeft.minutes)}</span>
+              <span>{formatTime(timeLeft.minutes)}</span>
               <span>:</span>
-              <span className="bg-black/30 px-1.5 py-0.5 rounded">{formatTime(timeLeft.seconds)}</span>
+              <span>{formatTime(timeLeft.seconds)}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Promo Banner */}
-      <div className="bg-[#fff0f3] px-4 py-2 flex items-center gap-2">
-        <span className="bg-[#ff3b66] text-white text-xs px-2 py-0.5 rounded font-semibold">
-          SUPER OFERTA
-        </span>
-        <span className="text-[#ff3b66] text-sm font-medium">
-          Compre 2 e ganhe 10% OFF extra
+      <div className="bg-[#fff5f7] px-4 py-3 flex items-center gap-2 border-b border-[#ffe0e6]">
+        <span className="text-[#fe2c55] text-sm">
+          🎟️ Compre R$ 39 e ganhe 10% de desconto
         </span>
       </div>
 
       {/* Product Info */}
       <div className="p-4">
         <div className="flex items-start gap-2">
-          <span className="bg-[#ff3b66] text-white text-xs px-2 py-1 rounded font-bold shrink-0">
+          <span className="bg-[#fe2c55] text-white text-xs px-2 py-1 rounded font-bold shrink-0">
             11.11
           </span>
           <h1 className="text-lg font-semibold text-gray-900 leading-tight">
-            Carmed Hidratante Labial - Proteção e Hidratação Intensa para seus Lábios
+            Mounjaro™️ 5 mg – Tirzepatida (caneta injetável)
           </h1>
         </div>
 
         {/* Rating & Sold */}
-        <div className="flex items-center gap-4 mt-3">
+        <div className="flex items-center gap-2 mt-3">
           <div className="flex items-center gap-1">
-            {[1,2,3,4,5].map((star) => (
-              <Star key={star} className="w-4 h-4 fill-[#ffb800] text-[#ffb800]" />
-            ))}
-            <span className="text-sm text-gray-600 ml-1">4.9</span>
+            <Star className="w-4 h-4 fill-[#ffb800] text-[#ffb800]" />
+            <span className="font-semibold text-sm">4.9</span>
+            <span className="text-gray-500 text-sm">(3)</span>
           </div>
-          <span className="text-sm text-gray-500">2.3k vendidos</span>
+          <span className="text-gray-400">•</span>
+          <span className="text-sm text-gray-600">2.977 vendidos</span>
         </div>
 
         {/* Shipping Info */}
-        <div className="flex items-center gap-3 mt-4 p-3 bg-gray-50 rounded-xl">
-          <Truck className="w-5 h-5 text-[#00b578]" />
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[#00b578] font-semibold text-sm">Frete Grátis</span>
-              <span className="text-gray-400">•</span>
-              <span className="text-gray-600 text-sm">Entrega até {deliveryDate}</span>
-            </div>
-            <p className="text-gray-500 text-xs mt-0.5">Envio para todo o Brasil</p>
+        <div className="flex items-center gap-3 mt-4">
+          <Truck className="w-5 h-5 text-gray-600" />
+          <div className="flex items-center gap-2">
+            <span className="text-[#00b578] font-medium text-sm">Frete grátis</span>
+            <span className="text-gray-600 text-sm">Receba de 1 até 15 de fevereiro</span>
           </div>
         </div>
       </div>
 
       {/* Customer Protection */}
-      <div className="mx-4 p-4 bg-[#fef7ed] rounded-xl border border-[#fde68a]">
-        <div className="flex items-center gap-2 mb-3">
-          <Shield className="w-5 h-5 text-[#d97706]" />
-          <span className="font-semibold text-gray-900">Proteção ao Cliente</span>
+      <div className="mx-4 p-4 bg-[#f8f8f8] rounded-xl mb-4">
+        <h3 className="font-semibold text-gray-900 mb-3">Proteção do cliente</h3>
+        <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#00b578]" />
+            <span>Devolução gratuita</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#00b578]" />
+            <span>Reembolso automático por danos</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#00b578]" />
+            <span>Pagamento seguro</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#00b578]" />
+            <span>Cupom por atraso na coleta</span>
+          </div>
         </div>
-        <ul className="space-y-2 text-sm text-gray-700">
-          <li className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-[#d97706] rounded-full" />
-            Devolução grátis em até 7 dias
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-[#d97706] rounded-full" />
-            Reembolso garantido se não receber
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 bg-[#d97706] rounded-full" />
-            Produto original garantido
-          </li>
-        </ul>
       </div>
 
       {/* Reviews Section */}
-      <div className="mt-6 px-4">
+      <div className="px-4">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">Avaliações</h2>
-            <div className="flex items-center gap-1">
-              <Star className="w-4 h-4 fill-[#ffb800] text-[#ffb800]" />
-              <span className="font-semibold">4.9</span>
-              <span className="text-gray-500 text-sm">(1.2k)</span>
-            </div>
-          </div>
-          <button className="text-[#ff3b66] text-sm font-medium">Ver todas</button>
+          <h2 className="font-semibold text-gray-900">
+            Avaliações dos clientes ({reviews.length})
+          </h2>
+          <button className="text-[#fe2c55] text-sm font-medium">Ver mais</button>
         </div>
 
-        {/* Review Tags */}
-        <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-          {["Todos", "Entrega rápida", "Ótima qualidade", "Eficaz", "Hidratante"].map((tag) => (
-            <span 
-              key={tag}
-              className="shrink-0 px-3 py-1.5 bg-gray-100 rounded-full text-sm text-gray-700 hover:bg-gray-200 cursor-pointer transition-colors"
-            >
-              {tag}
-            </span>
-          ))}
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-2xl font-bold text-gray-900">4.9</span>
+          <span className="text-gray-500">/ 5</span>
         </div>
 
         {/* Reviews List */}
-        <div className="space-y-4 mt-2">
+        <div className="space-y-6">
           {reviews.map((review) => (
             <div key={review.id} className="border-b border-gray-100 pb-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-2">
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={review.avatar} alt={review.name} />
                   <AvatarFallback>{review.name[0]}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-medium text-gray-900">{review.name}</p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex">
-                      {[1,2,3,4,5].map((star) => (
-                        <Star 
-                          key={star} 
-                          className={`w-3 h-3 ${star <= review.rating ? 'fill-[#ffb800] text-[#ffb800]' : 'text-gray-300'}`} 
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-400">{review.date}</span>
-                  </div>
+                  <p className="font-medium text-gray-900 text-sm">{review.name}</p>
+                  <p className="text-xs text-[#00b578]">Compra confirmada</p>
                 </div>
               </div>
-              <p className="mt-2 text-gray-700 text-sm leading-relaxed">{review.text}</p>
-              <div className="flex gap-2 mt-2">
-                {review.tags.map((tag) => (
-                  <span key={tag} className="text-xs text-[#ff3b66] bg-[#fff0f3] px-2 py-1 rounded">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <p className="text-gray-700 text-sm leading-relaxed mb-3">{review.text}</p>
+              <img 
+                src={review.provaImage} 
+                alt="Prova social" 
+                className="w-24 h-24 object-cover rounded-lg"
+              />
             </div>
           ))}
         </div>
@@ -400,86 +315,37 @@ const ProductPage = () => {
       <div className="mt-6 mx-4 p-4 bg-gray-50 rounded-xl">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="w-12 h-12 border-2 border-[#ff3b66]">
-              <AvatarImage src="https://ui-avatars.com/api/?name=Carmed+Oficial&background=ff3b66&color=fff" />
-              <AvatarFallback>CO</AvatarFallback>
+            <Avatar className="w-12 h-12">
+              <AvatarImage src={slimhealthLogo} alt="SlimHealth Oficial" />
+              <AvatarFallback>SH</AvatarFallback>
             </Avatar>
             <div>
               <div className="flex items-center gap-1">
-                <span className="font-semibold text-gray-900">Carmed Oficial</span>
-                <BadgeCheck className="w-4 h-4 text-[#00b578] fill-[#00b578]" />
+                <span className="font-semibold text-gray-900">SlimHealth Oficial</span>
               </div>
-              <p className="text-xs text-gray-500">98% avaliações positivas</p>
+              <p className="text-xs text-gray-500">98% avaliações positivas • 15.2k seguidores</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="border-[#ff3b66] text-[#ff3b66] hover:bg-[#fff0f3]">
-            Visitar
+          <Button variant="outline" size="sm" className="border-[#fe2c55] text-[#fe2c55] hover:bg-[#fff5f7]">
+            Seguir
           </Button>
         </div>
       </div>
 
       {/* About Product */}
       <div className="mt-6 px-4">
-        <h2 className="text-lg font-semibold mb-4">Sobre o Produto</h2>
+        <h2 className="font-semibold text-gray-900 mb-4">Detalhes do produto</h2>
         
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-gray-500">Produto</p>
-            <p className="font-medium text-gray-900">Hidratante Labial</p>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-gray-500">Marca</p>
-            <p className="font-medium text-gray-900">Carmed</p>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-gray-500">Conteúdo</p>
-            <p className="font-medium text-gray-900">10g</p>
-          </div>
-          <div className="bg-gray-50 p-3 rounded-lg">
-            <p className="text-gray-500">Validade</p>
-            <p className="font-medium text-gray-900">24 meses</p>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <p className="text-gray-700 text-sm leading-relaxed">
-            O Carmed é um hidratante labial que proporciona hidratação intensa e duradoura. 
-            Sua fórmula exclusiva contém ingredientes que protegem e nutrem os lábios, 
-            deixando-os macios e saudáveis. Ideal para uso diário, especialmente em climas secos 
-            ou durante exposição ao sol e vento.
-          </p>
-          <button className="text-[#ff3b66] text-sm font-medium mt-2">Ler mais</button>
-        </div>
-      </div>
-
-      {/* Recommended Products */}
-      <div className="mt-6 px-4">
-        <h2 className="text-lg font-semibold mb-4">Você também pode gostar</h2>
+        <p className="text-gray-700 text-sm leading-relaxed">
+          Mounjaro™️ é um medicamento injetável de aplicação subcutânea que contém <strong>tirzepatida 5 mg</strong>, indicado para o tratamento de adultos com <strong>diabetes tipo 2</strong>, como adjuvante à dieta e exercícios físicos.
+        </p>
+        <p className="text-gray-700 text-sm leading-relaxed mt-3">
+          A tirzepatida atua como um agonista duplo dos receptores <strong>GIP e GLP-1</strong>, hormônios envolvidos na regulação da glicose e do apetite.
+        </p>
         
-        <div className="grid grid-cols-2 gap-3">
-          {recommendedProducts.map((product) => (
-            <div 
-              key={product.id} 
-              className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-            >
-              <img 
-                src={product.image} 
-                alt={product.name}
-                className="w-full aspect-square object-cover"
-              />
-              <div className="p-3">
-                <h3 className="text-sm font-medium text-gray-900 line-clamp-2">{product.name}</h3>
-                <div className="mt-2">
-                  <span className="text-[#ff3b66] font-bold">R$ {product.price.toFixed(2).replace('.', ',')}</span>
-                  <span className="text-gray-400 text-xs line-through ml-2">
-                    R$ {product.originalPrice.toFixed(2).replace('.', ',')}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">{product.sold.toLocaleString()} vendidos</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <button className="text-gray-500 text-sm mt-3 flex items-center gap-1">
+          Termos de Uso ▼
+        </button>
       </div>
 
       {/* Spacer for bottom bar */}
@@ -487,26 +353,26 @@ const ProductPage = () => {
 
       {/* Fixed Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3 z-50">
-        <button className="flex flex-col items-center justify-center text-gray-600 hover:text-[#ff3b66] transition-colors">
+        <button className="flex flex-col items-center justify-center text-gray-600 hover:text-[#fe2c55] transition-colors min-w-[50px]">
           <Store className="w-5 h-5" />
           <span className="text-xs mt-0.5">Loja</span>
         </button>
         
-        <button className="flex flex-col items-center justify-center text-gray-600 hover:text-[#ff3b66] transition-colors">
-          <MessageCircle className="w-5 h-5" />
+        <button className="flex flex-col items-center justify-center text-gray-600 hover:text-[#fe2c55] transition-colors min-w-[50px]">
+          <img src={chatIcon} alt="Chat" className="w-5 h-5" />
           <span className="text-xs mt-0.5">Chat</span>
         </button>
 
         <div className="flex-1 flex gap-2">
           <Button 
             variant="outline" 
-            className="flex-1 border-[#ff3b66] text-[#ff3b66] hover:bg-[#fff0f3] font-semibold"
+            className="flex-1 border-[#fe2c55] text-[#fe2c55] hover:bg-[#fff5f7] font-semibold text-sm h-11"
           >
-            Adicionar
+            Adicionar ao<br/>carrinho
           </Button>
           <Button 
             onClick={() => navigate("/checkout")}
-            className="flex-1 bg-gradient-to-r from-[#ff3b66] to-[#ff5a5f] hover:from-[#e6355c] hover:to-[#e65155] text-white font-semibold"
+            className="flex-1 bg-[#fe2c55] hover:bg-[#e6284d] text-white font-semibold text-sm h-11"
           >
             Comprar Agora
           </Button>
