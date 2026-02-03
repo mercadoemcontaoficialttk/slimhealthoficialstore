@@ -43,29 +43,29 @@ const Index = () => {
                 <img 
                   src={slimhealthLogo} 
                   alt="SlimHealth" 
-                  className="h-12 md:h-14 object-contain"
+                  className="h-16 md:h-20 object-contain"
                 />
                 <span className="text-2xl font-bold text-muted-foreground">+</span>
                 <img 
                   src={cimedLogo} 
                   alt="CIMED" 
-                  className="h-8 md:h-10 object-contain"
+                  className="h-12 md:h-14 object-contain"
                 />
               </div>
 
               {/* Offer Message */}
-              <p className="text-center text-lg">
+              <p className="text-center text-xl md:text-2xl">
                 <span className="font-bold">Você vai garantir nosso produto</span>
                 <br />
                 em condição especial.
               </p>
 
               {/* Scarcity Alert */}
-              <div className="w-full border-2 border-warning bg-warning/10 rounded-lg p-4 flex items-center gap-3">
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-warning flex items-center justify-center">
-                  <AlertTriangle className="w-5 h-5 text-warning-foreground" />
+              <div className="w-full border-2 border-[#F5C842] bg-[#FFF8E7] rounded-xl p-4 flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#FEF3C7] flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-[#D97706]" />
                 </div>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-[#D97706]">
                   Restam apenas <span className="font-bold">{STOCK_QUANTITY}</span> unidades em estoque
                 </p>
               </div>
@@ -76,8 +76,8 @@ const Index = () => {
             <>
               {/* Name Capture */}
               <div className="w-full text-center">
-                <h2 className="text-xl font-bold text-foreground mb-2">Antes de continuar</h2>
-                <p className="text-muted-foreground">Precisamos saber seu nome para prosseguir.</p>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1a2e] mb-2">Antes de continuar</h2>
+                <p className="text-gray-400">Precisamos saber seu nome para prosseguir.</p>
               </div>
 
               <Input
@@ -85,7 +85,7 @@ const Index = () => {
                 placeholder="Digite seu nome"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full h-12 text-base border-cta/50 rounded-xl bg-muted/50 focus:border-cta focus-visible:ring-cta"
+                className="w-full h-14 text-base border-0 rounded-2xl bg-[#F1F3F8] placeholder:text-gray-400 focus-visible:ring-cta"
               />
             </>
           )}
@@ -94,8 +94,8 @@ const Index = () => {
             <>
               {/* Age Confirmation */}
               <div className="w-full text-center">
-                <h2 className="text-xl font-bold text-foreground mb-2">Confirme sua idade</h2>
-                <p className="text-muted-foreground">Este produto é destinado apenas para maiores de 18 anos.</p>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1a2e] mb-2">Confirme sua idade</h2>
+                <p className="text-gray-400">Este produto é destinado apenas para maiores de 18 anos.</p>
               </div>
 
               <Input
@@ -103,7 +103,7 @@ const Index = () => {
                 placeholder="Digite sua idade"
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
-                className="w-full h-12 text-base border-cta/50 rounded-xl bg-muted/50 focus:border-cta focus-visible:ring-cta"
+                className="w-full h-14 text-base border-0 rounded-2xl bg-[#F1F3F8] placeholder:text-gray-400 focus-visible:ring-cta"
                 min="1"
                 max="120"
               />
@@ -114,10 +114,10 @@ const Index = () => {
           <Button 
             onClick={handleContinue}
             disabled={!isButtonEnabled()}
-            className={`w-full h-12 text-lg font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+            className={`w-full h-12 text-lg font-semibold rounded-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
               isButtonEnabled() 
-                ? "bg-cta hover:bg-cta/90 text-cta-foreground" 
-                : "bg-gray-300 text-gray-500 cursor-not-allowed hover:scale-100"
+                ? "bg-cta hover:bg-cta/90 text-white" 
+                : "bg-[#C5CAD4] text-white cursor-not-allowed hover:scale-100"
             }`}
           >
             Continuar
