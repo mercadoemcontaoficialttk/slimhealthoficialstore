@@ -40,11 +40,11 @@ const Index = () => {
             <>
               {/* Logos Section */}
               <div className="flex items-center justify-center gap-4">
-                <img 
+              <img 
                   src={slimhealthLogo} 
                   alt="SlimHealth" 
-                  className="h-16 md:h-20 object-contain"
-                />
+                  className="h-20 md:h-24 object-contain"
+              />
                 <span className="text-2xl font-bold text-muted-foreground">+</span>
                 <img 
                   src={cimedLogo} 
@@ -54,10 +54,14 @@ const Index = () => {
               </div>
 
               {/* Offer Message */}
-              <p className="text-center text-xl md:text-2xl">
-                <span className="font-bold">Você vai garantir nosso produto </span>
-                <span className="text-gray-500">em condição especial.</span>
-              </p>
+              <div className="text-center">
+                <p className="text-2xl md:text-3xl font-bold text-black">
+                  Você vai garantir nosso produto
+                </p>
+                <p className="text-2xl md:text-3xl text-gray-500">
+                  em condição especial.
+                </p>
+              </div>
 
               {/* Scarcity Alert */}
               <div className="w-full border border-[#F5C842] bg-[#FFF8E7] rounded-2xl p-5 flex items-center gap-4">
