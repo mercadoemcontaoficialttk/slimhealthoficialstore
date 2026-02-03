@@ -9,7 +9,7 @@ import foto3 from "@/assets/mounjaro/foto3.webp";
 import foto4 from "@/assets/mounjaro/foto4.jpg";
 import seta from "@/assets/mounjaro/seta.png";
 import ticketImg from "@/assets/mounjaro/ticket.png";
-import logo from "@/assets/mounjaro/logo.png";
+import slimHealthLogo from "@/assets/mounjaro/slimhealth-logo.png";
 
 const productImages = [foto1, foto2, foto3, foto4];
 
@@ -385,7 +385,7 @@ const MounjaroPage = () => {
         <section className="bg-white px-3 py-3 border-t">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src={logo} alt="Logo da loja" className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200 bg-white" />
+              <img src={slimHealthLogo} alt="SlimHealth Logo" className="w-12 h-12 rounded-full object-contain ring-2 ring-emerald-100 bg-white p-1" />
               <div className="leading-tight">
                 <div className="flex items-center gap-1.5">
                   <span className="font-bold text-[15px]">SlimHealth Oficial</span>
