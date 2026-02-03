@@ -1,162 +1,147 @@
 
 
-## Plano: Melhorias Visuais na Roleta
+## Plano: Logo Estatica + Textos 3D Profissionais
 
 ### Visao Geral
 
-Aplicar melhorias visuais na roleta para deixar o design mais profissional: textos laterais (radiais), fonte mais elegante, imagem Carmed rotacionada, remover emoji do titulo e ajustar o giro para apenas um que cai em 96%.
+Implementar tres melhorias visuais na roleta:
+1. Manter a logo CIMED no centro estatica (nao gira com a roleta)
+2. Aplicar efeito 3D com relevo nos textos dos segmentos
+3. Alterar texto do botao de "RESGATAR PRÊMIO" para "RESGATAR DESCONTO"
 
 ---
 
 ### Mudancas em `src/components/PrizeWheel.tsx`
 
-#### 1. Textos Laterais (Radiais) nos Segmentos
+#### 1. Logo CIMED Estatica (Nao Gira)
 
-**Situacao atual:** Os textos estao rotacionados +90 graus, ficando "de cabeca para baixo" ou frontais.
+**Problema atual:** A logo esta dentro do div que gira, entao gira junto com a roleta.
 
-**Solucao:** Alterar a rotacao do texto para que fiquem alinhados radialmente (apontando para fora do centro), como em roletas profissionais de cassino.
+**Solucao:** Mover a logo para FORA do div da roleta que gira, posicionando-a de forma absoluta sobre o centro da roleta.
 
-| Antes | Depois |
-|-------|--------|
-| `textRotation = (startAngle + endAngle) / 2 + 90` | `textRotation = (startAngle + endAngle) / 2` |
-
-Isso faz os textos ficarem laterais, seguindo a direcao do segmento.
-
----
-
-#### 2. Fonte Mais Profissional
-
-**Mudancas:**
-- Aumentar levemente o tamanho da fonte de `4px` para `5px`
-- Usar `font-family: 'Arial Black', sans-serif` ou fonte bold mais impactante
-- Adicionar `letter-spacing` para espacamento entre letras
-
+**Estrutura atual:**
 ```text
-Antes:
-style={{ fontSize: "4px" }}
-className="font-bold fill-[#1a1a2e]"
+<div style={{ transform: rotate(rotation) }}> <- DIV QUE GIRA
+  <svg>segmentos</svg>
+  <div>LOGO CIMED</div> <- DENTRO, GIRA JUNTO
+</div>
+```
 
-Depois:
-style={{ fontSize: "5px", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif", letterSpacing: "0.02em" }}
-className="fill-[#1a1a2e]"
+**Nova estrutura:**
+```text
+<div className="relative"> <- CONTAINER
+  <div style={{ transform: rotate(rotation) }}> <- DIV QUE GIRA
+    <svg>segmentos</svg>
+  </div>
+  <div>LOGO CIMED</div> <- FORA, NAO GIRA (z-index alto)
+</div>
 ```
 
 ---
 
-#### 3. Imagem Carmed Rotacionada Lateralmente
+#### 2. Textos 3D com Relevo Profissional
 
-**Situacao atual:** A imagem usa `textRotation` que estava +90 graus.
+**Tecnica:** Usar filtros SVG para criar efeito de relevo/emboss nos textos.
 
-**Solucao:** Usar a mesma rotacao radial dos textos para a imagem ficar lateral tambem.
+**Implementacao:**
+- Adicionar `<defs>` com filtro SVG para efeito 3D
+- O filtro inclui:
+  - Sombra projetada para profundidade
+  - Efeito de bevel/relevo com luz especular
+  - Gradiente sutil para aparencia metalica
 
+**Codigo do filtro SVG:**
+```text
+<defs>
+  <filter id="emboss" x="-20%" y="-20%" width="140%" height="140%">
+    <!-- Sombra escura embaixo -->
+    <feDropShadow dx="0.3" dy="0.3" stdDeviation="0.1" flood-color="#000" flood-opacity="0.5"/>
+    <!-- Luz clara em cima -->
+    <feDropShadow dx="-0.2" dy="-0.2" stdDeviation="0.1" flood-color="#fff" flood-opacity="0.4"/>
+  </filter>
+</defs>
+```
+
+**Aplicar nos textos:**
+```text
+<text filter="url(#emboss)" ...>
+```
+
+**Fonte mais impactante:**
+- Aumentar tamanho para `6px`
+- Usar `font-weight: 900` (extra bold)
+- Manter `'Arial Black'` como fonte principal
+
+---
+
+#### 3. Alterar Texto do Botao
+
+**Linha 151:**
 ```text
 Antes:
-transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-// onde textRotation = midAngle + 90
+if (showCelebration) return "RESGATAR PRÊMIO";
 
 Depois:
-transform={`rotate(${(startAngle + endAngle) / 2}, ${textX}, ${textY})`}
-// rotacao radial sem o +90
+if (showCelebration) return "RESGATAR DESCONTO";
 ```
 
 ---
 
-#### 4. Remover Emoji e Aumentar Titulo "Parabens"
+### Detalhes Tecnicos
 
-**Linha 163-164 - Titulo:**
-
-```text
-Antes:
-<h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1a2e] mb-2">
-  {showCelebration ? "🎉 Parabéns!" : "Gire e ganhe seu desconto!"}
-</h2>
-
-Depois:
-<h2 className="text-3xl md:text-4xl font-extrabold text-[#1a1a2e] mb-2">
-  {showCelebration ? "Parabéns!" : "Gire e ganhe seu desconto!"}
-</h2>
-```
-
-**Mudancas:**
-- Remover emoji `🎉`
-- Aumentar fonte de `text-2xl md:text-3xl` para `text-3xl md:text-4xl`
-
----
-
-#### 5. Apenas Um Giro que Cai em 96%
-
-**Logica atual (linhas 98-142):**
-- `spinCount >= 2` bloqueia apos 2 giros
-- Primeiro giro: cai em "Tente novamente" (index 1)
-- Segundo giro: cai em "96%" (index 4)
-
-**Nova logica:**
-- `spinCount >= 1` bloqueia apos 1 giro
-- Unico giro: cai direto em "96% de desconto" (index 4)
-- Remover logica de "Tente novamente"
+#### Estrutura HTML Atualizada do Container da Roleta
 
 ```text
-Antes:
-if (isSpinning || spinCount >= 2) return;
-const targetSegmentIndex = spinCount === 0 ? 1 : 4;
+<div className="relative" style={{ perspective: "1000px" }}>
+  {/* Anel decorativo externo */}
+  <div className="absolute -inset-3 ..." />
+  <div className="absolute -inset-2 ..." />
+  
+  {/* Ponteiro */}
+  <div className="absolute top-0 ..." />
 
-Depois:
-if (isSpinning || spinCount >= 1) return;
-const targetSegmentIndex = 4; // Sempre 96% de desconto
+  {/* Roleta que gira */}
+  <div style={{ transform: rotate(rotation) }}>
+    <svg>
+      <defs>
+        <filter id="emboss">...</filter>
+      </defs>
+      {segmentos com texto filter="url(#emboss)"}
+    </svg>
+  </div>
+
+  {/* Logo CIMED - FORA da roleta, nao gira */}
+  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
+    <img src={cimedLogo} ... />
+  </div>
+</div>
 ```
 
 ---
 
-#### 6. Giro Mais Lento
+### Efeito Visual do Texto 3D
 
-**Situacao atual:** Duracao de 5 segundos.
-
-**Solucao:** Aumentar para 7 segundos para um giro mais dramatico.
-
-```text
-Antes:
-const spinDuration = 5000; // 5 seconds
-transition: isSpinning ? "transform 5s cubic-bezier(...)"
-
-Depois:
-const spinDuration = 7000; // 7 seconds
-transition: isSpinning ? "transform 7s cubic-bezier(...)"
-```
-
----
-
-#### 7. Atualizar Texto do Botao
-
-Como agora so tem 1 giro, remover o texto "TENTAR NOVAMENTE":
-
-```text
-Antes:
-if (spinCount === 1 && !isSpinning) return "TENTAR NOVAMENTE";
-
-Depois:
-// Remover esta linha (nao havera segunda tentativa)
-```
+O filtro SVG cria:
+- Sombra escura na parte inferior/direita (profundidade)
+- Reflexo claro na parte superior/esquerda (luz)
+- Resultado: texto com aparencia de relevo/elevado
 
 ---
 
 ### Resumo das Alteracoes
 
-| Item | Mudanca |
-|------|---------|
-| Rotacao dos textos | Remover +90 para ficarem radiais/laterais |
-| Fonte | Maior (5px) e mais profissional (Arial Black) |
-| Imagem Carmed | Rotacao radial igual aos textos |
-| Titulo "Parabens" | Remover emoji, fonte maior |
-| Numero de giros | De 2 para 1 |
-| Alvo do giro | Sempre 96% de desconto |
-| Duracao do giro | De 5s para 7s |
-| Botao | Remover opcao "Tentar novamente" |
+| Local | Mudanca |
+|-------|---------|
+| Linhas 275-295 | Mover logo para fora do div que gira |
+| Linha 207 | Adicionar `<defs>` com filtro emboss |
+| Linhas 250-268 | Aplicar `filter="url(#emboss)"` nos textos |
+| Linha 151 | Alterar "RESGATAR PRÊMIO" para "RESGATAR DESCONTO" |
 
 ---
 
 ### Arquivo a Modificar
 
-| Arquivo | Mudancas |
-|---------|----------|
+| Arquivo | Acao |
+|---------|------|
 | src/components/PrizeWheel.tsx | Todas as alteracoes acima |
 
