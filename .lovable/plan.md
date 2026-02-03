@@ -1,71 +1,57 @@
 
+## Plano: Ajustar Texto e Botao para Ficar Mais Estetico
 
-## Plano: Diminuir Margem e Ajustar Texto para 2 Linhas
+### Mudancas Identificadas
 
-### Diferenca Identificada
+Baseado nas imagens de referencia enviadas, preciso fazer 3 ajustes:
 
-Comparando os dois prints:
-
-| Aspecto | Nosso (atual) | Referencia |
-|---------|---------------|------------|
-| Layout texto | 3 linhas: "Voce vai garantir nosso produto" + "em" + "condicao especial." | 2 linhas: "Voce vai garantir nosso produto em" + "condicao especial." |
-| Problema | O "em" esta quebrando para uma linha separada | O "em" fica na mesma linha que "produto" |
-
-O problema e que o texto esta quebrando em 3 linhas em vez de 2. Na referencia, "Voce vai garantir nosso produto em" fica tudo na mesma linha.
-
----
-
-### Solucao
-
-Precisamos ajustar a estrutura do texto para que "em" fique junto com "produto" na mesma linha. A solucao e unir tudo em uma unica estrutura de 2 linhas forcadas:
-
-**Linha 1:** "Voce vai garantir nosso produto em" (preto bold + cinza)
-**Linha 2:** "condicao especial." (cinza)
+| Elemento | Atual | Solicitado |
+|----------|-------|------------|
+| Tamanho texto oferta | `text-xl md:text-2xl` | Menor para nao encostar nas laterais |
+| Arredondamento botao | `rounded-3xl` (muito arredondado) | Menos arredondado (`rounded-2xl`) |
+| Peso da fonte botao | `font-semibold` | Mais grosso (`font-bold`) |
 
 ---
 
 ### Mudancas em `src/pages/Index.tsx`
 
-**Linhas 57-64 - Texto da Oferta:**
+**1. Texto da Oferta (linhas 58-63)**
+
+Reduzir tamanho da fonte de `text-xl md:text-2xl` para `text-lg md:text-xl`:
 
 Antes:
 ```text
-<div className="text-center">
-  <p className="text-xl md:text-2xl">
-    <span className="font-bold text-black">Voce vai garantir nosso produto </span>
-    <span className="text-gray-500">em</span>
-  </p>
-  <p className="text-xl md:text-2xl text-gray-500">
-    condicao especial.
-  </p>
-</div>
+<p className="text-xl md:text-2xl whitespace-nowrap">
 ```
 
 Depois:
 ```text
-<div className="text-center">
-  <p className="text-xl md:text-2xl">
-    <span className="font-bold text-black">Voce vai garantir nosso produto </span>
-    <span className="text-gray-500">em</span>
-  </p>
-  <p className="text-xl md:text-2xl text-gray-500">
-    condicao especial.
-  </p>
-</div>
+<p className="text-lg md:text-xl whitespace-nowrap">
 ```
 
-Na verdade, a estrutura esta correta. O problema e que a largura do container ou o tamanho da fonte esta fazendo o "em" quebrar. Vou adicionar `whitespace-nowrap` na primeira linha para forcar que fique tudo junto:
-
+E na segunda linha tambem:
+Antes:
 ```text
-<div className="text-center">
-  <p className="text-xl md:text-2xl whitespace-nowrap">
-    <span className="font-bold text-black">Voce vai garantir nosso produto </span>
-    <span className="text-gray-500">em</span>
-  </p>
-  <p className="text-xl md:text-2xl text-gray-500">
-    condicao especial.
-  </p>
-</div>
+<p className="text-xl md:text-2xl text-gray-500">
+```
+
+Depois:
+```text
+<p className="text-lg md:text-xl text-gray-500">
+```
+
+**2. Botao Continuar (linha 121)**
+
+Reduzir arredondamento de `rounded-3xl` para `rounded-2xl` e aumentar peso da fonte de `font-semibold` para `font-bold`:
+
+Antes:
+```text
+className={`w-full h-14 text-lg font-semibold rounded-3xl transition-all...
+```
+
+Depois:
+```text
+className={`w-full h-14 text-lg font-bold rounded-2xl transition-all...
 ```
 
 ---
@@ -74,6 +60,6 @@ Na verdade, a estrutura esta correta. O problema e que a largura do container ou
 
 | Elemento | Antes | Depois |
 |----------|-------|--------|
-| Primeira linha texto | Pode quebrar em 2 linhas | `whitespace-nowrap` para manter em 1 linha |
-| Layout final | 3 linhas | 2 linhas (igual referencia) |
-
+| Tamanho fonte texto | text-xl md:text-2xl | text-lg md:text-xl |
+| Arredondamento botao | rounded-3xl | rounded-2xl |
+| Peso fonte botao | font-semibold | font-bold |
