@@ -1,82 +1,37 @@
 
-## Plano: Ajustes Visuais na Página Mounjaro
+## Plano: Corrigir Navegação do Funil
 
 ### Resumo
-Vou fazer três ajustes na página `/mounjaro` conforme as referências enviadas:
-1. Substituir emojis por ícones limpos (SVG/Lucide)
-2. Deixar botões do header estáticos (não clicáveis)
-3. Reduzir levemente o tamanho da fonte no botão "Comprar Agora"
+O lead, após confirmar sua idade no Step 3, está sendo direcionado para `/product` que gera um erro 404. Vou corrigir para que ele vá diretamente para `/mounjaro`, que é a página do produto principal.
 
 ---
 
-### Alterações
+### Alteração
 
-#### 1. Substituir emojis por ícones
+**Arquivo:** `src/pages/Index.tsx` (linha 24)
 
-**Barra inferior (Loja e Chat):**
-- Substituir `🏪` por um ícone SVG de loja (outline) semelhante à referência
-- Substituir `💬` por um ícone SVG de chat (balão com rosto) semelhante à referência
-
-**Seção de frete:**
-- Substituir `🚚` por ícone SVG de caminhão (Lucide `Truck`)
-
-**Seção de proteção do cliente:**
-- Substituir `🛡️` por ícone SVG de escudo (Lucide `Shield`)
-
-#### 2. Deixar botões do header estáticos
-
-**Botões afetados (linhas 136-156):**
-- Botão de voltar: Remover `onClick={() => navigate(-1)}` e classes de hover/active
-- Botão de compartilhar (seta): Remover hover/active
-- Botão carrinho: Remover `onClick={() => navigate("/product")}` e hover/active
-- Botão três pontos: Remover hover/active
-
-**Trocar `<button>` por `<div>`** para deixar claro que não são interativos
-
-#### 3. Reduzir fonte do botão "Comprar Agora"
-
-**Linha 505:**
-- Alterar de `text-[14px]` para `text-[13px]`
-
----
-
-### Detalhes Técnicos
-
-**Novos imports necessários:**
+**De:**
 ```tsx
-import { Truck, Store, MessageCircle, Shield } from "lucide-react";
+navigate("/product"); // Ir para página de produto
 ```
 
-**Ícone de Loja (baseado na referência - outline de loja):**
+**Para:**
 ```tsx
-<Store className="w-6 h-6 text-slate-500" />
-```
-
-**Ícone de Chat (baseado na referência - balão com carinha):**
-```tsx
-<MessageCircle className="w-6 h-6 text-slate-500" />
-```
-
-**Ícone de Frete (caminhão):**
-```tsx
-<Truck className="w-5 h-5 text-slate-500" />
-```
-
-**Header estático:**
-```tsx
-<div className="p-2">
-  <ChevronLeft className="w-5 h-5" />
-</div>
+navigate("/mounjaro"); // Ir para página do Mounjaro
 ```
 
 ---
 
 ### Arquivos Modificados
-- `src/pages/MounjaroPage.tsx`
+- `src/pages/Index.tsx`
 
 ---
 
 ### Resultado Esperado
-- Ícones limpos no estilo da referência (sem emojis)
-- Header com botões não clicáveis (apenas visuais)
-- Fonte do "Comprar Agora" levemente menor para não encostar nas bordas
+O fluxo do funil ficará fluido:
+1. **Step 1:** Usuário vê a oferta e clica em continuar
+2. **Step 2:** Usuário digita o nome e clica em continuar
+3. **Step 3:** Usuário confirma a idade e clica em continuar
+4. **Redirecionamento:** Vai direto para `/mounjaro` (página do produto Mounjaro)
+
+Isso elimina o erro 404 e mantém o projeto fluido do início ao fim.
