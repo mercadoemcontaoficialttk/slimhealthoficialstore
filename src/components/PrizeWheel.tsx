@@ -96,16 +96,14 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
   }, [stopTickSounds]);
 
   const spinWheel = useCallback(() => {
-    if (isSpinning || spinCount >= 2) return;
+    if (isSpinning || spinCount >= 1) return;
 
     setIsSpinning(true);
     setResult(null);
     setShowCelebration(false);
 
-    // Calculate target segment based on spin count
-    // First spin: land on "Tente novamente" (segment index 1)
-    // Second spin: land on "96% de desconto" (segment index 4)
-    const targetSegmentIndex = spinCount === 0 ? 1 : 4;
+    // Single spin: always land on "96% de desconto" (segment index 4)
+    const targetSegmentIndex = 4;
     
     // Calculate the angle to land on the center of the target segment
     // The wheel rotates clockwise, and the pointer is at the top (0 degrees)
@@ -117,7 +115,7 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
     const extraRotations = (4 + Math.random()) * 360;
     const targetRotation = rotation + extraRotations + (360 - segmentCenterAngle);
     
-    const spinDuration = 5000; // 5 seconds
+    const spinDuration = 7000; // 7 seconds
     
     // Start tick sounds
     startTickSounds(spinDuration);
@@ -152,7 +150,6 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
   const getButtonText = () => {
     if (showCelebration) return "RESGATAR PRÊMIO";
     if (spinCount === 0) return "GIRAR ROLETA";
-    if (spinCount === 1 && !isSpinning) return "TENTAR NOVAMENTE";
     return "GIRANDO...";
   };
 
@@ -160,8 +157,8 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
     <div className="w-full flex flex-col items-center gap-6">
       {/* Title */}
       <div className="text-center">
-        <h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1a2e] mb-2">
-          {showCelebration ? "🎉 Parabéns!" : "Gire e ganhe seu desconto!"}
+        <h2 className="text-3xl md:text-4xl font-extrabold text-[#1a1a2e] mb-2">
+          {showCelebration ? "Parabéns!" : "Gire e ganhe seu desconto!"}
         </h2>
         {showCelebration && userName && (
           <p className="text-gray-600">
@@ -192,7 +189,7 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
           style={{
             transform: `rotate(${rotation}deg)`,
             transition: isSpinning
-              ? "transform 5s cubic-bezier(0.17, 0.67, 0.12, 0.99)"
+              ? "transform 7s cubic-bezier(0.17, 0.67, 0.12, 0.99)"
               : "none",
             boxShadow: `
               0 10px 40px rgba(0,0,0,0.35),
@@ -227,7 +224,7 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
               const midAngle = ((startAngle + endAngle) / 2 * Math.PI) / 180;
               const textX = 50 + 32 * Math.cos(midAngle);
               const textY = 50 + 32 * Math.sin(midAngle);
-              const textRotation = (startAngle + endAngle) / 2 + 90;
+              const textRotation = (startAngle + endAngle) / 2; // Radial rotation (no +90)
 
               return (
                 <g key={index}>
@@ -256,11 +253,15 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                       textAnchor="middle"
                       dominantBaseline="middle"
                       transform={`rotate(${textRotation}, ${textX}, ${textY})`}
-                      className="font-bold fill-[#1a1a2e]"
-                      style={{ fontSize: "4px" }}
+                      style={{ 
+                        fontSize: "5px", 
+                        fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
+                        letterSpacing: "0.02em"
+                      }}
+                      className="fill-[#1a1a2e]"
                     >
                       {segment.label.split("\n").map((line, i) => (
-                        <tspan key={i} x={textX} dy={i === 0 ? 0 : "4.5"}>
+                        <tspan key={i} x={textX} dy={i === 0 ? 0 : "5"}>
                           {line}
                         </tspan>
                       ))}
