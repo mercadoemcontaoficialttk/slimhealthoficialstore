@@ -1,110 +1,162 @@
 
 
-## Plano: Roleta 3D Profissional com Imagem Carmed
+## Plano: Melhorias Visuais na Roleta
 
 ### Visao Geral
 
-Transformar a roleta atual em uma versao mais profissional com efeito 3D, substituir o texto "Carmed" pela imagem do produto enviada, e reduzir o tamanho dos textos para evitar vazamento.
+Aplicar melhorias visuais na roleta para deixar o design mais profissional: textos laterais (radiais), fonte mais elegante, imagem Carmed rotacionada, remover emoji do titulo e ajustar o giro para apenas um que cai em 96%.
 
 ---
 
-### Mudancas a Implementar
+### Mudancas em `src/components/PrizeWheel.tsx`
 
-#### 1. Copiar Imagem Carmed para o Projeto
+#### 1. Textos Laterais (Radiais) nos Segmentos
 
-Copiar a imagem enviada para `src/assets/carmed-product.jpg` para uso no componente.
+**Situacao atual:** Os textos estao rotacionados +90 graus, ficando "de cabeca para baixo" ou frontais.
 
----
+**Solucao:** Alterar a rotacao do texto para que fiquem alinhados radialmente (apontando para fora do centro), como em roletas profissionais de cassino.
 
-#### 2. Modificar `src/components/PrizeWheel.tsx`
+| Antes | Depois |
+|-------|--------|
+| `textRotation = (startAngle + endAngle) / 2 + 90` | `textRotation = (startAngle + endAngle) / 2` |
 
-**A. Adicionar efeito 3D na roleta:**
-
-| Efeito | Implementacao |
-|--------|---------------|
-| Sombra profunda | `box-shadow` com multiplas camadas |
-| Borda metalica | Gradiente radial na borda |
-| Perspectiva 3D | `transform-style: preserve-3d` |
-| Reflexo sutil | Pseudo-elemento com gradiente |
-| Iluminacao | Sombra interna e externa |
-
-**Estilos 3D a adicionar:**
-```text
-- Sombra externa: 0 10px 30px rgba(0,0,0,0.3)
-- Sombra interna: inset 0 -5px 15px rgba(0,0,0,0.1)
-- Borda metalica: gradiente de #D4A934 para #F5C842 para #D4A934
-- Anel externo decorativo com efeito de profundidade
-```
-
-**B. Substituir segmento "Carmed" por imagem:**
-
-No segmento index 3 (Carmed), ao inves de renderizar texto, renderizar a imagem do produto Carmed usando `<image>` dentro do SVG ou posicionamento absoluto.
-
-**C. Reduzir tamanho dos textos:**
-
-Alterar de `text-[5px]` para `text-[4px]` e ajustar o `dy` do tspan de `6` para `4.5` para melhor espaçamento.
+Isso faz os textos ficarem laterais, seguindo a direcao do segmento.
 
 ---
 
-### Estrutura Visual 3D
+#### 2. Fonte Mais Profissional
+
+**Mudancas:**
+- Aumentar levemente o tamanho da fonte de `4px` para `5px`
+- Usar `font-family: 'Arial Black', sans-serif` ou fonte bold mais impactante
+- Adicionar `letter-spacing` para espacamento entre letras
 
 ```text
-    +-- Anel externo decorativo (gradiente dourado) --+
-    |                                                  |
-    |  +-- Borda metalica com gradiente 3D --+        |
-    |  |                                     |        |
-    |  |        [ROLETA PRINCIPAL]           |        |
-    |  |        com sombras internas         |        |
-    |  |                                     |        |
-    |  |           [CENTRO CIMED]            |        |
-    |  |           com elevacao 3D           |        |
-    |  |                                     |        |
-    |  +-------------------------------------+        |
-    |                                                  |
-    +--------------------------------------------------+
+Antes:
+style={{ fontSize: "4px" }}
+className="font-bold fill-[#1a1a2e]"
+
+Depois:
+style={{ fontSize: "5px", fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif", letterSpacing: "0.02em" }}
+className="fill-[#1a1a2e]"
 ```
 
 ---
 
-### Detalhes Tecnicos
+#### 3. Imagem Carmed Rotacionada Lateralmente
 
-**Efeito 3D no container da roleta:**
+**Situacao atual:** A imagem usa `textRotation` que estava +90 graus.
+
+**Solucao:** Usar a mesma rotacao radial dos textos para a imagem ficar lateral tambem.
+
 ```text
-Classes/Estilos:
-- Sombra multicamada: shadow-[0_10px_40px_rgba(0,0,0,0.3),0_5px_15px_rgba(0,0,0,0.2)]
-- Borda gradiente: usar div wrapper com gradiente
-- Anel externo: div adicional com borda maior e gradiente
+Antes:
+transform={`rotate(${textRotation}, ${textX}, ${textY})`}
+// onde textRotation = midAngle + 90
+
+Depois:
+transform={`rotate(${(startAngle + endAngle) / 2}, ${textX}, ${textY})`}
+// rotacao radial sem o +90
 ```
 
-**Imagem Carmed no SVG:**
+---
+
+#### 4. Remover Emoji e Aumentar Titulo "Parabens"
+
+**Linha 163-164 - Titulo:**
+
 ```text
-- Usar elemento <image> dentro do SVG
-- Posicionar no centro do segmento
-- Aplicar clipPath para manter dentro do segmento
-- Tamanho reduzido para caber no segmento
+Antes:
+<h2 className="text-2xl md:text-3xl font-extrabold text-[#1a1a2e] mb-2">
+  {showCelebration ? "🎉 Parabéns!" : "Gire e ganhe seu desconto!"}
+</h2>
+
+Depois:
+<h2 className="text-3xl md:text-4xl font-extrabold text-[#1a1a2e] mb-2">
+  {showCelebration ? "Parabéns!" : "Gire e ganhe seu desconto!"}
+</h2>
 ```
 
-**Texto menor:**
+**Mudancas:**
+- Remover emoji `🎉`
+- Aumentar fonte de `text-2xl md:text-3xl` para `text-3xl md:text-4xl`
+
+---
+
+#### 5. Apenas Um Giro que Cai em 96%
+
+**Logica atual (linhas 98-142):**
+- `spinCount >= 2` bloqueia apos 2 giros
+- Primeiro giro: cai em "Tente novamente" (index 1)
+- Segundo giro: cai em "96%" (index 4)
+
+**Nova logica:**
+- `spinCount >= 1` bloqueia apos 1 giro
+- Unico giro: cai direto em "96% de desconto" (index 4)
+- Remover logica de "Tente novamente"
+
 ```text
-Antes: fontSize: "5px", dy: "6"
-Depois: fontSize: "4px", dy: "4"
+Antes:
+if (isSpinning || spinCount >= 2) return;
+const targetSegmentIndex = spinCount === 0 ? 1 : 4;
+
+Depois:
+if (isSpinning || spinCount >= 1) return;
+const targetSegmentIndex = 4; // Sempre 96% de desconto
+```
+
+---
+
+#### 6. Giro Mais Lento
+
+**Situacao atual:** Duracao de 5 segundos.
+
+**Solucao:** Aumentar para 7 segundos para um giro mais dramatico.
+
+```text
+Antes:
+const spinDuration = 5000; // 5 seconds
+transition: isSpinning ? "transform 5s cubic-bezier(...)"
+
+Depois:
+const spinDuration = 7000; // 7 seconds
+transition: isSpinning ? "transform 7s cubic-bezier(...)"
+```
+
+---
+
+#### 7. Atualizar Texto do Botao
+
+Como agora so tem 1 giro, remover o texto "TENTAR NOVAMENTE":
+
+```text
+Antes:
+if (spinCount === 1 && !isSpinning) return "TENTAR NOVAMENTE";
+
+Depois:
+// Remover esta linha (nao havera segunda tentativa)
 ```
 
 ---
 
 ### Resumo das Alteracoes
 
-| Arquivo | Acao |
-|---------|------|
-| src/assets/carmed-product.jpg | Copiar imagem do usuario |
-| src/components/PrizeWheel.tsx | Adicionar efeitos 3D, imagem Carmed, texto menor |
+| Item | Mudanca |
+|------|---------|
+| Rotacao dos textos | Remover +90 para ficarem radiais/laterais |
+| Fonte | Maior (5px) e mais profissional (Arial Black) |
+| Imagem Carmed | Rotacao radial igual aos textos |
+| Titulo "Parabens" | Remover emoji, fonte maior |
+| Numero de giros | De 2 para 1 |
+| Alvo do giro | Sempre 96% de desconto |
+| Duracao do giro | De 5s para 7s |
+| Botao | Remover opcao "Tentar novamente" |
 
 ---
 
-### Resultado Esperado
+### Arquivo a Modificar
 
-- Roleta com aparencia profissional e tridimensional
-- Segmento "Carmed" mostrando a imagem do produto
-- Textos menores que nao vazam dos segmentos
-- Visual mais condizente com campanha CIMED/Carmed
+| Arquivo | Mudancas |
+|---------|----------|
+| src/components/PrizeWheel.tsx | Todas as alteracoes acima |
 
