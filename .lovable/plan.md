@@ -1,168 +1,162 @@
 
 
-## Plano: Redesign da Roleta Estilo Cassino Las Vegas
+## Plano: Ajustes Visuais na Roleta + Confetes
 
 ### Visao Geral
 
-Redesenhar completamente a roleta para ter um visual profissional estilo cassino Las Vegas, mantendo as informacoes da CIMED e a funcionalidade de parar em 96% de desconto.
+Implementar cinco melhorias na roleta:
+1. Alterar tom de cores para rgb(247,194,23)
+2. Garantir que a roleta pare exatamente no 96%
+3. Remover emojis do card de celebracao
+4. Alterar fonte das letras para estilo CIMED (sans-serif elegante)
+5. Adicionar confetes caindo quando ganhar
 
 ---
 
-### Principais Mudancas Visuais
+### Mudancas em `src/components/PrizeWheel.tsx`
 
-#### 1. Design de Roleta Estilo Cassino
+#### 1. Alterar Tom de Cores para rgb(247,194,23)
 
-**Elementos inspirados em roletas de cassino:**
+**Cor CIMED:** `rgb(247, 194, 23)` = `#F7C217`
 
-| Elemento | Implementacao |
-|----------|---------------|
-| Borda externa decorativa | Multiplos aneis com efeito metalico dourado/prateado |
-| Pinos/marcadores | Pequenos circulos dourados entre cada segmento na borda |
-| Iluminacao LED | Efeito de brilho/glow nas bordas |
-| Segmentos alternados | Cores vibrantes alternando (vermelho/dourado ou amarelo/branco) |
-| Centro elevado | Botao central com efeito 3D pronunciado |
-| Ponteiro premium | Seta metalica com sombra e brilho |
+**Locais a alterar:**
+
+| Antes | Depois |
+|-------|--------|
+| `#FFD700` | `#F7C217` |
+| `#FFA500` | `#E5B015` (tom mais escuro) |
+| `#FF8C00` | `#D4A012` (tom ainda mais escuro) |
+
+**Gradientes a atualizar:**
+- `goldSegment`: usar tons de #F7C217
+- `pinGradient`: usar tons de #F7C217
+- Borda externa: usar #F7C217
+- Glow effect: usar rgba(247,194,23,0.4)
 
 ---
 
-#### 2. Estrutura Visual Atualizada
+#### 2. Parar Exatamente no 96%
+
+**Problema atual:** A roleta pode nao parar exatamente no centro do segmento 96%.
+
+**Solucao:** Ajustar o calculo do angulo de parada para garantir precisao.
+
+O segmento 96% esta no indice 4. Com 8 segmentos de 45 graus cada:
+- Inicio do segmento: 4 * 45 = 180 graus
+- Centro do segmento: 180 + 22.5 = 202.5 graus (a partir do topo)
+
+**Codigo ajustado:**
+```text
+// O ponteiro esta no topo (0 graus)
+// Para o ponteiro apontar para o centro do segmento 4:
+const segmentCenterAngle = targetSegmentIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+
+// Rotacao final = rotacoes extras + ajuste para alinhar
+const targetRotation = rotation + extraRotations + (360 - segmentCenterAngle + 90);
+```
+
+O `+ 90` compensa o offset de -90 usado no desenho dos segmentos.
+
+---
+
+#### 3. Remover Emojis do Card de Celebracao
+
+**Linha 439-440:**
 
 ```text
-    +-- Anel externo com pinos decorativos --+
-    |  o   o   o   o   o   o   o   o        |
-    |                                        |
-    | +-- Borda metalica dourada 3D --+     |
-    | |                               |     |
-    | |    [SEGMENTOS COLORIDOS]      |     |
-    | |    com bordas douradas        |     |
-    | |                               |     |
-    | |       [CENTRO CIMED]          |     |
-    | |       estatico + 3D           |     |
-    | |                               |     |
-    | +-------------------------------+     |
-    |                                        |
-    +----------------------------------------+
+Antes:
+🎰 Você ganhou 96% de desconto! 🎰
+
+Depois:
+Você ganhou 96% de desconto!
 ```
 
 ---
 
-### Modificacoes em `src/components/PrizeWheel.tsx`
+#### 4. Fonte Estilo CIMED nas Letras da Roleta
 
-#### A. Nova Borda Externa com Pinos Decorativos
+**Fonte CIMED:** A logo CIMED usa uma fonte sans-serif bold, moderna e limpa.
 
-Adicionar um anel externo com pequenos circulos dourados (pinos) posicionados entre cada segmento, simulando o visual classico de roletas de cassino:
+**Solucao:** Usar fonte que se assemelhe ao estilo CIMED:
 
 ```text
-- Anel mais externo: borda grossa dourada com gradiente metalico
-- Pinos: 8 circulos dourados (1 por segmento) com efeito 3D
-- Brilho: sombra luminosa dourada ao redor
+Antes:
+fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif"
+
+Depois:
+fontFamily: "'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif"
+fontWeight: 800
+letterSpacing: "0.05em"
 ```
 
-#### B. Segmentos com Visual Premium
-
-**Cores mais vibrantes:**
-- Segmentos amarelos: gradiente de #FFD700 para #FFA500 (dourado rico)
-- Segmentos brancos: gradiente de #FFFFFF para #F5F5F5 com brilho
-
-**Bordas entre segmentos:**
-- Linhas douradas mais grossas (#B8860B)
-- Efeito de profundidade nas divisorias
-
-#### C. Ponteiro Estilo Cassino
-
-Redesenhar o ponteiro para parecer mais premium:
-- Formato de seta mais elaborado
-- Gradiente metalico dourado/vermelho
-- Sombra pronunciada
-- Pequeno circulo no topo
-
-#### D. Centro Premium (Logo CIMED Estatica)
-
-O centro ja esta estatico, mas melhorar o visual:
-- Borda dourada mais grossa com gradiente 3D
-- Sombra mais pronunciada para parecer elevado
-- Efeito de metal polido no fundo
-
-#### E. Efeito de Iluminacao/Brilho
-
-Adicionar um "glow" sutil ao redor da roleta para simular iluminacao de cassino:
-- Box-shadow com cor dourada/amarela
-- Animacao sutil de pulso quando parada
+Tambem aumentar levemente o tamanho e ajustar o espacamento para melhor legibilidade.
 
 ---
 
-### Codigo SVG Atualizado
+#### 5. Adicionar Confetes Quando Ganhar
 
-**Novos elementos a adicionar no SVG:**
+**Implementacao:** Criar animacao CSS de confetes que caem do topo quando `showCelebration` for true.
 
-1. **Pinos decorativos na borda:**
+**Tecnica:**
+- Criar 20-30 elementos de confete com posicoes aleatorias
+- Usar keyframes CSS para animacao de queda
+- Cores: tons de dourado, branco, e cor CIMED
+- Duracao: 3-4 segundos
+- Iniciar automaticamente quando showCelebration = true
+
+**Estrutura do componente de confetes:**
 ```text
-<circle cx="..." cy="..." r="3" fill="url(#goldGradient)" stroke="#8B7500" />
+{showCelebration && (
+  <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+    {confettiPieces.map((piece) => (
+      <div 
+        key={piece.id}
+        className="absolute animate-confetti-fall"
+        style={{
+          left: `${piece.x}%`,
+          animationDelay: `${piece.delay}s`,
+          backgroundColor: piece.color,
+        }}
+      />
+    ))}
+  </div>
+)}
 ```
 
-2. **Gradientes para efeito metalico:**
+**Keyframes necessarios (adicionar ao index.css ou inline):**
 ```text
-<linearGradient id="goldGradient">
-  <stop offset="0%" stopColor="#FFE082" />
-  <stop offset="50%" stopColor="#FFD700" />
-  <stop offset="100%" stopColor="#B8860B" />
-</linearGradient>
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
+  }
+}
 ```
-
-3. **Segmentos com gradiente:**
-```text
-<linearGradient id="yellowSegment">
-  <stop offset="0%" stopColor="#FFD700" />
-  <stop offset="100%" stopColor="#FFA500" />
-</linearGradient>
-```
-
----
-
-### Estrutura de Camadas
-
-```text
-1. Camada mais externa: Glow/brilho dourado (blur)
-2. Anel com pinos: Circulos dourados decorativos
-3. Borda metalica: Gradiente dourado 3D
-4. Segmentos da roleta: Cores vibrantes com bordas
-5. Centro estatico: Logo CIMED com efeito 3D
-6. Ponteiro: Seta premium no topo (z-index alto)
-```
-
----
-
-### Mantendo Funcionalidade Existente
-
-| Item | Status |
-|------|--------|
-| Logo CIMED estatica no centro | Mantido |
-| 8 segmentos com mesmas informacoes | Mantido |
-| Imagem Carmed no segmento 3 | Mantido |
-| Giro parando em 96% de desconto | Mantido |
-| Duracao de 7 segundos | Mantido |
-| Som de tique-taque | Mantido |
-| Apenas 1 giro permitido | Mantido |
 
 ---
 
 ### Resumo das Alteracoes
 
-| Area | Mudanca |
+| Item | Mudanca |
 |------|---------|
-| Borda externa | Adicionar anel com pinos decorativos dourados |
-| Segmentos | Usar gradientes mais vibrantes |
-| Bordas dos segmentos | Linhas douradas mais grossas |
-| Ponteiro | Redesenho premium estilo cassino |
-| Centro | Manter estatico, melhorar efeito 3D |
-| Iluminacao | Adicionar glow dourado ao redor |
-| Gradientes SVG | Novos gradientes metalicos |
+| Cores | Alterar de #FFD700 para #F7C217 (cor CIMED) |
+| Gradientes | Atualizar goldSegment, pinGradient com novos tons |
+| Glow | Usar rgba(247,194,23,0.4) |
+| Parada 96% | Ajustar calculo de angulo com +90 offset |
+| Emojis | Remover "emoji de roleta" do card |
+| Fonte | Mudar para Segoe UI/Roboto com peso 800 |
+| Confetes | Adicionar animacao de confetes caindo |
 
 ---
 
-### Arquivo a Modificar
+### Arquivos a Modificar
 
 | Arquivo | Acao |
 |---------|------|
-| src/components/PrizeWheel.tsx | Redesign completo da parte visual |
+| src/components/PrizeWheel.tsx | Todas as alteracoes acima |
+| src/index.css | Adicionar keyframes de confete (opcional, pode ser inline) |
 
