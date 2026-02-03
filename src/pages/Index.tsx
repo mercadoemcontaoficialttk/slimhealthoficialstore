@@ -34,7 +34,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted p-4">
-      <Card className="w-full max-w-md shadow-lg animate-fade-in">
+      <Card className="w-full max-w-md shadow-xl rounded-3xl animate-fade-in">
         <CardContent className="p-10 flex flex-col items-center gap-8">
           {step === 1 && (
             <>
@@ -55,11 +55,11 @@ const Index = () => {
 
               {/* Offer Message */}
               <div className="text-center">
-                <p className="text-2xl md:text-3xl">
+                <p className="text-xl md:text-2xl">
                   <span className="font-bold text-black">Você vai garantir nosso produto </span>
                   <span className="text-gray-500">em</span>
                 </p>
-                <p className="text-2xl md:text-3xl text-gray-500">
+                <p className="text-xl md:text-2xl text-gray-500">
                   condição especial.
                 </p>
               </div>
