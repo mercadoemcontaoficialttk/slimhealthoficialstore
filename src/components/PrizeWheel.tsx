@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import cimedLogo from "@/assets/cimed-logo.png";
 import carmedProduct from "@/assets/carmed-product.jpg";
@@ -20,6 +20,29 @@ const SEGMENTS = [
 ];
 
 const SEGMENT_ANGLE = 360 / SEGMENTS.length; // 45 degrees per segment
+
+// CIMED brand colors
+const CIMED_COLORS = {
+  primary: "#F7C217",
+  secondary: "#E5B015",
+  tertiary: "#D4A012",
+  dark: "#8B7500",
+};
+
+// Confetti configuration
+const CONFETTI_COLORS = [CIMED_COLORS.primary, CIMED_COLORS.secondary, "#FFFFFF", CIMED_COLORS.tertiary];
+
+const generateConfetti = () => {
+  return Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    delay: Math.random() * 2,
+    duration: 3 + Math.random() * 2,
+    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+    size: 8 + Math.random() * 8,
+    rotation: Math.random() * 360,
+  }));
+};
 
 // Helper to play tick sound using Web Audio API
 const playTickSound = (audioContext: AudioContext) => {
@@ -48,6 +71,8 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
   const audioContextRef = useRef<AudioContext | null>(null);
   const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const confettiPieces = useMemo(() => generateConfetti(), []);
+
   // Initialize audio context on first interaction
   const initAudio = useCallback(() => {
     if (!audioContextRef.current) {
@@ -59,8 +84,8 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
   // Play tick sounds during spin
   const startTickSounds = useCallback((duration: number) => {
     const audioContext = initAudio();
-    let tickDelay = 50; // Start fast
-    const maxDelay = 250; // End slow
+    let tickDelay = 50;
+    const maxDelay = 250;
     const startTime = Date.now();
     
     const tick = () => {
@@ -69,7 +94,6 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
       
       if (progress < 1) {
         playTickSound(audioContext);
-        // Gradually slow down ticks
         tickDelay = 50 + (maxDelay - 50) * Math.pow(progress, 2);
         tickIntervalRef.current = setTimeout(tick, tickDelay);
       }
@@ -102,25 +126,25 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
     setResult(null);
     setShowCelebration(false);
 
-    // Single spin: always land on "96% de desconto" (segment index 4)
+    // Always land on "96% de desconto" (segment index 4)
     const targetSegmentIndex = 4;
     
-    // Calculate the angle to land on the center of the target segment
+    // Calculate the exact angle to land on the center of segment 4
+    // Segments start at -90 degrees (top), so we need to compensate
     const segmentCenterAngle = targetSegmentIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
     
     // Add extra rotations for effect (4-5 full rotations)
     const extraRotations = (4 + Math.random()) * 360;
-    const targetRotation = rotation + extraRotations + (360 - segmentCenterAngle);
     
-    const spinDuration = 7000; // 7 seconds
+    // Final rotation: extra spins + offset to align pointer with segment center
+    // The pointer is at top (0°), segments are drawn starting at -90°
+    const targetRotation = rotation + extraRotations + (360 - segmentCenterAngle + 90);
     
-    // Start tick sounds
+    const spinDuration = 7000;
+    
     startTickSounds(spinDuration);
-
-    // Animate to target rotation
     setRotation(targetRotation);
 
-    // After animation completes
     setTimeout(() => {
       setIsSpinning(false);
       stopTickSounds();
@@ -130,7 +154,6 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
       setResult(resultLabel);
       
       if (targetSegmentIndex === 4) {
-        // Won the 96% discount!
         setShowCelebration(true);
       }
     }, spinDuration);
@@ -167,6 +190,28 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
 
   return (
     <div className="w-full flex flex-col items-center gap-6">
+      {/* Confetti Animation */}
+      {showCelebration && (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
+          {confettiPieces.map((piece) => (
+            <div
+              key={piece.id}
+              className="absolute"
+              style={{
+                left: `${piece.x}%`,
+                top: -20,
+                width: piece.size,
+                height: piece.size * 0.6,
+                backgroundColor: piece.color,
+                transform: `rotate(${piece.rotation}deg)`,
+                animation: `confetti-fall ${piece.duration}s ease-out ${piece.delay}s forwards`,
+                borderRadius: "2px",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Title */}
       <div className="text-center">
         <h2 className="text-3xl md:text-4xl font-extrabold text-[#1a1a2e] mb-2">
@@ -174,7 +219,7 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         </h2>
         {showCelebration && userName && (
           <p className="text-gray-600">
-            {userName}, você ganhou <span className="font-bold text-[#F5C842]">96% de desconto</span>!
+            {userName}, você ganhou <span className="font-bold" style={{ color: CIMED_COLORS.primary }}>96% de desconto</span>!
           </p>
         )}
       </div>
@@ -185,7 +230,7 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         <div 
           className="absolute -inset-6 rounded-full opacity-60"
           style={{
-            background: "radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(255,215,0,0) 70%)",
+            background: `radial-gradient(circle, rgba(247,194,23,0.4) 0%, rgba(247,194,23,0) 70%)`,
             filter: "blur(15px)",
           }}
         />
@@ -194,9 +239,9 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         <div 
           className="absolute -inset-4 rounded-full"
           style={{
-            background: "linear-gradient(135deg, #FFE082 0%, #FFD700 25%, #B8860B 50%, #FFD700 75%, #FFE082 100%)",
+            background: `linear-gradient(135deg, ${CIMED_COLORS.primary} 0%, ${CIMED_COLORS.secondary} 25%, ${CIMED_COLORS.dark} 50%, ${CIMED_COLORS.secondary} 75%, ${CIMED_COLORS.primary} 100%)`,
             boxShadow: `
-              0 0 30px rgba(255,215,0,0.5),
+              0 0 30px rgba(247,194,23,0.5),
               inset 0 2px 4px rgba(255,255,255,0.5),
               inset 0 -2px 4px rgba(0,0,0,0.3)
             `,
@@ -214,16 +259,14 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         
         {/* Pointer - Premium Casino Style */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-6 z-30">
-          {/* Pointer base circle */}
           <div 
             className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full"
             style={{
-              background: "linear-gradient(180deg, #FFD700 0%, #B8860B 100%)",
+              background: `linear-gradient(180deg, ${CIMED_COLORS.primary} 0%, ${CIMED_COLORS.dark} 100%)`,
               boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
               border: "2px solid #8B4513",
             }}
           />
-          {/* Pointer arrow */}
           <svg 
             width="40" 
             height="50" 
@@ -272,11 +315,11 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
           {/* SVG Wheel Segments */}
           <svg viewBox="0 0 100 100" className="w-full h-full">
             <defs>
-              {/* Gold Segment Gradient */}
+              {/* Gold Segment Gradient - CIMED Colors */}
               <linearGradient id="goldSegment" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#FFD700" />
-                <stop offset="50%" stopColor="#FFA500" />
-                <stop offset="100%" stopColor="#FF8C00" />
+                <stop offset="0%" stopColor={CIMED_COLORS.primary} />
+                <stop offset="50%" stopColor={CIMED_COLORS.secondary} />
+                <stop offset="100%" stopColor={CIMED_COLORS.tertiary} />
               </linearGradient>
               
               {/* White Segment Gradient */}
@@ -292,11 +335,11 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                 <feDropShadow dx="-0.3" dy="-0.3" stdDeviation="0.15" floodColor="#fff" floodOpacity="0.5"/>
               </filter>
 
-              {/* Pin Gradient */}
+              {/* Pin Gradient - CIMED Colors */}
               <radialGradient id="pinGradient">
-                <stop offset="0%" stopColor="#FFE082" />
-                <stop offset="50%" stopColor="#FFD700" />
-                <stop offset="100%" stopColor="#B8860B" />
+                <stop offset="0%" stopColor={CIMED_COLORS.primary} />
+                <stop offset="50%" stopColor={CIMED_COLORS.secondary} />
+                <stop offset="100%" stopColor={CIMED_COLORS.dark} />
               </radialGradient>
             </defs>
 
@@ -311,7 +354,7 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                 cy={pin.y} 
                 r="1.8"
                 fill="url(#pinGradient)"
-                stroke="#8B7500"
+                stroke={CIMED_COLORS.dark}
                 strokeWidth="0.3"
               />
             ))}
@@ -332,7 +375,6 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
               
               const pathD = `M 50 50 L ${x1} ${y1} A 44 44 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
               
-              // Calculate text position
               const midAngle = ((startAngle + endAngle) / 2 * Math.PI) / 180;
               const textX = 50 + 30 * Math.cos(midAngle);
               const textY = 50 + 30 * Math.sin(midAngle);
@@ -343,11 +385,10 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                   <path
                     d={pathD}
                     fill={segment.color}
-                    stroke="#B8860B"
+                    stroke={CIMED_COLORS.dark}
                     strokeWidth="1"
                   />
                   {index === 3 ? (
-                    /* Carmed segment - show product image */
                     <image
                       href={carmedProduct}
                       x={textX - 7}
@@ -368,9 +409,9 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
                       filter="url(#textEmboss)"
                       style={{ 
                         fontSize: "5.5px", 
-                        fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
-                        fontWeight: 900,
-                        letterSpacing: "0.02em",
+                        fontFamily: "'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
+                        fontWeight: 800,
+                        letterSpacing: "0.05em",
                       }}
                       className="fill-[#1a1a2e]"
                     >
@@ -407,10 +448,8 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
               inset 0 3px 6px rgba(255,255,255,0.9),
               inset 0 -3px 6px rgba(0,0,0,0.15)
             `,
-            border: "5px solid",
-            borderImage: "linear-gradient(180deg, #FFD700 0%, #B8860B 50%, #8B7500 100%) 1",
+            border: `5px solid ${CIMED_COLORS.dark}`,
             borderRadius: "50%",
-            borderColor: "#B8860B",
           }}
         >
           <img
@@ -433,11 +472,16 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         </div>
       )}
 
-      {/* Celebration Message */}
+      {/* Celebration Message - Professional, no emojis */}
       {showCelebration && (
-        <div className="text-center animate-fade-in bg-gradient-to-r from-[#FFD700] to-[#FFA500] p-4 rounded-2xl shadow-lg">
+        <div 
+          className="text-center animate-fade-in p-4 rounded-2xl shadow-lg"
+          style={{
+            background: `linear-gradient(135deg, ${CIMED_COLORS.primary} 0%, ${CIMED_COLORS.secondary} 100%)`,
+          }}
+        >
           <p className="text-lg font-bold text-[#1a1a2e]">
-            🎰 Você ganhou 96% de desconto! 🎰
+            Você ganhou 96% de desconto!
           </p>
           <p className="text-sm text-[#1a1a2e]/80 mt-1">
             Clique no botão abaixo para resgatar seu prêmio.
@@ -452,8 +496,11 @@ const PrizeWheel = ({ onWin, userName }: PrizeWheelProps) => {
         className={`w-full h-14 text-lg font-bold rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
           showCelebration
             ? "bg-cta hover:bg-cta/90 text-white"
-            : "bg-gradient-to-r from-[#FFD700] to-[#FFA500] hover:from-[#FFA500] hover:to-[#FF8C00] text-[#1a1a2e] shadow-lg"
+            : "text-[#1a1a2e] shadow-lg"
         } ${isSpinning ? "opacity-70 cursor-not-allowed hover:scale-100" : ""}`}
+        style={!showCelebration ? {
+          background: `linear-gradient(135deg, ${CIMED_COLORS.primary} 0%, ${CIMED_COLORS.secondary} 100%)`,
+        } : undefined}
       >
         {getButtonText()}
       </Button>
