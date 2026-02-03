@@ -1,56 +1,68 @@
 
 
-## Plano: Duplicar Funil de Pré-Conversão SlimHealth
+## Plano: Adicionar Passos de Captura de Lead ao Funil
 
-### 📋 Visão Geral
-Recriar o funil de vendas do site mjpre.lovable.app, começando pela página de pré-conversão. A segunda página (checkout/vendas) será implementada posteriormente quando você enviar a referência.
+### Visao Geral
+Transformar a pagina inicial em um funil multi-step com 3 etapas:
+1. **Passo 1** (atual): Pre-sell com logos e alerta de escassez
+2. **Passo 2** (novo): Captura do nome do lead
+3. **Passo 3** (novo): Confirmacao de idade (maior de 18)
 
----
-
-### 🎯 Página 1: Pré-Conversão (Landing Page)
-
-**Layout Principal:**
-- Card centralizado com bordas arredondadas sobre fundo cinza claro
-- Design limpo e focado em conversão
-
-**Elementos da página:**
-1. **Seção de Parceria**
-   - Logo SlimHealth (maior, à esquerda)
-   - Sinal de "+" entre os logos
-   - Logo CIMED (menor, à direita)
-
-2. **Mensagem de Oferta**
-   - Texto: "Você vai garantir nosso produto em condição especial"
-   - Destaque em negrito para a primeira parte
-
-3. **Alerta de Escassez (Estático)**
-   - Caixa com borda amarela e fundo âmbar
-   - Ícone ⚠️ em círculo
-   - Texto: "Restam apenas 19 unidades em estoque"
-   - Número editável manualmente no código
-
-4. **Botão CTA**
-   - Botão verde (#5ECC6B) com texto "Continuar"
-   - Efeitos de hover e clique
-   - Redireciona para a página de checkout
+O botao "Continuar" fica desabilitado (cinza) ate o usuario preencher o campo, entao fica verde.
 
 ---
 
-### 🛒 Página 2: Checkout/Vendas
+### Estrutura do Fluxo
 
-**Aguardando referência** - Você irá enviar a página de exemplo para eu replicar
-
----
-
-### ⚙️ Configurações Técnicas
-- Navegação entre páginas usando React Router
-- Design responsivo (mobile e desktop)
-- Animações suaves de entrada
-- Logos baixados e armazenados no projeto
+```text
++------------------+     +------------------+     +------------------+     +------------------+
+|    Passo 1       | --> |    Passo 2       | --> |    Passo 3       | --> |    Checkout      |
+|   Pre-sell       |     |   Nome           |     |   Idade          |     |   (aguardando)   |
++------------------+     +------------------+     +------------------+     +------------------+
+```
 
 ---
 
-### 📝 Próximos Passos
-1. ✅ Implementar Página 1 (Pré-Conversão)
-2. ⏳ Você envia referência da Página 2
-3. ⏳ Implementar Página 2 (Checkout/Vendas)
+### Detalhes de Implementacao
+
+**Passo 2 - Captura de Nome:**
+- Titulo: "Antes de continuar" (bold, preto)
+- Subtitulo: "Precisamos saber seu nome para prosseguir." (cinza)
+- Input de texto com placeholder "Digite seu nome"
+- Input com borda verde suave e bordas arredondadas
+- Botao "Continuar" desabilitado (cinza) quando vazio
+- Botao fica verde quando nome preenchido
+
+**Passo 3 - Confirmacao de Idade:**
+- Titulo: "Confirme sua idade" (bold, preto)
+- Subtitulo: "Este produto e destinado apenas para maiores de 18 anos." (cinza)
+- Input numerico com placeholder "Digite sua idade"
+- Botao "Continuar" desabilitado (cinza) quando vazio
+- Botao fica verde quando idade preenchida
+- Ao clicar, navega para /checkout
+
+---
+
+### Mudancas Tecnicas
+
+1. **Modificar `src/pages/Index.tsx`:**
+   - Adicionar estado para controlar o passo atual (1, 2, 3)
+   - Adicionar estados para nome e idade
+   - Renderizar conteudo diferente baseado no passo atual
+   - Logica de validacao para habilitar/desabilitar botao
+
+2. **Estilos do Botao:**
+   - Desabilitado: fundo cinza claro (`bg-gray-300`)
+   - Habilitado: fundo verde CTA (`bg-cta`)
+   - Texto sempre em branco/claro
+
+3. **Estilos do Input:**
+   - Borda verde suave
+   - Bordas bem arredondadas
+   - Fundo cinza muito claro
+
+---
+
+### Dados do Lead
+Os dados (nome e idade) serao armazenados em estado local por enquanto. Posteriormente podem ser enviados para um backend ou passados para a pagina de checkout.
+
