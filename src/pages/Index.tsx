@@ -21,7 +21,7 @@ const Index = () => {
     } else if (step === 2 && name.trim()) {
       setStep(3);
     } else if (step === 3 && age.trim()) {
-      navigate("/product"); // Ir para página de produto
+      navigate("/mounjaro"); // Ir para página do Mounjaro
     }
   };
 
