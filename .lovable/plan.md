@@ -1,162 +1,103 @@
 
 
-## Plano: Ajustes Visuais na Roleta + Confetes
+## Plano: Remover Passo da Roleta do Funil
 
 ### Visao Geral
 
-Implementar cinco melhorias na roleta:
-1. Alterar tom de cores para rgb(247,194,23)
-2. Garantir que a roleta pare exatamente no 96%
-3. Remover emojis do card de celebracao
-4. Alterar fonte das letras para estilo CIMED (sans-serif elegante)
-5. Adicionar confetes caindo quando ganhar
+Remover o passo 4 (roleta de premios) do funil de pre-venda, mantendo apenas os 3 primeiros passos. O componente PrizeWheel sera mantido no projeto para uso futuro, apenas removendo sua integracao no fluxo atual.
 
 ---
 
-### Mudancas em `src/components/PrizeWheel.tsx`
+### Mudancas em `src/pages/Index.tsx`
 
-#### 1. Alterar Tom de Cores para rgb(247,194,23)
+#### 1. Remover Import do PrizeWheel
 
-**Cor CIMED:** `rgb(247, 194, 23)` = `#F7C217`
-
-**Locais a alterar:**
-
-| Antes | Depois |
-|-------|--------|
-| `#FFD700` | `#F7C217` |
-| `#FFA500` | `#E5B015` (tom mais escuro) |
-| `#FF8C00` | `#D4A012` (tom ainda mais escuro) |
-
-**Gradientes a atualizar:**
-- `goldSegment`: usar tons de #F7C217
-- `pinGradient`: usar tons de #F7C217
-- Borda externa: usar #F7C217
-- Glow effect: usar rgba(247,194,23,0.4)
-
----
-
-#### 2. Parar Exatamente no 96%
-
-**Problema atual:** A roleta pode nao parar exatamente no centro do segmento 96%.
-
-**Solucao:** Ajustar o calculo do angulo de parada para garantir precisao.
-
-O segmento 96% esta no indice 4. Com 8 segmentos de 45 graus cada:
-- Inicio do segmento: 4 * 45 = 180 graus
-- Centro do segmento: 180 + 22.5 = 202.5 graus (a partir do topo)
-
-**Codigo ajustado:**
 ```text
-// O ponteiro esta no topo (0 graus)
-// Para o ponteiro apontar para o centro do segmento 4:
-const segmentCenterAngle = targetSegmentIndex * SEGMENT_ANGLE + SEGMENT_ANGLE / 2;
+Antes (linha 8):
+import PrizeWheel from "@/components/PrizeWheel";
 
-// Rotacao final = rotacoes extras + ajuste para alinhar
-const targetRotation = rotation + extraRotations + (360 - segmentCenterAngle + 90);
+Depois:
+// PrizeWheel removido do fluxo - disponivel em @/components/PrizeWheel
 ```
 
-O `+ 90` compensa o offset de -90 usado no desenho dos segmentos.
+#### 2. Ajustar Funcao handleContinue
 
----
-
-#### 3. Remover Emojis do Card de Celebracao
-
-**Linha 439-440:**
+O passo 3 agora redireciona diretamente para o checkout em vez de ir para a roleta.
 
 ```text
 Antes:
-🎰 Você ganhou 96% de desconto! 🎰
+} else if (step === 3 && age.trim()) {
+  setStep(4); // Go to prize wheel
+}
 
 Depois:
-Você ganhou 96% de desconto!
-```
-
----
-
-#### 4. Fonte Estilo CIMED nas Letras da Roleta
-
-**Fonte CIMED:** A logo CIMED usa uma fonte sans-serif bold, moderna e limpa.
-
-**Solucao:** Usar fonte que se assemelhe ao estilo CIMED:
-
-```text
-Antes:
-fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif"
-
-Depois:
-fontFamily: "'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif"
-fontWeight: 800
-letterSpacing: "0.05em"
-```
-
-Tambem aumentar levemente o tamanho e ajustar o espacamento para melhor legibilidade.
-
----
-
-#### 5. Adicionar Confetes Quando Ganhar
-
-**Implementacao:** Criar animacao CSS de confetes que caem do topo quando `showCelebration` for true.
-
-**Tecnica:**
-- Criar 20-30 elementos de confete com posicoes aleatorias
-- Usar keyframes CSS para animacao de queda
-- Cores: tons de dourado, branco, e cor CIMED
-- Duracao: 3-4 segundos
-- Iniciar automaticamente quando showCelebration = true
-
-**Estrutura do componente de confetes:**
-```text
-{showCelebration && (
-  <div className="fixed inset-0 pointer-events-none overflow-hidden z-50">
-    {confettiPieces.map((piece) => (
-      <div 
-        key={piece.id}
-        className="absolute animate-confetti-fall"
-        style={{
-          left: `${piece.x}%`,
-          animationDelay: `${piece.delay}s`,
-          backgroundColor: piece.color,
-        }}
-      />
-    ))}
-  </div>
-)}
-```
-
-**Keyframes necessarios (adicionar ao index.css ou inline):**
-```text
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(-10vh) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(110vh) rotate(720deg);
-    opacity: 0;
-  }
+} else if (step === 3 && age.trim()) {
+  navigate("/checkout"); // Ir direto para checkout
 }
 ```
 
+#### 3. Remover Funcao handleWheelWin
+
+Esta funcao nao sera mais necessaria pois nao ha mais roleta.
+
+```text
+Antes:
+const handleWheelWin = () => {
+  navigate("/checkout");
+};
+
+Depois:
+(remover)
+```
+
+#### 4. Remover Renderizacao do Step 4
+
+```text
+Antes (linhas 121-123):
+{step === 4 && (
+  <PrizeWheel onWin={handleWheelWin} userName={name} />
+)}
+
+Depois:
+(remover)
+```
+
+#### 5. Simplificar Condicao do Botao
+
+O botao sempre aparece nos 3 passos.
+
+```text
+Antes (linha 126):
+{step < 4 && (
+
+Depois:
+{step <= 3 && (
+```
+
+(Esta mudanca e apenas para clareza, funcionalmente igual)
+
 ---
 
-### Resumo das Alteracoes
+### Componente PrizeWheel Mantido
 
-| Item | Mudanca |
-|------|---------|
-| Cores | Alterar de #FFD700 para #F7C217 (cor CIMED) |
-| Gradientes | Atualizar goldSegment, pinGradient com novos tons |
-| Glow | Usar rgba(247,194,23,0.4) |
-| Parada 96% | Ajustar calculo de angulo com +90 offset |
-| Emojis | Remover "emoji de roleta" do card |
-| Fonte | Mudar para Segoe UI/Roboto com peso 800 |
-| Confetes | Adicionar animacao de confetes caindo |
+O arquivo `src/components/PrizeWheel.tsx` permanece intacto e disponivel para uso futuro. Voce pode reativar a roleta a qualquer momento importando-a novamente no Index.tsx.
 
 ---
 
-### Arquivos a Modificar
+### Fluxo Atualizado
+
+| Passo | Conteudo | Acao do Botao |
+|-------|----------|---------------|
+| 1 | Landing page com logos e alerta | Ir para passo 2 |
+| 2 | Captura de nome | Ir para passo 3 |
+| 3 | Confirmacao de idade | Ir para /checkout |
+
+---
+
+### Arquivo a Modificar
 
 | Arquivo | Acao |
 |---------|------|
-| src/components/PrizeWheel.tsx | Todas as alteracoes acima |
-| src/index.css | Adicionar keyframes de confete (opcional, pode ser inline) |
+| src/pages/Index.tsx | Remover integracao da roleta, redirecionar passo 3 para checkout |
+| src/components/PrizeWheel.tsx | Nenhuma mudanca - manter para uso futuro |
 
