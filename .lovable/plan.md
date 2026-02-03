@@ -1,63 +1,62 @@
 
 
-## Plano: Ajustar Step 1 para Ficar Identico a Referencia
+## Plano: Ajustar Modal e Texto da Oferta para Ficar Igual a Referencia
 
 ### Diferencas Identificadas
 
-Comparando o nosso codigo atual com a imagem de referencia:
+Comparando com a imagem de referencia:
 
 | Elemento | Nosso (atual) | Referencia |
 |----------|---------------|------------|
-| Texto oferta | 2 linhas separadas: "Voce vai garantir nosso produto" + "em condicao especial." | 1 linha: "Voce vai garantir nosso produto" em preto bold + "em" em cinza na mesma linha, depois "condicao especial." em cinza |
-| Texto alerta | Todo em laranja (#D97706) | Texto principal em PRETO, apenas "19" em amarelo/laranja |
-| Botao | rounded-2xl, h-12 | Mais alto (~h-14), cantos mais suaves, verde mais vibrante |
+| Tamanho texto | `text-2xl md:text-3xl` (24-30px) | Menor, aproximadamente `text-xl md:text-2xl` (20-24px) |
+| Card arredondamento | `rounded-lg` (padrao do Card) | Bordas mais arredondadas e suaves (`rounded-2xl` ou `rounded-3xl`) |
+| Sombra do Card | `shadow-lg` | Sombra mais suave e elegante (`shadow-xl` com opacidade reduzida) |
 
 ---
 
-### Mudancas em `src/pages/Index.tsx`
+### Mudancas Necessarias
 
-**1. Texto da Oferta (linhas 57-64):**
+**1. Arquivo `src/pages/Index.tsx`**
 
-O layout na referencia mostra:
-- "Voce vai garantir nosso produto" em preto bold
-- "em" comeca na mesma linha em cinza
-- "condicao especial." na linha abaixo em cinza
+**Card (linha 37):**
+- Adicionar bordas mais arredondadas: `rounded-2xl` ou `rounded-3xl`
+- Ajustar sombra para ficar mais suave: `shadow-xl`
 
-Estrutura atual separada em 2 `<p>` nao reproduz isso. Preciso usar spans inline:
-
+Antes:
 ```text
-<p className="text-center text-2xl md:text-3xl">
+<Card className="w-full max-w-md shadow-lg animate-fade-in">
+```
+
+Depois:
+```text
+<Card className="w-full max-w-md shadow-xl rounded-3xl animate-fade-in">
+```
+
+**Texto da Oferta (linhas 58-64):**
+- Reduzir tamanho da fonte de `text-2xl md:text-3xl` para `text-xl md:text-2xl`
+- Manter a mesma estrutura de cores
+
+Antes:
+```text
+<p className="text-2xl md:text-3xl">
   <span className="font-bold text-black">Voce vai garantir nosso produto </span>
   <span className="text-gray-500">em</span>
 </p>
-<p className="text-center text-2xl md:text-3xl text-gray-500">
+<p className="text-2xl md:text-3xl text-gray-500">
   condicao especial.
 </p>
 ```
 
-**2. Texto do Alerta (linhas 71-73):**
-
-Na referencia, o texto do alerta e:
-- "Restam apenas" em PRETO
-- "19" em AMARELO/LARANJA e bold
-- "unidades em estoque" em PRETO
-
-Atualmente tudo esta em laranja (#D97706). Mudar para:
-
+Depois:
 ```text
-<p className="text-base font-medium text-black">
-  Restam apenas <span className="font-bold text-[#D97706]">{STOCK_QUANTITY}</span> unidades em estoque
+<p className="text-xl md:text-2xl">
+  <span className="font-bold text-black">Voce vai garantir nosso produto </span>
+  <span className="text-gray-500">em</span>
+</p>
+<p className="text-xl md:text-2xl text-gray-500">
+  condicao especial.
 </p>
 ```
-
-**3. Botao Continuar (linhas 117-127):**
-
-Na referencia o botao parece:
-- Mais alto (h-14 em vez de h-12)
-- Cantos mais arredondados (rounded-3xl)
-- Verde mais suave/vibrante
-
-Mudar altura para `h-14` e arredondamento para `rounded-3xl`.
 
 ---
 
@@ -65,50 +64,16 @@ Mudar altura para `h-14` e arredondamento para `rounded-3xl`.
 
 Arquivo: `src/pages/Index.tsx`
 
-**Linha 57-64 - Texto da Oferta:**
+**Linha 37 - Card:**
 ```text
-Antes:
-<div className="text-center">
-  <p className="text-2xl md:text-3xl font-bold text-black">
-    Voce vai garantir nosso produto
-  </p>
-  <p className="text-2xl md:text-3xl text-gray-500">
-    em condicao especial.
-  </p>
-</div>
-
-Depois:
-<div className="text-center">
-  <p className="text-2xl md:text-3xl">
-    <span className="font-bold text-black">Voce vai garantir nosso produto </span>
-    <span className="text-gray-500">em</span>
-  </p>
-  <p className="text-2xl md:text-3xl text-gray-500">
-    condicao especial.
-  </p>
-</div>
+Antes: <Card className="w-full max-w-md shadow-lg animate-fade-in">
+Depois: <Card className="w-full max-w-md shadow-xl rounded-3xl animate-fade-in">
 ```
 
-**Linha 71-73 - Texto do Alerta:**
+**Linhas 58-64 - Texto da Oferta:**
 ```text
-Antes:
-<p className="text-base font-medium text-[#D97706]">
-  Restam apenas <span className="font-bold">{STOCK_QUANTITY}</span> unidades em estoque
-</p>
-
-Depois:
-<p className="text-base font-medium text-black">
-  Restam apenas <span className="font-bold text-[#D97706]">{STOCK_QUANTITY}</span> unidades em estoque
-</p>
-```
-
-**Linha 120 - Botao:**
-```text
-Antes:
-className={`w-full h-12 text-lg font-semibold rounded-2xl ...
-
-Depois:
-className={`w-full h-14 text-lg font-semibold rounded-3xl ...
+Antes: text-2xl md:text-3xl (duas ocorrencias)
+Depois: text-xl md:text-2xl (duas ocorrencias)
 ```
 
 ---
@@ -117,8 +82,7 @@ className={`w-full h-14 text-lg font-semibold rounded-3xl ...
 
 | Elemento | Antes | Depois |
 |----------|-------|--------|
-| Texto oferta linha 1 | Todo em preto bold | "produto " em preto + "em" em cinza na mesma linha |
-| Texto alerta | Todo em laranja | Preto com apenas "19" em laranja |
-| Altura botao | h-12 | h-14 |
-| Arredondamento botao | rounded-2xl | rounded-3xl |
+| Arredondamento Card | rounded-lg (padrao) | rounded-3xl |
+| Sombra Card | shadow-lg | shadow-xl |
+| Tamanho fonte oferta | text-2xl md:text-3xl | text-xl md:text-2xl |
 
