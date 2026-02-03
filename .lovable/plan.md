@@ -1,172 +1,93 @@
 
 
-## Plano: Roleta de Premios CIMED
+## Plano: Roleta 3D Profissional com Imagem Carmed
 
 ### Visao Geral
 
-Criar uma roleta de premios interativa que aparece apos o passo 3 (idade). A roleta tera o tema visual da CIMED (amarelo) e seguira uma logica programada:
-1. Primeiro giro: cai em "Tente novamente"
-2. Segundo giro: cai em "96% de desconto"
+Transformar a roleta atual em uma versao mais profissional com efeito 3D, substituir o texto "Carmed" pela imagem do produto enviada, e reduzir o tamanho dos textos para evitar vazamento.
 
 ---
 
-### Estrutura da Roleta
+### Mudancas a Implementar
 
-**Segmentos da roleta (8 segmentos):**
-1. 20% de desconto
-2. Tente novamente
-3. 40% de desconto
-4. Carmed
-5. 96% de desconto (premio final)
-6. Tente novamente
-7. 30% de desconto
-8. Frete Gratis
+#### 1. Copiar Imagem Carmed para o Projeto
+
+Copiar a imagem enviada para `src/assets/carmed-product.jpg` para uso no componente.
 
 ---
 
-### Arquivos a Criar/Modificar
+#### 2. Modificar `src/components/PrizeWheel.tsx`
 
-**1. Novo componente: `src/components/PrizeWheel.tsx`**
+**A. Adicionar efeito 3D na roleta:**
 
-Componente da roleta com:
-- Canvas/SVG para desenhar a roleta circular
-- Segmentos coloridos alternando entre amarelo CIMED (#F5C842) e branco/cinza claro
-- Logo CIMED no centro da roleta
-- Seta indicadora no topo
-- Animacao de rotacao com easing (desacelera no final)
-- Som de tique-taque durante a rotacao (usando Web Audio API ou arquivo de audio)
+| Efeito | Implementacao |
+|--------|---------------|
+| Sombra profunda | `box-shadow` com multiplas camadas |
+| Borda metalica | Gradiente radial na borda |
+| Perspectiva 3D | `transform-style: preserve-3d` |
+| Reflexo sutil | Pseudo-elemento com gradiente |
+| Iluminacao | Sombra interna e externa |
 
-**Logica do componente:**
+**Estilos 3D a adicionar:**
 ```text
-Estados:
-- isSpinning: boolean (se esta girando)
-- spinCount: number (quantas vezes girou - 0, 1, 2)
-- currentRotation: number (angulo atual)
-- result: string | null (resultado do giro)
-
-Funcao spinWheel():
-- Se spinCount === 0: calcula angulo para cair em "Tente novamente"
-- Se spinCount === 1: calcula angulo para cair em "96% de desconto"
-- Anima a rotacao com CSS transition ou requestAnimationFrame
-- Toca som de roleta durante a animacao
+- Sombra externa: 0 10px 30px rgba(0,0,0,0.3)
+- Sombra interna: inset 0 -5px 15px rgba(0,0,0,0.1)
+- Borda metalica: gradiente de #D4A934 para #F5C842 para #D4A934
+- Anel externo decorativo com efeito de profundidade
 ```
 
-**2. Novo arquivo de audio: Usar Web Audio API**
+**B. Substituir segmento "Carmed" por imagem:**
 
-Para o som da roleta, usar a Web Audio API para gerar um som de "tick" sintetico:
+No segmento index 3 (Carmed), ao inves de renderizar texto, renderizar a imagem do produto Carmed usando `<image>` dentro do SVG ou posicionamento absoluto.
+
+**C. Reduzir tamanho dos textos:**
+
+Alterar de `text-[5px]` para `text-[4px]` e ajustar o `dy` do tspan de `6` para `4.5` para melhor espaçamento.
+
+---
+
+### Estrutura Visual 3D
+
 ```text
-- Criar oscillator com frequencia curta
-- Tocar multiplos ticks durante a rotacao
-- Frequencia dos ticks diminui conforme a roleta desacelera
-```
-
-**3. Modificar: `src/pages/Index.tsx`**
-
-Adicionar step 4 (roleta):
-```text
-Estados adicionais:
-- step agora vai de 1 a 4
-- hasWon: boolean (se ganhou o premio final)
-
-Logica atualizada:
-- Step 3 -> Ao clicar continuar, vai para step 4 (roleta)
-- Step 4 -> Mostra a roleta, apos ganhar vai para /checkout
-```
-
-**4. Modificar: `tailwind.config.ts`**
-
-Adicionar keyframe de rotacao da roleta:
-```text
-keyframes: {
-  "spin-wheel": {
-    from: { transform: "rotate(0deg)" },
-    to: { transform: "rotate(var(--spin-degrees))" }
-  }
-}
+    +-- Anel externo decorativo (gradiente dourado) --+
+    |                                                  |
+    |  +-- Borda metalica com gradiente 3D --+        |
+    |  |                                     |        |
+    |  |        [ROLETA PRINCIPAL]           |        |
+    |  |        com sombras internas         |        |
+    |  |                                     |        |
+    |  |           [CENTRO CIMED]            |        |
+    |  |           com elevacao 3D           |        |
+    |  |                                     |        |
+    |  +-------------------------------------+        |
+    |                                                  |
+    +--------------------------------------------------+
 ```
 
 ---
 
-### Layout Visual do Step 4 (Roleta)
+### Detalhes Tecnicos
 
+**Efeito 3D no container da roleta:**
 ```text
-+----------------------------------+
-|                                  |
-|      Gire e ganhe seu           |
-|         desconto!               |
-|                                 |
-|          [SETA v]               |
-|     +---------------+           |
-|    /                 \          |
-|   |    [ROLETA]      |          |
-|   |   [CIMED LOGO]   |          |
-|    \                 /          |
-|     +---------------+           |
-|                                 |
-|      [ GIRAR ROLETA ]           |
-|                                 |
-|   (resultado aparece aqui)      |
-+----------------------------------+
+Classes/Estilos:
+- Sombra multicamada: shadow-[0_10px_40px_rgba(0,0,0,0.3),0_5px_15px_rgba(0,0,0,0.2)]
+- Borda gradiente: usar div wrapper com gradiente
+- Anel externo: div adicional com borda maior e gradiente
 ```
 
----
-
-### Cores CIMED para a Roleta
-
-| Elemento | Cor |
-|----------|-----|
-| Segmentos primarios | #F5C842 (amarelo CIMED) |
-| Segmentos secundarios | #FFFFFF (branco) |
-| Texto dos segmentos | #1a1a2e (escuro) |
-| Borda da roleta | #D4A934 (amarelo mais escuro) |
-| Botao girar | #F5C842 (amarelo CIMED) |
-
----
-
-### Fluxo de Interacao
-
+**Imagem Carmed no SVG:**
 ```text
-1. Usuario completa step 3 (idade)
-   |
-   v
-2. Clica "Continuar" -> vai para step 4
-   |
-   v
-3. Ve a roleta com botao "GIRAR ROLETA"
-   |
-   v
-4. Clica no botao -> roleta gira com som
-   |
-   v
-5. Para em "Tente novamente" -> mostra mensagem
-   |
-   v
-6. Botao muda para "TENTAR NOVAMENTE"
-   |
-   v
-7. Clica novamente -> roleta gira
-   |
-   v
-8. Para em "96% de desconto" -> celebracao!
-   |
-   v
-9. Mostra mensagem de parabens + botao "RESGATAR PREMIO"
-   |
-   v
-10. Clica -> navega para /checkout
+- Usar elemento <image> dentro do SVG
+- Posicionar no centro do segmento
+- Aplicar clipPath para manter dentro do segmento
+- Tamanho reduzido para caber no segmento
 ```
 
----
-
-### Som da Roleta (Web Audio API)
-
+**Texto menor:**
 ```text
-Implementacao sintetica (sem arquivo externo):
-- Criar AudioContext
-- Durante a rotacao, tocar "ticks" com oscillator
-- Frequencia: comeca rapido (50ms entre ticks)
-- Desacelera conforme a roleta para (ate 200ms entre ticks)
-- Som tipo "click" curto (10-20ms de duracao cada)
+Antes: fontSize: "5px", dy: "6"
+Depois: fontSize: "4px", dy: "4"
 ```
 
 ---
@@ -175,24 +96,15 @@ Implementacao sintetica (sem arquivo externo):
 
 | Arquivo | Acao |
 |---------|------|
-| src/components/PrizeWheel.tsx | Criar (novo componente da roleta) |
-| src/pages/Index.tsx | Modificar (adicionar step 4 com roleta) |
-| tailwind.config.ts | Modificar (adicionar keyframe de spin) |
-| src/index.css | Modificar (adicionar estilos da roleta se necessario) |
+| src/assets/carmed-product.jpg | Copiar imagem do usuario |
+| src/components/PrizeWheel.tsx | Adicionar efeitos 3D, imagem Carmed, texto menor |
 
 ---
 
-### Detalhes Tecnicos
+### Resultado Esperado
 
-**Calculo do angulo de parada:**
-- Cada segmento = 360 / 8 = 45 graus
-- "Tente novamente" (segmento 2): posicao 45-90 graus
-- "96% de desconto" (segmento 5): posicao 180-225 graus
-- Adicionar multiplas rotacoes completas (3-5 voltas) + angulo final
-- Usar cubic-bezier para efeito de desaceleracao natural
-
-**Animacao da roleta:**
-- Duracao: 4-6 segundos
-- Easing: cubic-bezier(0.17, 0.67, 0.12, 0.99) (desacelera suavemente)
-- Rotacoes totais: minimo 1440 graus (4 voltas) + offset do premio
+- Roleta com aparencia profissional e tridimensional
+- Segmento "Carmed" mostrando a imagem do produto
+- Textos menores que nao vazam dos segmentos
+- Visual mais condizente com campanha CIMED/Carmed
 
