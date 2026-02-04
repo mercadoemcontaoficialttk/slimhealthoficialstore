@@ -105,7 +105,7 @@ const DadosPessoaisPage = () => {
                 Mounjaro 5 mg – Tirzepatida (caneta...
               </h2>
               <div className="mt-1 text-lg font-bold text-emerald-600">
-                R$ {formatPrice(PRECO_UNITARIO)}
+                R$ {formatPrice(subtotal)}
               </div>
             </div>
 
@@ -201,18 +201,18 @@ const DadosPessoaisPage = () => {
 
       {/* Security Badges */}
       <div className="fixed inset-x-0 bottom-[72px] z-40 bg-white border-t">
-        <div className="max-w-screen-sm mx-auto px-4 py-3 flex items-center justify-center gap-6">
-          <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
-            <ShieldCheck className="w-5 h-5" />
-            <span>Compra Segura</span>
+        <div className="max-w-screen-sm mx-auto px-4 py-2 flex items-center justify-center gap-4">
+          <div className="flex items-center gap-1 text-emerald-600">
+            <ShieldCheck className="w-4 h-4" />
+            <span className="text-xs">Compra Segura</span>
           </div>
-          <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
-            <Lock className="w-5 h-5" />
-            <span>SSL Ativo</span>
+          <div className="flex items-center gap-1 text-emerald-600">
+            <Lock className="w-4 h-4" />
+            <span className="text-xs">SSL Ativo</span>
           </div>
-          <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
-            <ShieldCheck className="w-5 h-5" />
-            <span>Garantia</span>
+          <div className="flex items-center gap-1 text-emerald-600">
+            <ShieldCheck className="w-4 h-4" />
+            <span className="text-xs">Garantia</span>
           </div>
         </div>
       </div>
@@ -231,9 +231,9 @@ const DadosPessoaisPage = () => {
             <button
               onClick={handleContinuar}
               disabled={!isFormValid}
-              className={`flex-1 h-12 rounded-full font-semibold text-base transition ${
+              className={`px-12 h-12 rounded-full font-semibold text-base transition ${
                 isFormValid
-                  ? 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-[0.98]'
+                  ? 'bg-rose-500 text-white hover:bg-rose-600 active:scale-[0.98]'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
