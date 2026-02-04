@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Copy, Clock } from "lucide-react";
+import { ChevronLeft, Copy, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useParadisePix } from "@/hooks/useParadisePix";
 import slimHealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
 
@@ -27,21 +28,73 @@ interface Pedido {
   metodoPagamento: string;
 }
 
+interface DadosPessoais {
+  nome: string;
+  email: string;
+  cpf: string;
+  telefone: string;
+}
+
 const PixPage = () => {
   const navigate = useNavigate();
   const [pedido, setPedido] = useState<Pedido | null>(null);
+  const [dadosPessoais, setDadosPessoais] = useState<DadosPessoais | null>(null);
   const [timeLeft, setTimeLeft] = useState(900); // 15 minutos
+  const [paymentInitialized, setPaymentInitialized] = useState(false);
 
-  // Placeholder PIX code - será substituído pela integração com gateway
-  const pixCode = "00020101021226940014br.gov.bcb.pix2572qrcodespix.sejaefi.com.br/v2/cobfc73d8f1cc9a469c7b33e0e5d0e08a675204000053039865802BR5925SLIMHEALTH COMERCIO DE PRO6009SAO PAULO62070503***6304";
+  const {
+    isLoading,
+    error,
+    qrCode,
+    qrCodeBase64,
+    paymentStatus,
+    createPixPayment,
+    startPolling,
+    reset,
+  } = useParadisePix();
 
+  // Load order and customer data
   useEffect(() => {
     const pedidoSalvo = localStorage.getItem('pedido');
+    const dadosSalvos = localStorage.getItem('dadosPessoais');
+    
     if (pedidoSalvo) {
       setPedido(JSON.parse(pedidoSalvo));
     }
+    if (dadosSalvos) {
+      setDadosPessoais(JSON.parse(dadosSalvos));
+    }
   }, []);
 
+  // Create PIX payment when data is ready
+  useEffect(() => {
+    if (pedido && dadosPessoais && !paymentInitialized && !isLoading) {
+      setPaymentInitialized(true);
+      
+      const customer = {
+        name: dadosPessoais.nome,
+        email: dadosPessoais.email,
+        document: dadosPessoais.cpf,
+        phone: dadosPessoais.telefone,
+      };
+
+      createPixPayment(
+        pedido.total,
+        'Mounjaro 5mg - SlimHealth',
+        customer,
+        `pedido_${Date.now()}`
+      ).then((success) => {
+        if (success) {
+          startPolling(() => {
+            toast.success("Pagamento confirmado!");
+            navigate('/upsell1');
+          });
+        }
+      });
+    }
+  }, [pedido, dadosPessoais, paymentInitialized, isLoading, createPixPayment, startPolling, navigate]);
+
+  // Timer countdown
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -62,12 +115,21 @@ const PixPage = () => {
   };
 
   const handleCopyPix = async () => {
+    if (!qrCode) {
+      toast.error("Código PIX não disponível");
+      return;
+    }
     try {
-      await navigator.clipboard.writeText(pixCode);
+      await navigator.clipboard.writeText(qrCode);
       toast.success("Código PIX copiado!");
     } catch {
       toast.error("Erro ao copiar código");
     }
+  };
+
+  const handleRetry = () => {
+    reset();
+    setPaymentInitialized(false);
   };
 
   const formatCurrency = (value: number) => {
@@ -77,7 +139,6 @@ const PixPage = () => {
     });
   };
 
-  // Calcular total de itens (produto + bumps)
   const totalItens = pedido 
     ? pedido.produto.quantidade + pedido.bumps.length 
     : 0;
@@ -128,43 +189,72 @@ const PixPage = () => {
             Escaneie o QR Code com o app do seu banco
           </p>
 
-          {/* QR Code Placeholder */}
-          <div className="flex justify-center mb-4">
-            <div className="w-48 h-48 bg-gray-100 border-2 border-gray-200 rounded-lg flex items-center justify-center">
-              <div className="text-center text-gray-400">
-                <div className="w-32 h-32 bg-gray-200 rounded grid grid-cols-5 grid-rows-5 gap-1 p-2">
-                  {Array.from({ length: 25 }).map((_, i) => (
-                    <div 
-                      key={i} 
-                      className={`rounded-sm ${Math.random() > 0.5 ? 'bg-gray-800' : 'bg-white'}`}
-                    />
-                  ))}
-                </div>
-                <p className="text-xs mt-2">QR Code</p>
-              </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="w-12 h-12 text-rose-500 animate-spin mb-4" />
+              <p className="text-gray-600">Gerando QR Code...</p>
             </div>
-          </div>
+          )}
 
-          {/* Divisor */}
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-sm text-gray-500">ou copie o código</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
+          {/* Error State */}
+          {error && !isLoading && (
+            <div className="flex flex-col items-center justify-center py-6">
+              <div className="bg-red-50 text-red-600 p-4 rounded-lg text-center mb-4 w-full">
+                <p className="font-medium">Erro ao gerar pagamento</p>
+                <p className="text-sm mt-1">{error}</p>
+              </div>
+              <Button onClick={handleRetry} variant="outline">
+                Tentar novamente
+              </Button>
+            </div>
+          )}
 
-          {/* Botão Copiar */}
-          <Button
-            onClick={handleCopyPix}
-            className="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
-          >
-            <Copy className="w-5 h-5" />
-            Copiar código PIX
-          </Button>
+          {/* QR Code */}
+          {!isLoading && !error && (
+            <>
+              <div className="flex justify-center mb-4">
+                <div className="w-48 h-48 bg-gray-100 border-2 border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                  {qrCodeBase64 ? (
+                    <img 
+                      src={qrCodeBase64.startsWith('data:') ? qrCodeBase64 : `data:image/png;base64,${qrCodeBase64}`} 
+                      alt="QR Code PIX" 
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <div className="text-center text-gray-400 p-4">
+                      <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                      <p className="text-sm">Carregando...</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-          {/* Código PIX truncado */}
-          <p className="text-xs text-gray-400 text-center mt-3 break-all px-4 line-clamp-2">
-            {pixCode}
-          </p>
+              {/* Divisor */}
+              <div className="flex items-center gap-3 my-4">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-sm text-gray-500">ou copie o código</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+
+              {/* Botão Copiar */}
+              <Button
+                onClick={handleCopyPix}
+                disabled={!qrCode}
+                className="w-full bg-rose-500 hover:bg-rose-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
+              >
+                <Copy className="w-5 h-5" />
+                Copiar código PIX
+              </Button>
+
+              {/* Código PIX truncado */}
+              {qrCode && (
+                <p className="text-xs text-gray-400 text-center mt-3 break-all px-4 line-clamp-2">
+                  {qrCode}
+                </p>
+              )}
+            </>
+          )}
         </div>
 
         {/* Card Expiração */}
@@ -175,13 +265,13 @@ const PixPage = () => {
           </span>
         </div>
 
-        {/* Botão de Simulação (temporário para testes) */}
-        <button
-          onClick={() => navigate('/upsell1')}
-          className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
-        >
-          ✓ Simular Pagamento Confirmado
-        </button>
+        {/* Aguardando confirmação */}
+        {paymentStatus === 'pending' && (
+          <div className="flex items-center justify-center gap-2 text-amber-600">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Aguardando confirmação do pagamento...</span>
+          </div>
+        )}
       </div>
     </div>
   );
