@@ -1,138 +1,102 @@
 
 
-## Plano: Atualizar Imagens dos Order Bumps e PIX
+## Plano: Adicionar Logos no Header e Corrigir Imagem do Produto
 
 ### Resumo
-Vou substituir as imagens dos order bumps e do PIX com as imagens corretas fornecidas, e expandir as imagens para preencher melhor os quadrados sem espaços em branco.
+Vou fazer duas alterações:
+1. Adicionar as logos SlimHealth + CIMED pequenas no lado direito do header nas 3 páginas de checkout
+2. Reverter a imagem do produto na página de confirmação para `object-contain` (como estava antes)
 
 ---
 
-### Imagens a Copiar
+### Estrutura Visual do Header
 
-| Destino | Origem | Uso |
-|---------|--------|-----|
-| `src/assets/bumps/canetas.webp` | Imagem das canetas Mounjaro | Primeiro order bump |
-| `src/assets/bumps/kit-transporte.webp` | Imagem da bolsa térmica azul | Segundo order bump |
-| `src/assets/bumps/aula-play.jpg` | Imagem do botão play azul | Terceiro order bump |
-| `src/assets/pix-logo.png` | Logo PIX oficial | Forma de pagamento |
+```text
+┌────────────────────────────────────────────────────────────┐
+│ < │ Dados pessoais          [SlimHealth] + [CIMED] │
+└────────────────────────────────────────────────────────────┘
+```
+
+As logos ficarão:
+- Altura de 5 (h-5) - pequenas para não chamar atenção
+- Opacidade 70% - discretas
+- Alinhadas à direita
+- Na mesma linha do título
 
 ---
 
-### Alteracoes em `src/pages/ConfirmacaoPage.tsx`
+### Arquivos a Modificar
 
-#### 1. Atualizar Imports (Linhas 4-6)
+1. **`src/pages/DadosPessoaisPage.tsx`**
+2. **`src/pages/EnderecoPage.tsx`**
+3. **`src/pages/ConfirmacaoPage.tsx`**
+
+---
+
+### Detalhes Técnicos
+
+#### 1. Adicionar Imports das Logos (em cada arquivo)
 ```tsx
-import foto1 from "@/assets/mounjaro/foto1.png";
-import canetasImg from "@/assets/bumps/canetas.webp";
-import kitTransporteImg from "@/assets/bumps/kit-transporte.webp";
-import aulaPlayImg from "@/assets/bumps/aula-play.jpg";
-import pixLogo from "@/assets/pix-logo.png";
+import slimHealthLogo from "@/assets/slimhealth-logo.png";
+import cimedLogo from "@/assets/cimed-logo.png";
 ```
 
-#### 2. Atualizar Order Bumps com Novas Imagens (Linhas 58-87)
-```tsx
-const orderBumps: OrderBump[] = [
-  {
-    id: 'canetas',
-    nome: '+2 Canetas Aplicadoras Premium',
-    descricao: 'Continue seu tratamento sem interrupções',
-    precoOriginal: 129.90,
-    precoPromocional: 89.90,
-    desconto: '-31%',
-    imagem: canetasImg,
-    badge: 'MAIS VENDIDO'
-  },
-  {
-    id: 'kit',
-    nome: 'Kit Transporte Refrigerado',
-    descricao: 'Bolsa térmica para levar aonde for',
-    precoOriginal: 49.90,
-    precoPromocional: 29.90,
-    desconto: '-40%',
-    imagem: kitTransporteImg
-  },
-  {
-    id: 'aula',
-    nome: 'Aula Exclusiva de Aplicação',
-    descricao: 'Aprenda a aplicar como um profissional',
-    precoOriginal: 39.90,
-    precoPromocional: 19.90,
-    desconto: '-50%',
-    imagem: aulaPlayImg
-  }
-];
-```
+#### 2. Modificar Header (estrutura igual nas 3 páginas)
 
-#### 3. Expandir Imagem do Item do Pedido (Linha 179-181)
-**De:**
+**De (exemplo DadosPessoaisPage, linha 90-95):**
 ```tsx
-<div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-100">
-  <img src={foto1} alt="Mounjaro" className="w-full h-full object-contain" />
+<div className="h-14 flex items-center gap-3">
+  <button onClick={() => navigate(-1)} className="p-1">
+    <ChevronLeft className="w-6 h-6 text-slate-700" />
+  </button>
+  <h1 className="text-lg font-semibold text-slate-900">Dados pessoais</h1>
 </div>
 ```
+
 **Para:**
 ```tsx
-<div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-100">
-  <img src={foto1} alt="Mounjaro" className="w-full h-full object-cover" />
+<div className="h-14 flex items-center gap-3">
+  <button onClick={() => navigate(-1)} className="p-1">
+    <ChevronLeft className="w-6 h-6 text-slate-700" />
+  </button>
+  <h1 className="text-lg font-semibold text-slate-900 flex-1">Dados pessoais</h1>
+  
+  {/* Logos */}
+  <div className="flex items-center gap-1 opacity-70">
+    <img src={slimHealthLogo} alt="SlimHealth" className="h-5 w-auto" />
+    <span className="text-slate-400 text-xs">+</span>
+    <img src={cimedLogo} alt="CIMED" className="h-5 w-auto" />
+  </div>
 </div>
 ```
 
-#### 4. Expandir Imagens dos Order Bumps (Linha 281-283)
+#### 3. Corrigir Imagem do Produto na Confirmação (Linha 182)
+
 **De:**
 ```tsx
-<div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-slate-100">
-  <img src={bump.imagem} alt={bump.nome} className="w-full h-full object-contain" />
-</div>
-```
-**Para:**
-```tsx
-<div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-slate-100">
-  <img src={bump.imagem} alt={bump.nome} className="w-full h-full object-cover" />
-</div>
+<img src={foto1} alt="Mounjaro" className="w-full h-full object-cover" />
 ```
 
-#### 5. Expandir Logo do PIX (Linha 337-339)
-**De:**
-```tsx
-<div className="w-12 h-8 shrink-0">
-  <img src={pixLogo} alt="PIX" className="w-full h-full object-contain" />
-</div>
-```
 **Para:**
 ```tsx
-<div className="w-14 h-10 shrink-0">
-  <img src={pixLogo} alt="PIX" className="w-full h-full object-contain" />
-</div>
+<img src={foto1} alt="Mounjaro" className="w-full h-full object-contain" />
 ```
 
 ---
 
-### Arquivos Modificados/Criados
+### Alterações por Arquivo
 
-| Arquivo | Acao |
-|---------|------|
-| `src/assets/bumps/canetas.webp` | Copiar imagem das canetas |
-| `src/assets/bumps/kit-transporte.webp` | Copiar imagem do kit transporte |
-| `src/assets/bumps/aula-play.jpg` | Copiar imagem do botao play |
-| `src/assets/pix-logo.png` | Substituir pela logo PIX oficial |
-| `src/pages/ConfirmacaoPage.tsx` | Atualizar imports e tamanhos de imagem |
-
----
-
-### Detalhes Tecnicos
-
-**object-contain vs object-cover:**
-- `object-contain`: Mantem proporcao, pode deixar espacos vazios
-- `object-cover`: Preenche todo o espaco, pode cortar bordas
-
-Para as imagens dos order bumps e item do pedido, usar `object-cover` fara com que preencham completamente o quadrado sem espacos em branco.
+| Arquivo | Alteração |
+|---------|-----------|
+| `DadosPessoaisPage.tsx` | + imports logos, + logos no header |
+| `EnderecoPage.tsx` | + imports logos, + logos no header |
+| `ConfirmacaoPage.tsx` | + imports logos, + logos no header, reverter object-contain |
 
 ---
 
 ### Resultado Esperado
-- Imagem das canetas Mounjaro no primeiro order bump
-- Imagem da bolsa termica azul no segundo order bump
-- Imagem do botao play azul no terceiro order bump
-- Logo PIX oficial na forma de pagamento
-- Todas as imagens preenchendo os quadrados sem espacos vazios
+- Logos SlimHealth + CIMED pequenas e discretas no canto direito do header
+- Alinhadas perfeitamente na mesma linha do título
+- Imagem do produto na confirmação volta ao tamanho proporcional correto
+- Visual consistente nas 3 páginas de checkout
 
