@@ -1,73 +1,139 @@
 
 
-## Plano: Corrigir Erro 404 na Navegação para /endereco
+## Plano: Carrinho de Compras na Página Mounjaro
 
-### Diagnóstico
-Após análise do código, identifiquei que:
-1. A rota `/endereco` está corretamente configurada em `App.tsx` (linha 24)
-2. O arquivo `EnderecoPage.tsx` existe e está correto
-3. A navegação em `DadosPessoaisPage.tsx` usa `navigate("/endereco")` corretamente
-4. Os warnings no console sobre refs podem estar interferindo no roteamento
-
-O problema pode ser causado por:
-- Cache do Vite que não reconhece a nova rota
-- Problema de hot-reload após criar o arquivo
+### Resumo
+Vou implementar 3 funcionalidades na página do produto Mounjaro:
+1. **Remover navegações que causam 404** - Botões "Loja" e "Visitar" ficarão estáticos
+2. **Contador de carrinho** - Número aparece acima do ícone da loja quando adicionar produtos
+3. **Comprar Agora com quantidade** - Passa a quantidade do carrinho para o checkout
 
 ---
 
-### Solução
+### Alterações em `src/pages/MounjaroPage.tsx`
 
-Vou fazer uma pequena modificação no `App.tsx` para forçar o reload do roteador e garantir que todas as rotas funcionem corretamente.
-
-**Alterações em `src/App.tsx`:**
-- Reorganizar imports para garantir ordem correta
-- Adicionar comentário de versão para forçar rebuild
-
+#### 1. Novo Estado para Carrinho
+Adicionar estado para controlar a quantidade no carrinho:
 ```tsx
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+const [cartQuantity, setCartQuantity] = useState(0);
+```
 
-// Pages
-import Index from "./pages/Index";
-import MounjaroPage from "./pages/MounjaroPage";
-import DadosPessoaisPage from "./pages/DadosPessoaisPage";
-import EnderecoPage from "./pages/EnderecoPage";
-import NotFound from "./pages/NotFound";
+#### 2. Remover onClick do Botão "Visitar" (Linha 397-402)
+**De:**
+```tsx
+<button 
+  onClick={() => navigate("/product")}
+  className="px-3 py-1.5 rounded-full bg-slate-100..."
+>
+  Visitar
+</button>
+```
+**Para:**
+```tsx
+<button 
+  className="px-3 py-1.5 rounded-full bg-slate-100..."
+>
+  Visitar
+</button>
+```
 
-const queryClient = new QueryClient();
+#### 3. Remover onClick do Botão "Loja" + Adicionar Badge (Linhas 477-483)
+**De:**
+```tsx
+<button 
+  onClick={() => navigate("/product")}
+  className="flex flex-col items-center justify-center w-12 shrink-0..."
+>
+  <Store className="w-6 h-6 text-slate-500" />
+  <span className="mt-0.5 leading-none">Loja</span>
+</button>
+```
+**Para:**
+```tsx
+<button className="flex flex-col items-center justify-center w-12 shrink-0 relative...">
+  <div className="relative">
+    <Store className="w-6 h-6 text-slate-500" />
+    {cartQuantity > 0 && (
+      <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-[#ff3b66] text-white text-[11px] font-bold rounded-full flex items-center justify-center">
+        {cartQuantity}
+      </span>
+    )}
+  </div>
+  <span className="mt-0.5 leading-none">Loja</span>
+</button>
+```
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/mounjaro" element={<MounjaroPage />} />
-          <Route path="/dados-pessoais" element={<DadosPessoaisPage />} />
-          <Route path="/endereco" element={<EnderecoPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+#### 4. Adicionar Função ao Botão "Adicionar ao Carrinho" (Linha 492-494)
+**De:**
+```tsx
+<button className="flex-1 h-11 rounded-xl bg-slate-100...">
+  Adicionar ao<br />carrinho
+</button>
+```
+**Para:**
+```tsx
+<button 
+  onClick={() => setCartQuantity(prev => prev + 1)}
+  className="flex-1 h-11 rounded-xl bg-slate-100..."
+>
+  Adicionar ao<br />carrinho
+</button>
+```
 
-export default App;
+#### 5. Passar Quantidade para o Checkout no "Comprar Agora" (Linhas 497-502)
+**De:**
+```tsx
+<button 
+  onClick={() => navigate("/dados-pessoais")}
+  className="flex-1 h-11 rounded-xl bg-[#ff3b66]..."
+>
+  Comprar Agora
+</button>
+```
+**Para:**
+```tsx
+<button 
+  onClick={() => {
+    // Se tem itens no carrinho, usa essa quantidade; senão, compra 1 unidade
+    const quantidade = cartQuantity > 0 ? cartQuantity : 1;
+    localStorage.setItem('dadosPessoais', JSON.stringify({ quantidade }));
+    navigate("/dados-pessoais");
+  }}
+  className="flex-1 h-11 rounded-xl bg-[#ff3b66]..."
+>
+  Comprar Agora
+</button>
+```
+
+#### 6. Atualizar DadosPessoaisPage para Ler Quantidade Inicial
+Em `src/pages/DadosPessoaisPage.tsx`, modificar o estado inicial da quantidade:
+**De:**
+```tsx
+const [quantidade, setQuantidade] = useState(1);
+```
+**Para:**
+```tsx
+const [quantidade, setQuantidade] = useState(() => {
+  const saved = localStorage.getItem('dadosPessoais');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    return parsed.quantidade || 1;
+  }
+  return 1;
+});
 ```
 
 ---
 
 ### Arquivos Modificados
-- `src/App.tsx` - Reorganizar imports para forçar rebuild
+- `src/pages/MounjaroPage.tsx` - Carrinho e botões estáticos
+- `src/pages/DadosPessoaisPage.tsx` - Ler quantidade inicial do localStorage
 
 ---
 
 ### Resultado Esperado
-- Navegação de `/dados-pessoais` para `/endereco` funcionando sem erro 404
-- Fluxo fluido do início ao fim do checkout
+- Botões "Loja" e "Visitar" não navegam (sem erro 404)
+- Badge vermelho aparece no ícone da loja quando adicionar ao carrinho
+- Ao clicar "Comprar Agora", a quantidade do carrinho é passada para o checkout
+- Fluxo fluido do início ao fim sem interrupções
 
