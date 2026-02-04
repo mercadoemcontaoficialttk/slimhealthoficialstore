@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Minus, Plus, Lock, ShieldCheck, Check } from "lucide-react";
 import foto1 from "@/assets/mounjaro/foto1.png";
-import aulaIcon from "@/assets/bumps/aula-icon.png";
+import canetasImg from "@/assets/bumps/canetas.webp";
+import kitTransporteImg from "@/assets/bumps/kit-transporte.webp";
+import aulaPlayImg from "@/assets/bumps/aula-play.jpg";
 import pixLogo from "@/assets/pix-logo.png";
 
 const PRECO_UNITARIO = 67.90;
@@ -63,7 +65,7 @@ const ConfirmacaoPage = () => {
       precoOriginal: 129.90,
       precoPromocional: 89.90,
       desconto: '-31%',
-      imagem: foto1, // Placeholder - substituir pela imagem correta
+      imagem: canetasImg,
       badge: 'MAIS VENDIDO'
     },
     {
@@ -73,7 +75,7 @@ const ConfirmacaoPage = () => {
       precoOriginal: 49.90,
       precoPromocional: 29.90,
       desconto: '-40%',
-      imagem: foto1 // Placeholder - substituir pela imagem correta
+      imagem: kitTransporteImg
     },
     {
       id: 'aula',
@@ -82,7 +84,7 @@ const ConfirmacaoPage = () => {
       precoOriginal: 39.90,
       precoPromocional: 19.90,
       desconto: '-50%',
-      imagem: aulaIcon
+      imagem: aulaPlayImg
     }
   ];
 
@@ -177,7 +179,7 @@ const ConfirmacaoPage = () => {
           <div className="flex items-center gap-3">
             {/* Product Image */}
             <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-100">
-              <img src={foto1} alt="Mounjaro" className="w-full h-full object-contain" />
+              <img src={foto1} alt="Mounjaro" className="w-full h-full object-cover" />
             </div>
 
             {/* Product Info */}
@@ -279,7 +281,7 @@ const ConfirmacaoPage = () => {
               >
                 {/* Product Image */}
                 <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-slate-100">
-                  <img src={bump.imagem} alt={bump.nome} className="w-full h-full object-contain" />
+                  <img src={bump.imagem} alt={bump.nome} className="w-full h-full object-cover" />
                 </div>
 
                 {/* Info */}
@@ -334,7 +336,7 @@ const ConfirmacaoPage = () => {
             }`}
           >
             {/* PIX Logo */}
-            <div className="w-12 h-8 shrink-0">
+            <div className="w-14 h-10 shrink-0">
               <img src={pixLogo} alt="PIX" className="w-full h-full object-contain" />
             </div>
 
