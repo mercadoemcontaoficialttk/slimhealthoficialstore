@@ -48,6 +48,16 @@ const Upsell4Page = () => {
     }
   }, []);
 
+  // FALLBACK: Watch paymentStatus and redirect if approved
+  useEffect(() => {
+    if (paymentStatus === 'approved') {
+      console.log('🔄 FALLBACK Upsell4: paymentStatus is approved, redirecting to /rastreio');
+      toast.success("Pagamento confirmado! Redirecionando para rastreio...");
+      setShowModal(false);
+      navigate('/rastreio');
+    }
+  }, [paymentStatus, navigate]);
+
   // Loading phase animation
   useEffect(() => {
     if (phase !== 'loading') return;

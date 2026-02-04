@@ -105,6 +105,15 @@ const PixPage = () => {
     }
   }, [pedido, dadosPessoais, paymentInitialized, isLoading, createPixPayment, startPolling, navigate]);
 
+  // FALLBACK: Watch paymentStatus and redirect if approved
+  useEffect(() => {
+    if (paymentStatus === 'approved') {
+      console.log('🔄 FALLBACK: paymentStatus is approved, redirecting to /upsell1');
+      toast.success("Pagamento confirmado!");
+      navigate('/upsell1');
+    }
+  }, [paymentStatus, navigate]);
+
   // Timer countdown
   useEffect(() => {
     const timer = setInterval(() => {

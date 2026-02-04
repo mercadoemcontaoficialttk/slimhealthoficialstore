@@ -58,6 +58,16 @@ const Upsell3Page = () => {
     }
   }, []);
 
+  // FALLBACK: Watch paymentStatus and redirect if approved
+  useEffect(() => {
+    if (paymentStatus === 'approved') {
+      console.log('🔄 FALLBACK Upsell3: paymentStatus is approved, redirecting to /upsell4');
+      toast.success("Pagamento confirmado!");
+      setShowModal(false);
+      navigate('/upsell4');
+    }
+  }, [paymentStatus, navigate]);
+
   // Verification phase animation
   useEffect(() => {
     if (phase !== 'verification') return;
