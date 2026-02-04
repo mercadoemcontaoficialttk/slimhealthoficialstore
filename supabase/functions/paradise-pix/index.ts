@@ -1,18 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  // IMPORTANT: must include every header the browser may send in preflight
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-  'Access-Control-Max-Age': '86400',
-};
+// Build CORS headers dynamically to reflect the request origin
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('origin') || '*';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Max-Age': '86400',
+  };
+}
 
 interface CreatePixRequest {
-  amount: number; // em centavos
-  description: string;
-  reference: string;
-  customer: {
+  action?: 'create' | 'status' | 'health';
+  amount?: number; // em centavos
+  description?: string;
+  reference?: string;
+  id?: string; // transaction ID for status check
+  customer?: {
     name: string;
     email: string;
     document: string;
@@ -21,6 +26,8 @@ interface CreatePixRequest {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { status: 200, headers: corsHeaders });
@@ -30,119 +37,124 @@ serve(async (req) => {
     const PARADISE_API_KEY = Deno.env.get('PARADISE_API_KEY');
     
     if (!PARADISE_API_KEY) {
-      throw new Error('PARADISE_API_KEY not configured');
+      console.error('PARADISE_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'Chave de API não configurada no servidor' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const url = new URL(req.url);
-    const action = url.searchParams.get('action');
-
-    // GET - Check payment status (by ID or reference)
-    if (req.method === 'GET' && action === 'status') {
-      const transactionId = url.searchParams.get('id');
-      const reference = url.searchParams.get('reference');
+    
+    // GET requests - health check or legacy status check
+    if (req.method === 'GET') {
+      const action = url.searchParams.get('action');
       
-      if (!transactionId && !reference) {
+      // Health check endpoint
+      if (action === 'health') {
         return new Response(
-          JSON.stringify({ error: 'Transaction ID or reference is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ ok: true, timestamp: new Date().toISOString() }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      // If we have a transaction ID, query directly
-      if (transactionId) {
-        const response = await fetch(`https://api.paradisepag.com/api/v1/transaction/${transactionId}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': PARADISE_API_KEY,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const data = await response.json();
-        console.log('Status check response:', JSON.stringify(data));
+      
+      // Legacy status check via GET (kept for compatibility)
+      if (action === 'status') {
+        const transactionId = url.searchParams.get('id');
+        const reference = url.searchParams.get('reference');
         
-        return new Response(
-          JSON.stringify(data),
-          { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        if (!transactionId && !reference) {
+          return new Response(
+            JSON.stringify({ error: 'Transaction ID or reference is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        return await handleStatusCheck(transactionId, reference, PARADISE_API_KEY, corsHeaders);
       }
-
-      // If we only have reference, search by reference
-      if (reference) {
-        console.log('Searching transaction by reference:', reference);
-        
-        // Try to get transaction by reference through Paradise API
-        // Note: This depends on Paradise API supporting reference lookup
-        const response = await fetch(`https://api.paradisepag.com/api/v1/transaction?reference=${reference}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': PARADISE_API_KEY,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const data = await response.json();
-        console.log('Reference search response:', JSON.stringify(data));
-        
-        return new Response(
-          JSON.stringify(data),
-          { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+      
+      return new Response(
+        JSON.stringify({ error: 'Invalid GET action. Use ?action=health or ?action=status' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // POST - Create PIX transaction
+    // POST requests - unified handler with action in body
     if (req.method === 'POST') {
       const body: CreatePixRequest = await req.json();
+      const action = body.action || 'create'; // default to create for backwards compatibility
 
-      // Validate required fields
-      if (!body.amount || !body.description || !body.customer) {
+      console.log('POST request received, action:', action);
+
+      // Health check via POST
+      if (action === 'health') {
         return new Response(
-          JSON.stringify({ error: 'Missing required fields: amount, description, customer' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ ok: true, timestamp: new Date().toISOString() }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Prepare payload for Paradise API
-      const payload = {
-        amount: body.amount,
-        paymentMethod: 'pix',
-        description: body.description,
-        reference: body.reference || `ref_${Date.now()}`,
-        source: 'api_externa',
-        customer: {
-          name: body.customer.name,
-          email: body.customer.email,
-          document: body.customer.document.replace(/\D/g, ''), // Remove non-digits
-          phone: body.customer.phone.replace(/\D/g, ''), // Remove non-digits
-        },
-      };
+      // Status check via POST
+      if (action === 'status') {
+        return await handleStatusCheck(body.id || null, body.reference || null, PARADISE_API_KEY, corsHeaders);
+      }
 
-      console.log('Creating PIX transaction with payload:', JSON.stringify(payload));
+      // Create PIX transaction
+      if (action === 'create') {
+        // Validate required fields
+        if (!body.amount || !body.description || !body.customer) {
+          return new Response(
+            JSON.stringify({ error: 'Missing required fields: amount, description, customer' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
 
-      const response = await fetch('https://api.paradisepag.com/api/v1/transaction', {
-        method: 'POST',
-        headers: {
-          'Authorization': PARADISE_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+        // Prepare payload for Paradise API
+        const payload = {
+          amount: body.amount,
+          paymentMethod: 'pix',
+          description: body.description,
+          reference: body.reference || `ref_${Date.now()}`,
+          source: 'api_externa',
+          customer: {
+            name: body.customer.name,
+            email: body.customer.email,
+            document: body.customer.document.replace(/\D/g, ''), // Remove non-digits
+            phone: body.customer.phone.replace(/\D/g, ''), // Remove non-digits
+          },
+        };
 
-      const data = await response.json();
-      
-      console.log('Paradise API response:', JSON.stringify(data));
+        console.log('Creating PIX transaction with payload:', JSON.stringify(payload));
 
-      if (!response.ok) {
+        const response = await fetch('https://api.paradisepag.com/api/v1/transaction', {
+          method: 'POST',
+          headers: {
+            'Authorization': PARADISE_API_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+        
+        console.log('Paradise API response:', JSON.stringify(data));
+
+        if (!response.ok) {
+          return new Response(
+            JSON.stringify({ error: 'Failed to create transaction', details: data }),
+            { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         return new Response(
-          JSON.stringify({ error: 'Failed to create transaction', details: data }),
-          { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify(data),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       return new Response(
-        JSON.stringify(data),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid action. Use: create, status, or health' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -154,9 +166,80 @@ serve(async (req) => {
   } catch (error: unknown) {
     console.error('Edge function error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
+
+// Helper function to handle status checks
+async function handleStatusCheck(
+  transactionId: string | null,
+  reference: string | null,
+  apiKey: string,
+  corsHeaders: Record<string, string>
+): Promise<Response> {
+  if (!transactionId && !reference) {
+    return new Response(
+      JSON.stringify({ error: 'Transaction ID or reference is required' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  try {
+    // If we have a transaction ID, query directly
+    if (transactionId) {
+      console.log('Checking status for transaction:', transactionId);
+      
+      const response = await fetch(`https://api.paradisepag.com/api/v1/transaction/${transactionId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      console.log('Status check response:', JSON.stringify(data));
+      
+      return new Response(
+        JSON.stringify(data),
+        { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // If we only have reference, search by reference
+    if (reference) {
+      console.log('Searching transaction by reference:', reference);
+      
+      const response = await fetch(`https://api.paradisepag.com/api/v1/transaction?reference=${reference}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': apiKey,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      console.log('Reference search response:', JSON.stringify(data));
+      
+      return new Response(
+        JSON.stringify(data),
+        { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+  } catch (error) {
+    console.error('Status check error:', error);
+    return new Response(
+      JSON.stringify({ error: 'Failed to check payment status' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ error: 'Invalid status check request' }),
+    { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}

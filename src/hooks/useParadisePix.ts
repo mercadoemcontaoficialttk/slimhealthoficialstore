@@ -1,18 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Customer {
   name: string;
   email: string;
   document: string;
   phone: string;
-}
-
-interface PixPaymentResult {
-  id: string;
-  status: string;
-  qr_code: string;
-  qr_code_base64: string;
 }
 
 interface UseParadisePixReturn {
@@ -80,10 +73,6 @@ export function useParadisePix(): UseParadisePixReturn {
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const onApprovedCallback = useRef<(() => void) | null>(null);
 
-  const getEdgeFunctionUrl = () => {
-    return `${SUPABASE_URL}/functions/v1/paradise-pix`;
-  };
-
   const createPixPayment = useCallback(async (
     amount: number,
     description: string,
@@ -97,28 +86,25 @@ export function useParadisePix(): UseParadisePixReturn {
     const txReference = reference || `order_${Date.now()}`;
 
     try {
-      const edgeFunctionUrl = getEdgeFunctionUrl();
+      console.log('Creating PIX payment via supabase.functions.invoke...');
       
-      const response = await fetch(edgeFunctionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Supabase Functions gateway expects both headers
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
+      const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
+        body: {
+          action: 'create',
           amount: Math.round(amount * 100), // Convert to cents
           description,
           reference: txReference,
           customer,
-        }),
+        },
       });
 
-      const data = await response.json();
+      if (invokeError) {
+        console.error('Invoke error:', invokeError);
+        throw new Error(invokeError.message || 'Não foi possível conectar à função de pagamento');
+      }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create PIX payment');
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       console.log('PIX payment created:', data);
@@ -141,7 +127,7 @@ export function useParadisePix(): UseParadisePixReturn {
       
       return true;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao criar pagamento';
       setError(errorMessage);
       setPaymentStatus('failed');
       console.error('Error creating PIX payment:', err);
@@ -165,27 +151,30 @@ export function useParadisePix(): UseParadisePixReturn {
     if (!transactionId) return null;
 
     try {
-      const edgeFunctionUrl = getEdgeFunctionUrl();
+      console.log('Checking payment status via supabase.functions.invoke...');
       
-      const response = await fetch(`${edgeFunctionUrl}?action=status&id=${transactionId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          'apikey': SUPABASE_ANON_KEY,
+      const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
+        body: {
+          action: 'status',
+          id: transactionId,
+          reference: currentReference,
         },
       });
 
-      const data = await response.json();
+      if (invokeError) {
+        console.error('Status check invoke error:', invokeError);
+        return null;
+      }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to check payment status');
+      if (data?.error) {
+        console.error('Status check error:', data.error);
+        return null;
       }
 
       const status = data.status?.toLowerCase();
       
       if (status === 'approved' || status === 'paid') {
         setPaymentStatus('approved');
-        // Update localStorage
         if (currentReference) {
           updateTransactionStatus(currentReference, 'approved');
         }
