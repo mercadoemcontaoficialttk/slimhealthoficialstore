@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, Lock, Users, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { trackInitiateCheckout } from "@/hooks/useFacebookPixel";
+import { trackInitiateCheckout } from "@/hooks/useTikTokPixel";
 import foto1 from "@/assets/mounjaro/foto1.png";
 import slimHealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";

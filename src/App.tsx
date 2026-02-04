@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { initFacebookPixel } from "@/hooks/useFacebookPixel";
+import { initTikTokPixel } from "@/hooks/useTikTokPixel";
 
 // Pages - v2 routing fix
 import Index from "./pages/Index";
@@ -23,9 +23,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Initialize Facebook Pixel on mount
+  // Initialize TikTok Pixel on mount
   useEffect(() => {
-    initFacebookPixel();
+    initTikTokPixel();
   }, []);
 
   return (
