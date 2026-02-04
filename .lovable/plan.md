@@ -1,182 +1,138 @@
 
 
-## Plano: Adicionar Opções de Frete na Página de Endereço
+## Plano: Atualizar Imagens dos Order Bumps e PIX
 
 ### Resumo
-Vou adicionar uma seção de escolha de frete abaixo do formulário de endereço, com 3 opções conforme a referência. O valor do frete selecionado será somado ao subtotal do produto.
+Vou substituir as imagens dos order bumps e do PIX com as imagens corretas fornecidas, e expandir as imagens para preencher melhor os quadrados sem espaços em branco.
 
 ---
 
-### Estrutura Visual (Conforme Referência)
+### Imagens a Copiar
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│ 🚚 Escolha uma forma de entrega:                        │
-├─────────────────────────────────────────────────────────┤
-│ ○ [FULL logo]  Frete Grátis                      Grátis │
-│                Entrega em 10 a 12 dias           (verde)│
-├─────────────────────────────────────────────────────────┤
-│ ○ [Jadlog]     JADLOG                           R$15,90 │
-│                Entrega em até 5 dias úteis              │
-├─────────────────────────────────────────────────────────┤
-│ ○ [Correios]   SEDEX 12                         R$29,90 │
-│                Entrega de 12h a 24h                     │
-└─────────────────────────────────────────────────────────┘
+| Destino | Origem | Uso |
+|---------|--------|-----|
+| `src/assets/bumps/canetas.webp` | Imagem das canetas Mounjaro | Primeiro order bump |
+| `src/assets/bumps/kit-transporte.webp` | Imagem da bolsa térmica azul | Segundo order bump |
+| `src/assets/bumps/aula-play.jpg` | Imagem do botão play azul | Terceiro order bump |
+| `src/assets/pix-logo.png` | Logo PIX oficial | Forma de pagamento |
+
+---
+
+### Alteracoes em `src/pages/ConfirmacaoPage.tsx`
+
+#### 1. Atualizar Imports (Linhas 4-6)
+```tsx
+import foto1 from "@/assets/mounjaro/foto1.png";
+import canetasImg from "@/assets/bumps/canetas.webp";
+import kitTransporteImg from "@/assets/bumps/kit-transporte.webp";
+import aulaPlayImg from "@/assets/bumps/aula-play.jpg";
+import pixLogo from "@/assets/pix-logo.png";
 ```
 
----
-
-### Arquivos a Modificar/Criar
-
-1. **Copiar logos para o projeto:**
-   - `src/assets/frete/full-logo.png`
-   - `src/assets/frete/jadlog-logo.png`
-   - `src/assets/frete/correios-logo.png`
-
-2. **Modificar:** `src/pages/EnderecoPage.tsx`
-   - Adicionar estado para frete selecionado
-   - Adicionar seção de opções de frete
-   - Atualizar cálculo do total (subtotal + frete)
-   - Salvar frete no localStorage para próxima etapa
-
----
-
-### Detalhes Técnicos
-
-**Novo estado para frete:**
+#### 2. Atualizar Order Bumps com Novas Imagens (Linhas 58-87)
 ```tsx
-const [freteSelecionado, setFreteSelecionado] = useState<string | null>(null);
-
-const opcoesFrete = [
-  { id: 'full', nome: 'Frete Grátis', prazo: 'Entrega em 10 a 12 dias', valor: 0 },
-  { id: 'jadlog', nome: 'JADLOG', prazo: 'Entrega em até 5 dias úteis', valor: 15.90 },
-  { id: 'sedex', nome: 'SEDEX 12', prazo: 'Entrega de 12h a 24h', valor: 29.90 }
+const orderBumps: OrderBump[] = [
+  {
+    id: 'canetas',
+    nome: '+2 Canetas Aplicadoras Premium',
+    descricao: 'Continue seu tratamento sem interrupções',
+    precoOriginal: 129.90,
+    precoPromocional: 89.90,
+    desconto: '-31%',
+    imagem: canetasImg,
+    badge: 'MAIS VENDIDO'
+  },
+  {
+    id: 'kit',
+    nome: 'Kit Transporte Refrigerado',
+    descricao: 'Bolsa térmica para levar aonde for',
+    precoOriginal: 49.90,
+    precoPromocional: 29.90,
+    desconto: '-40%',
+    imagem: kitTransporteImg
+  },
+  {
+    id: 'aula',
+    nome: 'Aula Exclusiva de Aplicação',
+    descricao: 'Aprenda a aplicar como um profissional',
+    precoOriginal: 39.90,
+    precoPromocional: 19.90,
+    desconto: '-50%',
+    imagem: aulaPlayImg
+  }
 ];
 ```
 
-**Cálculo do total:**
+#### 3. Expandir Imagem do Item do Pedido (Linha 179-181)
+**De:**
 ```tsx
-const freteAtual = opcoesFrete.find(f => f.id === freteSelecionado);
-const valorFrete = freteAtual?.valor || 0;
-const total = subtotal + valorFrete;
+<div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-100">
+  <img src={foto1} alt="Mounjaro" className="w-full h-full object-contain" />
+</div>
 ```
-
-**Nova seção de frete (após o formulário de endereço):**
+**Para:**
 ```tsx
-<section className="bg-white mx-3 mt-3 rounded-xl p-4 shadow-sm">
-  {/* Header */}
-  <div className="flex items-center gap-2 text-slate-700 text-sm mb-3">
-    <Truck className="w-4 h-4" />
-    <span>Escolha uma forma de entrega:</span>
-  </div>
-
-  {/* Opções de frete */}
-  <div className="space-y-2">
-    {opcoesFrete.map((opcao) => (
-      <div
-        key={opcao.id}
-        onClick={() => setFreteSelecionado(opcao.id)}
-        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
-          freteSelecionado === opcao.id
-            ? 'border-rose-500 bg-rose-50'
-            : 'border-slate-200 bg-white hover:border-slate-300'
-        }`}
-      >
-        {/* Radio button */}
-        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-          freteSelecionado === opcao.id
-            ? 'border-rose-500'
-            : 'border-slate-300'
-        }`}>
-          {freteSelecionado === opcao.id && (
-            <div className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-          )}
-        </div>
-
-        {/* Logo */}
-        <img src={logoMap[opcao.id]} alt={opcao.nome} className="h-6 w-auto object-contain" />
-
-        {/* Info */}
-        <div className="flex-1">
-          <div className="font-medium text-slate-900 text-sm">{opcao.nome}</div>
-          <div className="text-xs text-slate-500">{opcao.prazo}</div>
-        </div>
-
-        {/* Preço */}
-        <div className={`font-semibold text-sm ${
-          opcao.valor === 0 ? 'text-emerald-600' : 'text-slate-900'
-        }`}>
-          {opcao.valor === 0 ? 'Grátis' : `R$ ${formatPrice(opcao.valor)}`}
-        </div>
-      </div>
-    ))}
-  </div>
-</section>
-```
-
-**Validação atualizada (incluir frete obrigatório):**
-```tsx
-const isFormValid = 
-  cep.length === 9 && 
-  rua.trim() !== "" && 
-  numero.trim() !== "" && 
-  bairro.trim() !== "" && 
-  cidade.trim() !== "" && 
-  uf.length === 2 &&
-  freteSelecionado !== null; // Frete obrigatório
-```
-
-**Footer atualizado (mostrar total com frete):**
-```tsx
-<div className="flex flex-col">
-  <span className="text-sm text-slate-500">Total</span>
-  <span className="text-xl font-bold text-rose-500">R$ {formatPrice(total)}</span>
+<div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-100">
+  <img src={foto1} alt="Mounjaro" className="w-full h-full object-cover" />
 </div>
 ```
 
-**Salvar frete no localStorage:**
+#### 4. Expandir Imagens dos Order Bumps (Linha 281-283)
+**De:**
 ```tsx
-const handleContinuar = () => {
-  if (isFormValid) {
-    localStorage.setItem('endereco', JSON.stringify({
-      cep, rua, numero, complemento, bairro, cidade, uf
-    }));
-    localStorage.setItem('frete', JSON.stringify({
-      tipo: freteSelecionado,
-      nome: freteAtual?.nome,
-      prazo: freteAtual?.prazo,
-      valor: valorFrete
-    }));
-    navigate("/pagamento");
-  }
-};
+<div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-slate-100">
+  <img src={bump.imagem} alt={bump.nome} className="w-full h-full object-contain" />
+</div>
+```
+**Para:**
+```tsx
+<div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-slate-100">
+  <img src={bump.imagem} alt={bump.nome} className="w-full h-full object-cover" />
+</div>
+```
+
+#### 5. Expandir Logo do PIX (Linha 337-339)
+**De:**
+```tsx
+<div className="w-12 h-8 shrink-0">
+  <img src={pixLogo} alt="PIX" className="w-full h-full object-contain" />
+</div>
+```
+**Para:**
+```tsx
+<div className="w-14 h-10 shrink-0">
+  <img src={pixLogo} alt="PIX" className="w-full h-full object-contain" />
+</div>
 ```
 
 ---
 
-### Arquivos Modificados
-- Copiar 3 logos para `src/assets/frete/`
-- `src/pages/EnderecoPage.tsx` - Adicionar seção de frete e cálculo do total
+### Arquivos Modificados/Criados
+
+| Arquivo | Acao |
+|---------|------|
+| `src/assets/bumps/canetas.webp` | Copiar imagem das canetas |
+| `src/assets/bumps/kit-transporte.webp` | Copiar imagem do kit transporte |
+| `src/assets/bumps/aula-play.jpg` | Copiar imagem do botao play |
+| `src/assets/pix-logo.png` | Substituir pela logo PIX oficial |
+| `src/pages/ConfirmacaoPage.tsx` | Atualizar imports e tamanhos de imagem |
 
 ---
 
-### Fluxo de Dados
+### Detalhes Tecnicos
 
-```text
-Produto (R$ 67,90 × quantidade)
-    +
-Frete (R$ 0,00 / R$ 15,90 / R$ 29,90)
-    =
-Total (exibido no footer e salvo para pagamento)
-```
+**object-contain vs object-cover:**
+- `object-contain`: Mantem proporcao, pode deixar espacos vazios
+- `object-cover`: Preenche todo o espaco, pode cortar bordas
+
+Para as imagens dos order bumps e item do pedido, usar `object-cover` fara com que preencham completamente o quadrado sem espacos em branco.
 
 ---
 
 ### Resultado Esperado
-- 3 opções de frete com logos corretas
-- Radio buttons funcionais para seleção
-- Preço "Grátis" em verde, outros em preto
-- Total atualizado dinamicamente (produto + frete)
-- Dados salvos no localStorage para próxima etapa
-- Botão "Continuar" só ativa quando frete for selecionado
+- Imagem das canetas Mounjaro no primeiro order bump
+- Imagem da bolsa termica azul no segundo order bump
+- Imagem do botao play azul no terceiro order bump
+- Logo PIX oficial na forma de pagamento
+- Todas as imagens preenchendo os quadrados sem espacos vazios
 
