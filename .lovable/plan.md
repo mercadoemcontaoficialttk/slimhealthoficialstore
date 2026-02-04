@@ -1,37 +1,108 @@
 
-## Plano: Corrigir Navegação do Funil
+## Plano: Criar Página de Dados Pessoais
 
 ### Resumo
-O lead, após confirmar sua idade no Step 3, está sendo direcionado para `/product` que gera um erro 404. Vou corrigir para que ele vá diretamente para `/mounjaro`, que é a página do produto principal.
+Vou criar a página `/dados-pessoais` que será exibida quando o lead clicar em "Comprar Agora" na página do Mounjaro. A página seguirá o design da referência enviada.
 
 ---
 
-### Alteração
+### Estrutura da Página
 
-**Arquivo:** `src/pages/Index.tsx` (linha 24)
+#### Header
+- Botão de voltar (seta para esquerda)
+- Título "Dados pessoais"
+- Barra de progresso vermelha/verde (metade preenchida)
 
-**De:**
-```tsx
-navigate("/product"); // Ir para página de produto
-```
+#### Card do Produto
+- Imagem do produto Mounjaro (foto1.png)
+- Nome: "Mounjaro 5 mg – Tirzepatida (caneta..."
+- Preço: R$ 67,90 (verde)
+- Controle de quantidade (+/- e número)
+- Texto de urgência: "27 comprando agora" (verde)
 
-**Para:**
-```tsx
-navigate("/mounjaro"); // Ir para página do Mounjaro
-```
+#### Formulário de Dados
+- Ícone de cadeado + "Dados protegidos"
+- Campo: Nome completo (placeholder: "Digite seu nome")
+- Campo: E-mail (placeholder: "seu@email.com")
+- Campo: Telefone com máscara (placeholder: "(00) 00000-0000")
+- Campo: CPF com máscara (placeholder: "000.000.000-00")
+
+#### Footer Fixo
+- Subtotal: "R$ 67,90" (vermelho)
+- Botão "Continuar" (desabilitado até preencher campos)
 
 ---
 
-### Arquivos Modificados
-- `src/pages/Index.tsx`
+### Arquivos a Criar/Modificar
+
+1. **Criar:** `src/pages/DadosPessoaisPage.tsx`
+   - Nova página completa seguindo o design
+
+2. **Modificar:** `src/App.tsx`
+   - Adicionar rota `/dados-pessoais`
+
+3. **Modificar:** `src/pages/MounjaroPage.tsx`
+   - Alterar navegação do botão "Comprar Agora" de `/checkout` para `/dados-pessoais`
+
+---
+
+### Detalhes Técnicos
+
+**Componentes e imports:**
+```tsx
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronLeft, Minus, Plus, Lock, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import foto1 from "@/assets/mounjaro/foto1.png";
+```
+
+**Máscaras de input:**
+- Telefone: (XX) XXXXX-XXXX
+- CPF: XXX.XXX.XXX-XX
+
+**Validação:**
+- Botão "Continuar" só ativa quando todos os campos estiverem preenchidos
+- Validação básica de email e CPF
+
+**Estado do componente:**
+```tsx
+const [nome, setNome] = useState("");
+const [email, setEmail] = useState("");
+const [telefone, setTelefone] = useState("");
+const [cpf, setCpf] = useState("");
+const [quantidade, setQuantidade] = useState(1);
+```
+
+**Cálculo do subtotal:**
+- Preço base: R$ 67,90
+- Subtotal = preço * quantidade
+
+---
+
+### Fluxo do Funil Atualizado
+
+```text
+Página Inicial (/)
+    ↓
+Step 1: Oferta
+    ↓
+Step 2: Nome
+    ↓
+Step 3: Idade
+    ↓
+Mounjaro (/mounjaro)
+    ↓ [Comprar Agora]
+Dados Pessoais (/dados-pessoais)
+    ↓ [Continuar]
+(Próxima etapa - Endereço ou Pagamento)
+```
 
 ---
 
 ### Resultado Esperado
-O fluxo do funil ficará fluido:
-1. **Step 1:** Usuário vê a oferta e clica em continuar
-2. **Step 2:** Usuário digita o nome e clica em continuar
-3. **Step 3:** Usuário confirma a idade e clica em continuar
-4. **Redirecionamento:** Vai direto para `/mounjaro` (página do produto Mounjaro)
-
-Isso elimina o erro 404 e mantém o projeto fluido do início ao fim.
+- Página de dados pessoais idêntica à referência
+- Navegação fluida do produto para dados pessoais
+- Controle de quantidade funcional
+- Formulário com máscaras de telefone e CPF
+- Footer fixo com subtotal dinâmico
