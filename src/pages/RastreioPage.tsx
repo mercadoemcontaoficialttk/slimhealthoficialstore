@@ -264,14 +264,6 @@ const RastreioPage = () => {
               </span>
             </div>
 
-            {/* Mensagem de suporte (estática) */}
-            <div className="text-center py-3">
-              <p className="text-sm text-gray-500">
-                Em caso de dúvidas, entre em contato pelo email{" "}
-                <span className="font-medium text-gray-700">suporte@slimhealth.com.br</span>
-              </p>
-            </div>
-
             {/* Footer logos */}
             <div className="flex items-center justify-center gap-3 pt-4">
               <img 
