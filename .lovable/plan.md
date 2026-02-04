@@ -1,108 +1,104 @@
 
-## Plano: Criar Página de Dados Pessoais
+## Plano: Ajustar Página de Dados Pessoais (Conforme Referência)
 
 ### Resumo
-Vou criar a página `/dados-pessoais` que será exibida quando o lead clicar em "Comprar Agora" na página do Mounjaro. A página seguirá o design da referência enviada.
+Vou ajustar a página `/dados-pessoais` para ficar 100% igual às imagens de referência enviadas.
 
 ---
 
-### Estrutura da Página
+### Alterações
 
-#### Header
-- Botão de voltar (seta para esquerda)
-- Título "Dados pessoais"
-- Barra de progresso vermelha/verde (metade preenchida)
+#### 1. Barra de Progresso (Header)
+**Atual:** Verde + Rosa (metade cada)
+**Novo:** Apenas rosa/vermelho, mostrando ~50% de progresso
 
-#### Card do Produto
-- Imagem do produto Mounjaro (foto1.png)
-- Nome: "Mounjaro 5 mg – Tirzepatida (caneta..."
-- Preço: R$ 67,90 (verde)
-- Controle de quantidade (+/- e número)
-- Texto de urgência: "27 comprando agora" (verde)
+A barra será uma única cor (rosa/vermelho) e só ficará 100% completa quando o lead chegar na página de pagamento.
 
-#### Formulário de Dados
-- Ícone de cadeado + "Dados protegidos"
-- Campo: Nome completo (placeholder: "Digite seu nome")
-- Campo: E-mail (placeholder: "seu@email.com")
-- Campo: Telefone com máscara (placeholder: "(00) 00000-0000")
-- Campo: CPF com máscara (placeholder: "000.000.000-00")
+```tsx
+// De:
+<div className="h-1 flex">
+  <div className="flex-1 bg-emerald-500" />
+  <div className="flex-1 bg-red-500" />
+</div>
 
-#### Footer Fixo
-- Subtotal: "R$ 67,90" (vermelho)
-- Botão "Continuar" (desabilitado até preencher campos)
+// Para:
+<div className="h-1 bg-slate-200">
+  <div className="h-full w-1/2 bg-rose-500" />
+</div>
+```
 
 ---
 
-### Arquivos a Criar/Modificar
+#### 2. Layout do Footer (Subtotal + Botão)
+**Atual:** Subtotal em cima, botão embaixo (largura total)
+**Novo:** Subtotal à esquerda (empilhado) e botão à direita (lado a lado)
 
-1. **Criar:** `src/pages/DadosPessoaisPage.tsx`
-   - Nova página completa seguindo o design
+```tsx
+<div className="flex items-center justify-between gap-4">
+  {/* Subtotal à esquerda */}
+  <div className="flex flex-col">
+    <span className="text-sm text-slate-500">Subtotal</span>
+    <span className="text-xl font-bold text-rose-500">R$ 67,90</span>
+  </div>
+  
+  {/* Botão à direita */}
+  <button className="flex-1 h-12 rounded-full ...">
+    Continuar
+  </button>
+</div>
+```
 
-2. **Modificar:** `src/App.tsx`
-   - Adicionar rota `/dados-pessoais`
+---
 
-3. **Modificar:** `src/pages/MounjaroPage.tsx`
-   - Alterar navegação do botão "Comprar Agora" de `/checkout` para `/dados-pessoais`
+#### 3. Adicionar Badges de Segurança
+Adicionar seção com ícones verdes antes do footer:
+- Compra Segura (ícone ShieldCheck)
+- SSL Ativo (ícone Lock)
+- Garantia (ícone ShieldCheck)
+
+```tsx
+<div className="flex items-center justify-center gap-6 py-4 bg-white border-t">
+  <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
+    <ShieldCheck className="w-5 h-5" />
+    <span>Compra Segura</span>
+  </div>
+  <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
+    <Lock className="w-5 h-5" />
+    <span>SSL Ativo</span>
+  </div>
+  <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
+    <ShieldCheck className="w-5 h-5" />
+    <span>Garantia</span>
+  </div>
+</div>
+```
 
 ---
 
 ### Detalhes Técnicos
 
-**Componentes e imports:**
+**Novos imports necessários:**
 ```tsx
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Minus, Plus, Lock, Users } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import foto1 from "@/assets/mounjaro/foto1.png";
+import { ShieldCheck } from "lucide-react";
 ```
 
-**Máscaras de input:**
-- Telefone: (XX) XXXXX-XXXX
-- CPF: XXX.XXX.XXX-XX
+**Estilo do botão desabilitado (conforme referência):**
+- Fundo cinza claro (`bg-slate-200`)
+- Texto cinza (`text-slate-400`)
+- Bordas arredondadas completas (`rounded-full`)
 
-**Validação:**
-- Botão "Continuar" só ativa quando todos os campos estiverem preenchidos
-- Validação básica de email e CPF
-
-**Estado do componente:**
-```tsx
-const [nome, setNome] = useState("");
-const [email, setEmail] = useState("");
-const [telefone, setTelefone] = useState("");
-const [cpf, setCpf] = useState("");
-const [quantidade, setQuantidade] = useState(1);
-```
-
-**Cálculo do subtotal:**
-- Preço base: R$ 67,90
-- Subtotal = preço * quantidade
+**Cor do subtotal:**
+- Trocar de `text-red-500` para `text-rose-500` (mais próximo da referência)
 
 ---
 
-### Fluxo do Funil Atualizado
-
-```text
-Página Inicial (/)
-    ↓
-Step 1: Oferta
-    ↓
-Step 2: Nome
-    ↓
-Step 3: Idade
-    ↓
-Mounjaro (/mounjaro)
-    ↓ [Comprar Agora]
-Dados Pessoais (/dados-pessoais)
-    ↓ [Continuar]
-(Próxima etapa - Endereço ou Pagamento)
-```
+### Arquivo Modificado
+- `src/pages/DadosPessoaisPage.tsx`
 
 ---
 
 ### Resultado Esperado
-- Página de dados pessoais idêntica à referência
-- Navegação fluida do produto para dados pessoais
-- Controle de quantidade funcional
-- Formulário com máscaras de telefone e CPF
-- Footer fixo com subtotal dinâmico
+- Barra de progresso apenas rosa (50% preenchida)
+- Footer com subtotal à esquerda e botão à direita
+- Badges de segurança (Compra Segura, SSL Ativo, Garantia) com ícones verdes
+- Design 100% fiel às imagens de referência
