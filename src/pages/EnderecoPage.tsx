@@ -134,7 +134,7 @@ const EnderecoPage = () => {
             
             {/* Logos */}
             <div className="flex items-center gap-1 opacity-70">
-              <img src={slimHealthLogo} alt="SlimHealth" className="h-5 w-auto" />
+              <img src={slimHealthLogo} alt="SlimHealth" className="h-7 w-auto" />
               <span className="text-slate-400 text-xs">+</span>
               <img src={cimedLogo} alt="CIMED" className="h-5 w-auto" />
             </div>
