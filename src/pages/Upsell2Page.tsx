@@ -218,6 +218,19 @@ const Upsell2Page = () => {
               <p className="text-xs text-gray-400 text-center mt-4 break-all line-clamp-2 px-2">
                 {pixCode}
               </p>
+
+              {/* Simulate payment button (for testing) */}
+              <Button
+                onClick={() => {
+                  toast.success("Pagamento confirmado!");
+                  setShowModal(false);
+                  navigate("/upsell3");
+                }}
+                variant="outline"
+                className="w-full mt-4 border-gray-300 text-gray-600 font-medium py-2 rounded-xl"
+              >
+                Simular Pagamento (Teste)
+              </Button>
             </div>
           </div>
         </div>
