@@ -1,88 +1,165 @@
 
 
-## Plano: Ajustes Finais na Página de Dados Pessoais
+## Plano: Criar Página de Endereço
 
 ### Resumo
-Vou fazer 4 ajustes conforme solicitado para deixar a página igual à referência.
+Vou criar a página `/endereco` que aparece após o lead preencher os dados pessoais. A página seguirá exatamente o mesmo design da página de Dados Pessoais, com integração à API ViaCEP para preenchimento automático do endereço.
 
 ---
 
-### Alterações
+### Estrutura da Página (Conforme Referência)
 
-#### 1. Cor do Botão "Continuar" (Verde → Rosa)
-Quando o formulário estiver válido, o botão ficará rosa igual ao valor do subtotal.
+#### Header
+- Botão de voltar (seta para esquerda)
+- Título "Endereço"
+- Barra de progresso rosa em 75% (3/4 do checkout)
 
-**De:**
-```tsx
-isFormValid ? 'bg-emerald-500 text-white hover:bg-emerald-600' : ...
-```
+#### Card do Produto
+- Mesmo card da página anterior
+- Imagem do Mounjaro
+- Preço dinâmico (soma conforme quantidade)
+- Controle de quantidade (+/-)
+- Texto "29 comprando agora" em verde
 
-**Para:**
-```tsx
-isFormValid ? 'bg-rose-500 text-white hover:bg-rose-600' : ...
-```
+#### Formulário de Endereço
+- Ícone de cadeado + "Dados protegidos"
+- **CEP** - Campo com máscara (00000-000), ao preencher busca endereço automaticamente
+- **Rua** - Preenchido automaticamente pela API
+- **Número** + **Complemento** - Lado a lado
+- **Bairro** - Preenchido automaticamente
+- **Cidade** + **UF** - Lado a lado (cidade maior, UF menor)
 
----
+#### Footer Fixo
+- Subtotal à esquerda (valor em rosa)
+- Botão "Continuar" à direita (rosa quando válido, cinza quando inválido)
 
-#### 2. Layout do Botão (Não Ocupar Largura Total)
-Remover o `flex-1` e adicionar uma largura fixa para o botão ficar à direita sem ocupar todo o espaço.
-
-**De:**
-```tsx
-<button className="flex-1 h-12 rounded-full ...">
-```
-
-**Para:**
-```tsx
-<button className="px-12 h-12 rounded-full ...">
-```
-
----
-
-#### 3. Badges de Segurança Menores
-Reduzir o tamanho dos ícones e texto dos badges de segurança.
-
-**De:**
-```tsx
-<ShieldCheck className="w-5 h-5" />
-<span>Compra Segura</span>
-```
-
-**Para:**
-```tsx
-<ShieldCheck className="w-4 h-4" />
-<span className="text-xs">Compra Segura</span>
-```
+#### Badges de Segurança
+- Mesmos badges da página anterior (Compra Segura, SSL Ativo, Garantia)
 
 ---
 
-#### 4. Preço do Produto Dinâmico (Card Superior)
-Atualizar o preço no card do produto para mostrar o subtotal calculado, não apenas o preço unitário fixo.
+### Arquivos a Criar/Modificar
 
-**De:**
+1. **Criar:** `src/pages/EnderecoPage.tsx`
+   - Nova página com formulário de endereço
+   - Integração com API ViaCEP
+
+2. **Modificar:** `src/App.tsx`
+   - Adicionar rota `/endereco`
+
+---
+
+### Detalhes Técnicos
+
+**API ViaCEP (Gratuita):**
+```typescript
+const buscarEndereco = async (cep: string) => {
+  const cepLimpo = cep.replace(/\D/g, '');
+  if (cepLimpo.length === 8) {
+    const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+    const data = await response.json();
+    if (!data.erro) {
+      setRua(data.logradouro);
+      setBairro(data.bairro);
+      setCidade(data.localidade);
+      setUf(data.uf);
+    }
+  }
+};
+```
+
+**Estado do componente:**
+```typescript
+// Recuperar dados da página anterior
+const dadosPessoais = JSON.parse(localStorage.getItem('dadosPessoais') || '{}');
+const [quantidade, setQuantidade] = useState(dadosPessoais.quantidade || 1);
+
+// Campos de endereço
+const [cep, setCep] = useState("");
+const [rua, setRua] = useState("");
+const [numero, setNumero] = useState("");
+const [complemento, setComplemento] = useState("");
+const [bairro, setBairro] = useState("");
+const [cidade, setCidade] = useState("");
+const [uf, setUf] = useState("");
+```
+
+**Máscara de CEP:**
+```typescript
+const handleCepChange = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  let formatted = digits;
+  if (digits.length > 5) {
+    formatted = digits.slice(0, 5) + '-' + digits.slice(5);
+  }
+  setCep(formatted);
+  // Buscar endereço quando CEP completo
+  if (digits.length === 8) {
+    buscarEndereco(digits);
+  }
+};
+```
+
+**Validação do formulário:**
+- CEP: 9 caracteres (com hífen)
+- Rua: não vazio
+- Número: não vazio
+- Bairro: não vazio
+- Cidade: não vazio
+- UF: 2 caracteres
+
+**Layout dos campos lado a lado:**
 ```tsx
-<div className="mt-1 text-lg font-bold text-emerald-600">
-  R$ {formatPrice(PRECO_UNITARIO)}
+{/* Número e Complemento */}
+<div className="grid grid-cols-2 gap-3">
+  <div>
+    <label>Número</label>
+    <Input placeholder="Nº" ... />
+  </div>
+  <div>
+    <label>Complemento</label>
+    <Input placeholder="Opcional" ... />
+  </div>
+</div>
+
+{/* Cidade e UF */}
+<div className="grid grid-cols-[1fr_80px] gap-3">
+  <div>
+    <label>Cidade</label>
+    <Input placeholder="Cidade" ... />
+  </div>
+  <div>
+    <label>UF</label>
+    <Input placeholder="UF" ... />
+  </div>
 </div>
 ```
 
-**Para:**
+**Barra de progresso:**
 ```tsx
-<div className="mt-1 text-lg font-bold text-emerald-600">
-  R$ {formatPrice(subtotal)}
+<div className="h-1 bg-slate-200">
+  <div className="h-full w-3/4 bg-rose-500" />
 </div>
 ```
 
 ---
 
-### Arquivo Modificado
-- `src/pages/DadosPessoaisPage.tsx`
+### Fluxo de Dados
+
+```text
+Dados Pessoais (/dados-pessoais)
+    ↓ [Salva nome, email, telefone, cpf, quantidade no localStorage]
+Endereço (/endereco)
+    ↓ [Recupera quantidade, salva endereço]
+Pagamento (/pagamento) - próxima etapa
+```
 
 ---
 
 ### Resultado Esperado
-- Botão "Continuar" rosa quando habilitado (igual ao valor)
-- Botão com tamanho fixo à direita, não ocupando toda a largura
-- Badges de segurança menores e discretos
-- Preço no card superior se soma quando adiciona mais produtos
+- Página de endereço 100% igual à referência
+- Preenchimento automático do endereço ao digitar CEP (ViaCEP)
+- Quantidade e subtotal sincronizados com a página anterior
+- Mesmos estilos (inputs, botões, badges) da página de Dados Pessoais
+- Barra de progresso em 75%
 
