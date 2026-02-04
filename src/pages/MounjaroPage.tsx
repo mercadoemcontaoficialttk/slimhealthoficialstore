@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, ShoppingCart, MoreHorizontal, Star, Bookmark, Zap, Check, Truck, Store, MessageCircle, Shield } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart, MoreHorizontal, Star, Bookmark, Zap, Check, Truck, Store, MessageCircle, Shield, X } from "lucide-react";
 
 // Assets
 import foto1 from "@/assets/mounjaro/foto1.png";
@@ -11,6 +11,11 @@ import seta from "@/assets/mounjaro/seta.png";
 import ticketImg from "@/assets/mounjaro/ticket.png";
 import slimHealthLogo from "@/assets/mounjaro/slimhealth-logo.png";
 
+// Proof images
+import carlosProva from "@/assets/reviews/carlos_prova.jpeg";
+import anaProva from "@/assets/reviews/ana_prova.jpeg";
+import robertoProva from "@/assets/reviews/roberto_prova.jpeg";
+
 const productImages = [foto1, foto2, foto3, foto4];
 
 const reviews = [
@@ -19,14 +24,16 @@ const reviews = [
     name: "Carlos Silva",
     avatar: "https://picsum.photos/200/200?random=101",
     stars: 5,
-    text: "Chegou hoje! Embalagem muito bem feita, tudo lacrado e dentro do prazo. Segunda começo o tratamento, estou bem animado com os resultados que vi de outras pessoas!"
+    text: "Chegou hoje! Embalagem muito bem feita, tudo lacrado e dentro do prazo. Segunda começo o tratamento, estou bem animado com os resultados que vi de outras pessoas!",
+    proofImage: carlosProva
   },
   {
     id: 2,
     name: "Ana Santos",
     avatar: "https://picsum.photos/200/200?random=102",
     stars: 5,
-    text: "Gente, já perdi 12kg em 2 meses usando certinho como o médico orientou. Estou impressionada, nunca achei que fosse funcionar tão bem. Super recomendo!"
+    text: "Gente, já perdi 12kg em 2 meses usando certinho como o médico orientou. Estou impressionada, nunca achei que fosse funcionar tão bem. Super recomendo!",
+    proofImage: anaProva
   },
   {
     id: 3,
@@ -47,7 +54,8 @@ const reviews = [
     name: "Roberto Mendes",
     avatar: "https://picsum.photos/200/200?random=105",
     stars: 5,
-    text: "Mudou minha vida! Comecei pesando 98kg em janeiro e hoje estou com 82kg. Meus exames de glicemia melhoraram muito. Melhor investimento que fiz na minha saúde."
+    text: "Mudou minha vida! Comecei pesando 98kg em janeiro e hoje estou com 82kg. Meus exames de glicemia melhoraram muito. Melhor investimento que fiz na minha saúde.",
+    proofImage: robertoProva
   },
   {
     id: 6,
@@ -63,6 +71,7 @@ const MounjaroPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [countdown, setCountdown] = useState({ minutes: 9, seconds: 37 });
   const [cartQuantity, setCartQuantity] = useState(0);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
 
   // Countdown timer
@@ -338,6 +347,14 @@ const MounjaroPage = () => {
                 {"★".repeat(review.stars)}{"☆".repeat(5 - review.stars)}
               </div>
               <p className="mt-2 text-[13px] text-slate-800 line-clamp-3">{review.text}</p>
+              {review.proofImage && (
+                <img 
+                  src={review.proofImage} 
+                  alt="Foto do produto"
+                  className="mt-2 w-24 h-24 rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity border border-slate-200"
+                  onClick={() => setSelectedImage(review.proofImage)}
+                />
+              )}
             </article>
           ))}
 
@@ -499,6 +516,27 @@ const MounjaroPage = () => {
           </button>
         </div>
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+            onClick={() => setSelectedImage(null)}
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Foto ampliada" 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };
