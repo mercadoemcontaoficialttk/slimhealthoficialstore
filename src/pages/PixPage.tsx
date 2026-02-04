@@ -174,6 +174,14 @@ const PixPage = () => {
             O PIX expira em: <span className="font-bold">{formatTime(timeLeft)}</span>
           </span>
         </div>
+
+        {/* Botão de Simulação (temporário para testes) */}
+        <button
+          onClick={() => navigate('/upsell1')}
+          className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"
+        >
+          ✓ Simular Pagamento Confirmado
+        </button>
       </div>
     </div>
   );
