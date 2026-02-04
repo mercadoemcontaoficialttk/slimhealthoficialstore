@@ -179,36 +179,6 @@ const RastreioPage = () => {
               </div>
             </div>
 
-            {/* Card 4 - Delivery Address */}
-            <div className="bg-gray-50 rounded-2xl p-5">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="font-bold text-[#1a1a2e] mb-1">
-                    Endereço de Entrega
-                  </h2>
-                  {endereco.rua ? (
-                    <>
-                      <p className="text-sm text-gray-600">
-                        {endereco.rua}, {endereco.numero}
-                        {endereco.complemento && ` - ${endereco.complemento}`}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {endereco.bairro} - {endereco.cidade}/{endereco.uf}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        CEP: {endereco.cep}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="text-sm text-gray-500">Endereço não disponível</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
             {/* Card 5 - Order Summary */}
             <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-5">
               <h2 className="font-bold text-[#1a1a2e] mb-4 flex items-center gap-2">
