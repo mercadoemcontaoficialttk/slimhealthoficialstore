@@ -76,6 +76,7 @@ const MounjaroPage = () => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [countdown, setCountdown] = useState({ minutes: 9, seconds: 37 });
+  const [cartQuantity, setCartQuantity] = useState(0);
   const galleryRef = useRef<HTMLDivElement>(null);
 
   // Countdown timer
@@ -395,7 +396,6 @@ const MounjaroPage = () => {
               </div>
             </div>
             <button 
-              onClick={() => navigate("/product")}
               className="px-3 py-1.5 rounded-full bg-slate-100 text-slate-900 font-semibold text-[13px] shadow-sm hover:bg-slate-200 active:scale-95 transition"
             >
               Visitar
@@ -474,11 +474,15 @@ const MounjaroPage = () => {
       <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
         <div className="max-w-screen-sm mx-auto px-3 pt-2 pb-[calc(14px+env(safe-area-inset-bottom))] flex items-end gap-2">
           {/* Store */}
-          <button 
-            onClick={() => navigate("/product")}
-            className="flex flex-col items-center justify-center w-12 shrink-0 text-[11px] text-slate-700"
-          >
-            <Store className="w-6 h-6 text-slate-500" />
+          <button className="flex flex-col items-center justify-center w-12 shrink-0 text-[11px] text-slate-700">
+            <div className="relative">
+              <Store className="w-6 h-6 text-slate-500" />
+              {cartQuantity > 0 && (
+                <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-[#ff3b66] text-white text-[11px] font-bold rounded-full flex items-center justify-center">
+                  {cartQuantity}
+                </span>
+              )}
+            </div>
             <span className="mt-0.5 leading-none">Loja</span>
           </button>
 
@@ -489,13 +493,20 @@ const MounjaroPage = () => {
           </button>
 
           {/* Add to Cart */}
-          <button className="flex-1 h-11 rounded-xl bg-slate-100 text-slate-900 font-semibold text-[14px] leading-tight px-3">
+          <button 
+            onClick={() => setCartQuantity(prev => prev + 1)}
+            className="flex-1 h-11 rounded-xl bg-slate-100 text-slate-900 font-semibold text-[14px] leading-tight px-3"
+          >
             Adicionar ao<br />carrinho
           </button>
 
           {/* Buy Now */}
           <button 
-            onClick={() => navigate("/dados-pessoais")}
+            onClick={() => {
+              const quantidade = cartQuantity > 0 ? cartQuantity : 1;
+              localStorage.setItem('dadosPessoais', JSON.stringify({ quantidade }));
+              navigate("/dados-pessoais");
+            }}
             className="flex-1 h-11 rounded-xl bg-[#ff3b66] text-white font-semibold text-[13px] leading-none"
           >
             Comprar Agora
