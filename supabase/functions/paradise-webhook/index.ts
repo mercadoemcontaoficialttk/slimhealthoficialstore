@@ -3,13 +3,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  // IMPORTANT: must include every header the browser may send in preflight
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
   'Access-Control-Allow-Methods': 'POST,OPTIONS',
   'Access-Control-Max-Age': '86400',
 };
 
-interface WebhookPayload {
+// Old format (expected)
+interface LegacyWebhookPayload {
   event: string;
   data: {
     id: string;
@@ -18,6 +18,16 @@ interface WebhookPayload {
     amount?: number;
     paidAt?: string;
   };
+}
+
+// Real Paradise Pags format
+interface ParadiseWebhookPayload {
+  transaction_id?: number | string;
+  external_id?: string;
+  status?: string;
+  webhook_type?: string;
+  amount?: number;
+  paid_at?: string;
 }
 
 serve(async (req) => {
@@ -36,45 +46,109 @@ serve(async (req) => {
   }
 
   try {
-    const body: WebhookPayload = await req.json();
+    const rawBody = await req.text();
+    console.log('=== PARADISE WEBHOOK RAW BODY ===');
+    console.log(rawBody);
+    
+    const body = JSON.parse(rawBody);
     
     console.log('=== PARADISE WEBHOOK RECEIVED ===');
-    console.log('Event:', body.event);
-    console.log('Data:', JSON.stringify(body.data));
+    console.log('Full payload:', JSON.stringify(body, null, 2));
     console.log('Timestamp:', new Date().toISOString());
 
-    // Validate payload structure
-    if (!body.event || !body.data || !body.data.id) {
-      console.error('Invalid payload structure:', JSON.stringify(body));
-      return new Response(
-        JSON.stringify({ error: 'Invalid payload structure' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const { event, data } = body;
-    const { id, status, reference, amount, paidAt } = data;
-
-    // Map Paradise events to our status
+    // Detect payload format and extract data
+    let transactionId: string;
     let mappedStatus: string;
-    switch (event) {
-      case 'transaction.paid':
+    let reference: string | undefined;
+    let amount: number | undefined;
+    let paidAt: string | undefined;
+
+    // Check if it's the real Paradise format (flat structure with transaction_id)
+    if (body.transaction_id !== undefined || body.webhook_type !== undefined) {
+      // Real Paradise Pags format
+      const paradisePayload = body as ParadiseWebhookPayload;
+      
+      transactionId = String(paradisePayload.transaction_id || '');
+      reference = paradisePayload.external_id;
+      amount = paradisePayload.amount;
+      paidAt = paradisePayload.paid_at;
+
+      // Map webhook_type to status
+      const webhookType = paradisePayload.webhook_type || '';
+      const rawStatus = (paradisePayload.status || '').toLowerCase();
+
+      console.log('Detected Paradise format');
+      console.log('webhook_type:', webhookType);
+      console.log('raw status:', rawStatus);
+
+      if (
+        webhookType === 'QR_CODE_COPY_AND_PASTE_PAID' ||
+        rawStatus === 'approved' ||
+        rawStatus === 'paid'
+      ) {
         mappedStatus = 'approved';
-        break;
-      case 'transaction.failed':
-        mappedStatus = 'failed';
-        break;
-      case 'transaction.expired':
+      } else if (
+        webhookType === 'QR_CODE_COPY_AND_PASTE_CREATED' ||
+        rawStatus === 'pending' ||
+        rawStatus === 'waiting'
+      ) {
+        mappedStatus = 'pending';
+      } else if (
+        webhookType === 'QR_CODE_COPY_AND_PASTE_EXPIRED' ||
+        rawStatus === 'expired'
+      ) {
         mappedStatus = 'expired';
-        break;
-      default:
-        console.log('Unhandled event type:', event);
-        mappedStatus = status?.toLowerCase() || 'unknown';
+      } else if (
+        rawStatus === 'failed' ||
+        rawStatus === 'cancelled' ||
+        rawStatus === 'refunded'
+      ) {
+        mappedStatus = 'failed';
+      } else {
+        mappedStatus = rawStatus || 'unknown';
+      }
+    } 
+    // Legacy format (event + data structure)
+    else if (body.event && body.data) {
+      const legacyPayload = body as LegacyWebhookPayload;
+      
+      transactionId = legacyPayload.data.id;
+      reference = legacyPayload.data.reference;
+      amount = legacyPayload.data.amount;
+      paidAt = legacyPayload.data.paidAt;
+
+      console.log('Detected Legacy format');
+      console.log('Event:', legacyPayload.event);
+
+      switch (legacyPayload.event) {
+        case 'transaction.paid':
+          mappedStatus = 'approved';
+          break;
+        case 'transaction.failed':
+          mappedStatus = 'failed';
+          break;
+        case 'transaction.expired':
+          mappedStatus = 'expired';
+          break;
+        default:
+          mappedStatus = legacyPayload.data.status?.toLowerCase() || 'unknown';
+      }
+    } 
+    // Unknown format - try to extract what we can
+    else {
+      console.log('Unknown payload format, attempting to extract data...');
+      transactionId = String(body.id || body.transaction_id || 'unknown');
+      mappedStatus = (body.status || 'unknown').toLowerCase();
+      reference = body.reference || body.external_id;
+      amount = body.amount;
+      paidAt = body.paid_at || body.paidAt;
     }
 
-    console.log('Mapped status:', mappedStatus);
-    console.log('Transaction ID:', id);
+    console.log('=== PROCESSED DATA ===');
+    console.log('Transaction ID:', transactionId);
+    console.log('Mapped Status:', mappedStatus);
     console.log('Reference:', reference);
+    console.log('Amount:', amount);
 
     // Initialize Supabase client for potential future DB storage
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -84,13 +158,12 @@ serve(async (req) => {
       const supabase = createClient(supabaseUrl, supabaseKey);
       
       // Future: Store transaction status in database
-      // For now, we just log it for monitoring
       console.log('Supabase client initialized - ready for DB storage');
     }
 
     // Log successful processing
     console.log('=== WEBHOOK PROCESSED SUCCESSFULLY ===');
-    console.log(`Transaction ${id} status: ${mappedStatus}`);
+    console.log(`Transaction ${transactionId} status: ${mappedStatus}`);
     if (reference) {
       console.log(`Reference: ${reference}`);
     }
@@ -101,12 +174,14 @@ serve(async (req) => {
       console.log(`Paid at: ${paidAt}`);
     }
 
-    // Return success response to Paradise
+    // Return success response to Paradise with all extracted data
+    // This allows the frontend to use the reference to update localStorage
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Webhook processed',
-        transactionId: id,
+        transactionId,
+        reference,
         status: mappedStatus
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
