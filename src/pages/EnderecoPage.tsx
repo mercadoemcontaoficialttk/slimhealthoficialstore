@@ -6,6 +6,8 @@ import foto1 from "@/assets/mounjaro/foto1.png";
 import fullLogo from "@/assets/frete/full-logo.jpeg";
 import jadlogLogo from "@/assets/frete/jadlog-logo.jpeg";
 import correiosLogo from "@/assets/frete/correios-logo.jpeg";
+import slimHealthLogo from "@/assets/slimhealth-logo.png";
+import cimedLogo from "@/assets/cimed-logo.png";
 
 const PRECO_UNITARIO = 67.90;
 
@@ -128,7 +130,14 @@ const EnderecoPage = () => {
             <button onClick={() => navigate(-1)} className="p-1">
               <ChevronLeft className="w-6 h-6 text-slate-700" />
             </button>
-            <h1 className="text-lg font-semibold text-slate-900">Endereço</h1>
+            <h1 className="text-lg font-semibold text-slate-900 flex-1">Endereço</h1>
+            
+            {/* Logos */}
+            <div className="flex items-center gap-1 opacity-70">
+              <img src={slimHealthLogo} alt="SlimHealth" className="h-5 w-auto" />
+              <span className="text-slate-400 text-xs">+</span>
+              <img src={cimedLogo} alt="CIMED" className="h-5 w-auto" />
+            </div>
           </div>
         </div>
         {/* Progress Bar - 75% */}

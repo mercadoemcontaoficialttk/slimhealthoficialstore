@@ -6,6 +6,8 @@ import canetasImg from "@/assets/bumps/canetas.webp";
 import kitTransporteImg from "@/assets/bumps/kit-transporte.webp";
 import aulaPlayImg from "@/assets/bumps/aula-play.jpg";
 import pixLogo from "@/assets/pix-logo.png";
+import slimHealthLogo from "@/assets/slimhealth-logo.png";
+import cimedLogo from "@/assets/cimed-logo.png";
 
 const PRECO_UNITARIO = 67.90;
 
@@ -161,7 +163,14 @@ const ConfirmacaoPage = () => {
             <button onClick={() => navigate(-1)} className="p-1">
               <ChevronLeft className="w-6 h-6 text-slate-700" />
             </button>
-            <h1 className="text-lg font-semibold text-slate-900">Confirmação</h1>
+            <h1 className="text-lg font-semibold text-slate-900 flex-1">Confirmação</h1>
+            
+            {/* Logos */}
+            <div className="flex items-center gap-1 opacity-70">
+              <img src={slimHealthLogo} alt="SlimHealth" className="h-5 w-auto" />
+              <span className="text-slate-400 text-xs">+</span>
+              <img src={cimedLogo} alt="CIMED" className="h-5 w-auto" />
+            </div>
           </div>
         </div>
         {/* Progress Bar - 100% */}
@@ -179,7 +188,7 @@ const ConfirmacaoPage = () => {
           <div className="flex items-center gap-3">
             {/* Product Image */}
             <div className="w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-100">
-              <img src={foto1} alt="Mounjaro" className="w-full h-full object-cover" />
+              <img src={foto1} alt="Mounjaro" className="w-full h-full object-contain" />
             </div>
 
             {/* Product Info */}
