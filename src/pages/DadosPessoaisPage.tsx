@@ -13,7 +13,18 @@ const DadosPessoaisPage = () => {
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [cpf, setCpf] = useState("");
-  const [quantidade, setQuantidade] = useState(1);
+  const [quantidade, setQuantidade] = useState(() => {
+    const saved = localStorage.getItem('dadosPessoais');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.quantidade || 1;
+      } catch {
+        return 1;
+      }
+    }
+    return 1;
+  });
 
   const subtotal = PRECO_UNITARIO * quantidade;
 
