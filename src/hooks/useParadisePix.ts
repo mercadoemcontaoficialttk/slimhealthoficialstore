@@ -29,6 +29,45 @@ interface UseParadisePixReturn {
   reset: () => void;
 }
 
+// localStorage key for transaction storage
+const TRANSACTIONS_STORAGE_KEY = 'paradise_transactions';
+
+interface StoredTransaction {
+  id: string;
+  reference: string;
+  status: string;
+  amount: number;
+  createdAt: string;
+}
+
+const getStoredTransactions = (): Record<string, StoredTransaction> => {
+  try {
+    const stored = localStorage.getItem(TRANSACTIONS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+};
+
+const storeTransaction = (reference: string, transaction: StoredTransaction) => {
+  const transactions = getStoredTransactions();
+  transactions[reference] = transaction;
+  localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(transactions));
+};
+
+const updateTransactionStatus = (reference: string, status: string) => {
+  const transactions = getStoredTransactions();
+  if (transactions[reference]) {
+    transactions[reference].status = status;
+    localStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(transactions));
+  }
+};
+
+const getTransactionByReference = (reference: string): StoredTransaction | null => {
+  const transactions = getStoredTransactions();
+  return transactions[reference] || null;
+};
+
 export function useParadisePix(): UseParadisePixReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +75,7 @@ export function useParadisePix(): UseParadisePixReturn {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [qrCodeBase64, setQrCodeBase64] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'approved' | 'failed' | 'expired'>('idle');
+  const [currentReference, setCurrentReference] = useState<string | null>(null);
   
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const onApprovedCallback = useRef<(() => void) | null>(null);
@@ -61,6 +101,8 @@ export function useParadisePix(): UseParadisePixReturn {
     setError(null);
     setPaymentStatus('idle');
 
+    const txReference = reference || `order_${Date.now()}`;
+
     try {
       const edgeFunctionUrl = getEdgeFunctionUrl();
       
@@ -73,7 +115,7 @@ export function useParadisePix(): UseParadisePixReturn {
         body: JSON.stringify({
           amount: Math.round(amount * 100), // Convert to cents
           description,
-          reference: reference || `order_${Date.now()}`,
+          reference: txReference,
           customer,
         }),
       });
@@ -86,10 +128,21 @@ export function useParadisePix(): UseParadisePixReturn {
 
       console.log('PIX payment created:', data);
 
-      setTransactionId(data.id);
+      const txId = data.id;
+      setTransactionId(txId);
+      setCurrentReference(txReference);
       setQrCode(data.qr_code || data.pixCopiaECola);
       setQrCodeBase64(data.qr_code_base64 || data.pixQrCode);
       setPaymentStatus('pending');
+
+      // Store transaction in localStorage for webhook sync
+      storeTransaction(txReference, {
+        id: txId,
+        reference: txReference,
+        status: 'pending',
+        amount: Math.round(amount * 100),
+        createdAt: new Date().toISOString(),
+      });
       
       return true;
     } catch (err) {
@@ -104,6 +157,16 @@ export function useParadisePix(): UseParadisePixReturn {
   }, []);
 
   const checkPaymentStatus = useCallback(async (): Promise<string | null> => {
+    // First check localStorage for webhook-updated status
+    if (currentReference) {
+      const storedTx = getTransactionByReference(currentReference);
+      if (storedTx && storedTx.status === 'approved') {
+        console.log('Found approved status in localStorage from webhook');
+        setPaymentStatus('approved');
+        return 'approved';
+      }
+    }
+
     if (!transactionId) return null;
 
     try {
@@ -126,12 +189,22 @@ export function useParadisePix(): UseParadisePixReturn {
       
       if (status === 'approved' || status === 'paid') {
         setPaymentStatus('approved');
+        // Update localStorage
+        if (currentReference) {
+          updateTransactionStatus(currentReference, 'approved');
+        }
         return 'approved';
       } else if (status === 'failed' || status === 'cancelled' || status === 'refunded') {
         setPaymentStatus('failed');
+        if (currentReference) {
+          updateTransactionStatus(currentReference, 'failed');
+        }
         return 'failed';
       } else if (status === 'expired') {
         setPaymentStatus('expired');
+        if (currentReference) {
+          updateTransactionStatus(currentReference, 'expired');
+        }
         return 'expired';
       }
       
@@ -140,7 +213,7 @@ export function useParadisePix(): UseParadisePixReturn {
       console.error('Error checking payment status:', err);
       return null;
     }
-  }, [transactionId]);
+  }, [transactionId, currentReference]);
 
   const startPolling = useCallback((onApproved: () => void) => {
     onApprovedCallback.current = onApproved;
@@ -175,6 +248,7 @@ export function useParadisePix(): UseParadisePixReturn {
     setIsLoading(false);
     setError(null);
     setTransactionId(null);
+    setCurrentReference(null);
     setQrCode(null);
     setQrCodeBase64(null);
     setPaymentStatus('idle');
