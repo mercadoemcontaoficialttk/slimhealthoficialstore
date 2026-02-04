@@ -1,54 +1,66 @@
 
 
-## Plano: Criar Pagina Upsell 3 - Correcao de Frete
+## Plano: Criar Pagina Upsell 4 - Erro no Processamento
 
 ### Visao Geral
-O Upsell 3 simula uma verificacao do pedido e depois revela um "erro de frete" que precisa ser pago. Possui animacoes sequenciais e um fluxo em duas fases.
+O Upsell 4 e a ultima etapa do funil. Simula um "erro no processamento do reembolso" e solicita o pagamento de R$ 35,20 para confirmar e iniciar o reembolso. Possui uma tela de loading inicial e depois exibe o conteudo principal.
 
 ---
 
 ### 1. Fluxo de Usuario
 
 ```text
-Fase 1 - Verificacao (3.5 segundos):
-+------------------------------------------+
-|         [TikTok Shop Logo]               |
+Fase 1 - Validacao (3 segundos):
 +------------------------------------------+
 |                                          |
-|              [✓]                         |  <- Icone rosa animado
 |                                          |
-|    Seu pedido foi concluido!             |
+|            [Spinner Rosa]                |
 |                                          |
-|    Aguarde enquanto realizamos           |
-|    a verificacao do pedido...            |
+|     Processando seu pagamento...         |
 |                                          |
-|    [====== Barra Progresso ======]       |
-|           Processando...                 |
+|        Erro na transacao                 |  <- Aparece apos 2s
 |                                          |
 +------------------------------------------+
 
-Fase 2 - Cards Sequenciais (apos 3.5s):
+Fase 2 - Conteudo Principal:
++------------------------------------------+
+|         [TikTok Logo]                    |
 +------------------------------------------+
 |                                          |
 |  +------------------------------------+  |
-|  | [✓] Pedido Concluido com Sucesso  |  |  <- Card verde (aparece 1o)
-|  |     Aguarde um momento...          |  |
+|  |           [X icone 3D]             |  |  <- Card destaque
+|  |                                    |  |
+|  |      Erro no Processamento         |  |
+|  |                                    |  |
+|  |  Identificamos uma falha no        |  |
+|  |  processamento do seu reembolso.   |  |
 |  +------------------------------------+  |
 |                                          |
 |  +------------------------------------+  |
-|  | [⚠] Validacao do CEP para Entrega |  |  <- Card amarelo (2s depois)
-|  |     Estamos verificando...         |  |
+|  | [i] Processo de Reembolso          |  |  <- Card informativo
+|  |                                    |  |
+|  |  * O valor sera reembolsado apos   |  |
+|  |    confirmacao                     |  |
+|  |  * Reembolso na mesma forma de     |  |
+|  |    pagamento                       |  |
+|  |  * Prazo varia conforme banco      |  |
 |  +------------------------------------+  |
 |                                          |
 |  +------------------------------------+  |
-|  | [✕] O valor do Frete foi          |  |  <- Card vermelho (4s depois)
-|  |     calculado errado               |  |
+|  |    VALOR A SER REEMBOLSADO         |  |  <- Card valor
 |  |                                    |  |
-|  |     [PAGAR FRETE - R$ XX,XX]       |  |
+|  |          R$ 35,20                  |  |
 |  |                                    |  |
-|  |  O valor pago do frete anterior   |  |
-|  |  sera reembolsado                  |  |
+|  |  Clique abaixo para confirmar o    |  |
+|  |  pagamento e iniciar o reembolso   |  |
 |  +------------------------------------+  |
+|                                          |
+|  [   CONFIRMAR PAGAMENTO   ]             |  <- Botao rosa
+|                                          |
+|  [escudo] Pagamento 100% seguro          |
+|                                          |
+|  Em caso de duvidas, nossa Central       |
+|  de Ajuda esta disponivel 24h            |
 |                                          |
 |       [SlimHealth] + [CIMED]             |
 |                                          |
@@ -59,68 +71,47 @@ Fase 2 - Cards Sequenciais (apos 3.5s):
 
 ### 2. Estrutura dos Cards
 
-**Card 1 - Sucesso (verde):**
-- Icone: Check verde em circulo com gradiente verde
-- Titulo: "Pedido Concluido com Sucesso"
-- Texto: "Aguarde um momento..."
+**Card 1 - Erro (destaque com borda rosa):**
+- Fundo: rosa claro (`bg-rose-50`)
+- Borda: rosa (`border-2 border-rose-500`)
+- Icone: X vermelho em circulo 3D animado (pulse)
+- Titulo: "Erro no Processamento" (cor rosa, extra-bold)
+- Subtitulo: "Identificamos uma falha no processamento do seu reembolso..."
 
-**Card 2 - Aviso (amarelo):**
-- Icone: Alerta amarelo em circulo com gradiente amarelo
-- Titulo: "Validacao do CEP para Entrega"
-- Texto: "Estamos verificando as informacoes..."
+**Card 2 - Informacoes (borda lateral rosa):**
+- Fundo: cinza claro (`bg-gray-50`)
+- Borda esquerda: rosa (`border-l-4 border-rose-500`)
+- Icone: Info rosa
+- Titulo: "Processo de Reembolso"
+- Lista com 3 itens explicativos
 
-**Card 3 - Erro (vermelho) - Destaque:**
-- Icone: X vermelho em circulo com gradiente rosa/vermelho
-- Titulo: "O valor do Frete foi calculado errado para sua regiao"
-- Texto: "O pedido nao sera enviado. Faca a correcao..."
-- Botao: "PAGAR FRETE - R$ XX,XX"
-- Aviso: "O valor pago do frete anterior sera reembolsado"
-
----
-
-### 3. Animacoes
-
-| Fase | Tempo | Acao |
-|------|-------|------|
-| 1 | 0s | Inicia barra de progresso |
-| 1 | 1s | Texto: "Verificando dados..." |
-| 1 | 2s | Texto: "Quase pronto..." |
-| 1 | 2.8s | Texto: "Concluido!" |
-| 2 | 3.5s | Esconde verificacao, mostra cards |
-| 2 | 3.6s | Card 1 aparece com slide-up |
-| 2 | 5.5s | Card 2 aparece com slide-up |
-| 2 | 7.5s | Card 3 aparece com slide-up + scroll |
+**Card 3 - Valor:**
+- Fundo: branco com sombra
+- Borda: rosa clara (`border border-rose-100`)
+- Titulo: "VALOR A SER REEMBOLSADO" (cinza, uppercase)
+- Valor: "R$ 35,20" (tamanho grande, rosa, extra-bold, com linha decorativa)
+- Nota: Texto explicativo
 
 ---
 
-### 4. Arquivos a Modificar/Criar
+### 3. Arquivos a Modificar/Criar
 
 | Arquivo | Acao |
 |---------|------|
-| src/pages/Upsell3Page.tsx | CRIAR - Nova pagina com animacoes |
-| src/App.tsx | EDITAR - Adicionar rota /upsell3 |
-| src/pages/Upsell2Page.tsx | EDITAR - Adicionar botao simular pagamento -> /upsell3 |
+| src/pages/Upsell4Page.tsx | CRIAR - Nova pagina do Upsell 4 |
+| src/App.tsx | EDITAR - Adicionar rota /upsell4 |
+| src/pages/Upsell3Page.tsx | EDITAR - Redirecionar para /upsell4 apos simular pagamento |
 
 ---
 
-### 5. Estados do Componente
+### 4. Estados do Componente
 
 ```tsx
-// Fase atual: 'verification' ou 'cards'
-const [phase, setPhase] = useState<'verification' | 'cards'>('verification');
+// Fase atual: 'loading' ou 'content'
+const [phase, setPhase] = useState<'loading' | 'content'>('loading');
 
-// Progresso da barra (0-100)
-const [progress, setProgress] = useState(0);
-
-// Texto do status
-const [statusText, setStatusText] = useState('Processando...');
-
-// Controle de visibilidade dos cards
-const [visibleCards, setVisibleCards] = useState({
-  card1: false,
-  card2: false,
-  card3: false,
-});
+// Texto de erro visivel (aparece apos 2s)
+const [showError, setShowError] = useState(false);
 
 // Modal de pagamento
 const [showModal, setShowModal] = useState(false);
@@ -129,34 +120,34 @@ const [timeLeft, setTimeLeft] = useState(900);
 
 ---
 
-### 6. Icones 3D para os Cards
+### 5. Icones 3D para os Cards
 
-**Card 1 - Sucesso (verde):**
+**Card 1 - Erro (animado com pulse):**
 ```tsx
-<div className="w-14 h-14 rounded-full flex items-center justify-center
-  bg-gradient-to-br from-emerald-400 to-emerald-600
-  shadow-[0_4px_12px_rgba(16,185,129,0.4)]">
-  <Check className="w-7 h-7 text-white" />
-</div>
-```
-
-**Card 2 - Aviso (amarelo):**
-```tsx
-<div className="w-14 h-14 rounded-full flex items-center justify-center
-  bg-gradient-to-br from-amber-400 to-amber-500
-  shadow-[0_4px_12px_rgba(245,158,11,0.4)]">
-  <AlertTriangle className="w-7 h-7 text-white" />
-</div>
-```
-
-**Card 3 - Erro (vermelho):**
-```tsx
-<div className="w-14 h-14 rounded-full flex items-center justify-center
+<div className="w-[70px] h-[70px] rounded-full flex items-center justify-center mx-auto mb-5
   bg-gradient-to-br from-rose-500 to-rose-600
-  shadow-[0_4px_12px_rgba(244,63,94,0.4)]">
-  <X className="w-7 h-7 text-white" />
+  shadow-[0_8px_24px_rgba(244,63,94,0.4)]
+  animate-pulse">
+  <XCircle className="w-9 h-9 text-white" />
 </div>
 ```
+
+**Card 2 - Info:**
+```tsx
+<div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
+  <Info className="w-5 h-5 text-rose-500" />
+</div>
+```
+
+---
+
+### 6. Animacoes
+
+| Fase | Tempo | Acao |
+|------|-------|------|
+| 1 | 0s | Mostra spinner + "Processando seu pagamento..." |
+| 1 | 2s | Aparece "Erro na transacao" com fade-in |
+| 2 | 3s | Esconde loading, mostra conteudo principal |
 
 ---
 
@@ -164,13 +155,13 @@ const [timeLeft, setTimeLeft] = useState(900);
 
 Mesmo formato dos outros upsells:
 - Header com logo TikTok
-- Titulo: "Correcao de Frete"
-- Valor: R$ XX,XX (definir valor)
+- Titulo: "Confirmacao de Reembolso"
+- Valor: R$ 35,20
 - QR Code simulado
 - Botao copiar PIX
 - Timer 15 minutos
 - Aguardando confirmacao
-- Botao simular pagamento (para testes)
+- Botao simular pagamento (redireciona para Home ou pagina final)
 
 ---
 
@@ -178,50 +169,65 @@ Mesmo formato dos outros upsells:
 
 | Elemento | Estilo |
 |----------|--------|
-| Fundo pagina | `bg-white` |
-| Header | Sem borda, logo TikTok centralizado |
-| Cards | `bg-white rounded-2xl shadow-lg p-6` centralizados |
-| Card destaque | Borda rosa `border-2 border-rose-500` |
-| Botao principal | `bg-gradient-to-r from-rose-500 to-rose-600` |
+| Fundo pagina | `bg-gradient-to-br from-white to-gray-50` |
+| Container central | `bg-white rounded-3xl shadow-lg border border-gray-100 p-8` |
+| Card erro | `bg-rose-50 rounded-2xl border-2 border-rose-500 p-6` |
+| Card info | `bg-gray-50 rounded-2xl border-l-4 border-rose-500 p-5` |
+| Card valor | `bg-white rounded-2xl shadow-md border border-rose-100 p-6` |
+| Botao principal | `bg-gradient-to-r from-rose-500 to-rose-600 rounded-2xl font-bold shadow-lg` |
+| Badge seguranca | `bg-gray-50 rounded-xl` com icone escudo verde |
+| Texto suporte | `bg-gray-50 rounded-xl border-l-3 border-rose-500` |
 | Logos rodape | SlimHealth + CIMED, `opacity-70` |
-| Aviso reembolso | `bg-rose-50 text-rose-600` |
 
 ---
 
-### 9. Animacao CSS
+### 9. Elementos Especiais
 
-Adicionar ao index.css:
-```css
-@keyframes card-slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+**Valor destacado com linha decorativa:**
+```tsx
+<p className="text-5xl font-extrabold text-rose-500 relative inline-block">
+  R$ 35,20
+  <span className="absolute bottom-[-5px] left-[10%] w-[80%] h-[3px] 
+    bg-gradient-to-r from-transparent via-rose-500 to-transparent rounded" />
+</p>
+```
 
-.animate-card-slide-up {
-  animation: card-slide-up 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
+**Badge de seguranca:**
+```tsx
+<div className="flex items-center justify-center gap-3 bg-gray-50 rounded-xl p-4">
+  <Shield className="w-5 h-5 text-green-500" />
+  <span className="text-sm text-gray-600 font-medium">
+    Pagamento 100% seguro e criptografado
+  </span>
+</div>
+```
+
+**Link de ajuda:**
+```tsx
+<p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-4 border-l-3 border-rose-500">
+  Em caso de duvidas, nossa{' '}
+  <a href="#" className="text-rose-500 font-semibold hover:underline">Central de Ajuda</a>
+  {' '}esta disponivel 24h...
+</p>
 ```
 
 ---
 
-### 10. Valor do Frete
+### 10. Valor do Upsell
 
-Baseado no padrao do HTML de referencia, o valor sugerido para o frete e **R$ 35,90** (um valor razoavel para "correcao de frete").
+Conforme solicitado: **R$ 35,20**
 
 ---
 
 ### Resultado Esperado
 
-1. Pagina inicia com verificacao animada (barra de progresso)
-2. Apos 3.5 segundos, cards aparecem sequencialmente
-3. Card final com erro de frete e botao de pagamento
-4. Modal one-click identico aos outros upsells
-5. Botao de simular pagamento para testes
-6. Visual 100% consistente com Upsell 1 e Upsell 2
+1. Pagina inicia com tela de loading (spinner + texto erro)
+2. Apos 3 segundos, exibe conteudo principal
+3. Card de erro destacado com icone 3D animado
+4. Card informativo sobre processo de reembolso
+5. Card com valor grande e destaque visual
+6. Botao "CONFIRMAR PAGAMENTO" abre modal one-click
+7. Badge de seguranca e texto de suporte
+8. Logos SlimHealth + CIMED no rodape
+9. Visual 100% consistente com os outros upsells
 
