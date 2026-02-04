@@ -11,6 +11,7 @@ import DadosPessoaisPage from "./pages/DadosPessoaisPage";
 import EnderecoPage from "./pages/EnderecoPage";
 import ConfirmacaoPage from "./pages/ConfirmacaoPage";
 import PixPage from "./pages/PixPage";
+import Upsell1Page from "./pages/Upsell1Page";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/endereco" element={<EnderecoPage />} />
           <Route path="/confirmacao" element={<ConfirmacaoPage />} />
           <Route path="/pix" element={<PixPage />} />
+          <Route path="/upsell1" element={<Upsell1Page />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
