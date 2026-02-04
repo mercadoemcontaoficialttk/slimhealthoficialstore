@@ -495,7 +495,7 @@ const MounjaroPage = () => {
 
           {/* Buy Now */}
           <button 
-            onClick={() => navigate("/checkout")}
+            onClick={() => navigate("/dados-pessoais")}
             className="flex-1 h-11 rounded-xl bg-[#ff3b66] text-white font-semibold text-[13px] leading-none"
           >
             Comprar Agora
