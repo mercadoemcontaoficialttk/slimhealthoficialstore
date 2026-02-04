@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Minus, Plus, Lock, Users } from "lucide-react";
+import { ChevronLeft, Minus, Plus, Lock, Users, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import foto1 from "@/assets/mounjaro/foto1.png";
@@ -84,9 +84,8 @@ const DadosPessoaisPage = () => {
           </div>
         </div>
         {/* Progress Bar */}
-        <div className="h-1 flex">
-          <div className="flex-1 bg-emerald-500" />
-          <div className="flex-1 bg-red-500" />
+        <div className="h-1 bg-slate-200">
+          <div className="h-full w-1/2 bg-rose-500" />
         </div>
       </header>
 
@@ -200,24 +199,47 @@ const DadosPessoaisPage = () => {
         </section>
       </main>
 
+      {/* Security Badges */}
+      <div className="fixed inset-x-0 bottom-[72px] z-40 bg-white border-t">
+        <div className="max-w-screen-sm mx-auto px-4 py-3 flex items-center justify-center gap-6">
+          <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
+            <ShieldCheck className="w-5 h-5" />
+            <span>Compra Segura</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
+            <Lock className="w-5 h-5" />
+            <span>SSL Ativo</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-emerald-600 text-sm">
+            <ShieldCheck className="w-5 h-5" />
+            <span>Garantia</span>
+          </div>
+        </div>
+      </div>
+
       {/* Fixed Footer */}
       <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
         <div className="max-w-screen-sm mx-auto px-4 py-3 pb-[calc(12px+env(safe-area-inset-bottom))]">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-slate-500">Subtotal</span>
-            <span className="text-xl font-bold text-red-500">R$ {formatPrice(subtotal)}</span>
+          <div className="flex items-center justify-between gap-4">
+            {/* Subtotal à esquerda */}
+            <div className="flex flex-col">
+              <span className="text-sm text-slate-500">Subtotal</span>
+              <span className="text-xl font-bold text-rose-500">R$ {formatPrice(subtotal)}</span>
+            </div>
+            
+            {/* Botão à direita */}
+            <button
+              onClick={handleContinuar}
+              disabled={!isFormValid}
+              className={`flex-1 h-12 rounded-full font-semibold text-base transition ${
+                isFormValid
+                  ? 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-[0.98]'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
+            >
+              Continuar
+            </button>
           </div>
-          <button
-            onClick={handleContinuar}
-            disabled={!isFormValid}
-            className={`w-full h-12 rounded-xl font-semibold text-base transition ${
-              isFormValid
-                ? 'bg-emerald-500 text-white hover:bg-emerald-600 active:scale-[0.98]'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
-          >
-            Continuar
-          </button>
         </div>
       </div>
     </div>
