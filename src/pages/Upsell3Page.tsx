@@ -131,8 +131,8 @@ const Upsell3Page = () => {
   const handleSimulatePayment = () => {
     toast.success("Pagamento confirmado!");
     setShowModal(false);
-    // Navigate to next step or confirmation
-    navigate("/");
+    // Navigate to Upsell 4
+    navigate("/upsell4");
   };
 
   return (
