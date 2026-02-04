@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { CheckCircle, Circle, Truck, MapPin, Package, Shield, HelpCircle, Home, Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CheckCircle, Circle, Truck, MapPin, Package, Shield, Check } from "lucide-react";
 import { format, addDays, addBusinessDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
@@ -15,7 +13,6 @@ interface TimelineStep {
 }
 
 const RastreioPage = () => {
-  const navigate = useNavigate();
   
   // Order data from localStorage
   const [orderNumber, setOrderNumber] = useState("");
@@ -199,7 +196,7 @@ const RastreioPage = () => {
                         {endereco.complemento && ` - ${endereco.complemento}`}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {endereco.bairro} - {endereco.cidade}/{endereco.estado}
+                        {endereco.bairro} - {endereco.cidade}/{endereco.uf}
                       </p>
                       <p className="text-sm text-gray-500">
                         CEP: {endereco.cep}
@@ -220,18 +217,31 @@ const RastreioPage = () => {
               </h2>
               
               <div className="space-y-2 text-sm">
+                {/* Produto principal */}
                 <div className="flex justify-between">
                   <span className="text-gray-600">
-                    Mounjaro 5mg {pedido.quantidade ? `x ${pedido.quantidade}` : ''}
+                    Mounjaro 5mg {pedido.produto?.quantidade ? `x ${pedido.produto.quantidade}` : (pedido.quantidade ? `x ${pedido.quantidade}` : '')}
                   </span>
                   <span className="font-medium text-gray-800">
-                    {formatPrice(pedido.subtotal || 147)}
+                    {formatPrice(pedido.produto?.subtotal || pedido.subtotal || 0)}
                   </span>
                 </div>
+
+                {/* Bumps - se existirem */}
+                {pedido.bumps?.map((bump: any) => (
+                  <div key={bump.id} className="flex justify-between">
+                    <span className="text-gray-600">{bump.nome}</span>
+                    <span className="font-medium text-gray-800">
+                      {formatPrice(bump.precoPromocional)}
+                    </span>
+                  </div>
+                ))}
+
+                {/* Frete */}
                 <div className="flex justify-between">
                   <span className="text-gray-600">Frete ({getShippingLabel()})</span>
                   <span className="font-medium text-gray-800">
-                    {frete.price === 0 ? 'Grátis' : formatPrice(frete.price || 0)}
+                    {frete.valor === 0 ? 'Grátis' : formatPrice(frete.valor || 0)}
                   </span>
                 </div>
                 
@@ -240,7 +250,7 @@ const RastreioPage = () => {
                 <div className="flex justify-between">
                   <span className="font-bold text-[#1a1a2e]">Total</span>
                   <span className="font-bold text-emerald-600 text-lg">
-                    {formatPrice((pedido.subtotal || 147) + (frete.price || 0))}
+                    {formatPrice(pedido.total || 0)}
                   </span>
                 </div>
               </div>
@@ -254,24 +264,12 @@ const RastreioPage = () => {
               </span>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-3">
-              <Button
-                onClick={() => window.open('https://wa.me/5511999999999', '_blank')}
-                variant="outline"
-                className="w-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
-              >
-                <HelpCircle className="w-5 h-5" />
-                Precisa de Ajuda?
-              </Button>
-              
-              <Button
-                onClick={() => navigate("/")}
-                className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"
-              >
-                <Home className="w-5 h-5" />
-                Voltar para Loja
-              </Button>
+            {/* Mensagem de suporte (estática) */}
+            <div className="text-center py-3">
+              <p className="text-sm text-gray-500">
+                Em caso de dúvidas, entre em contato pelo email{" "}
+                <span className="font-medium text-gray-700">suporte@slimhealth.com.br</span>
+              </p>
             </div>
 
             {/* Footer logos */}
