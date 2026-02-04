@@ -114,8 +114,8 @@ const EnderecoPage = () => {
         prazo: freteAtual?.prazo,
         valor: valorFrete
       }));
-      // Navegar para próxima etapa (pagamento)
-      navigate("/pagamento");
+      // Navegar para página de confirmação
+      navigate("/confirmacao");
     }
   };
 
