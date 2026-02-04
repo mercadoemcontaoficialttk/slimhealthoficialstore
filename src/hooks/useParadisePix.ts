@@ -73,6 +73,10 @@ export function useParadisePix(): UseParadisePixReturn {
   
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const onApprovedCallback = useRef<(() => void) | null>(null);
+  
+  // CRITICAL: Refs to avoid stale closure issues in polling
+  const transactionIdRef = useRef<string | null>(null);
+  const currentReferenceRef = useRef<string | null>(null);
 
   const createPixPayment = useCallback(async (
     amount: number,
@@ -112,6 +116,13 @@ export function useParadisePix(): UseParadisePixReturn {
 
       // Paradise API returns transaction_id as the ID
       const txId = data.transaction_id || data.id;
+      
+      // CRITICAL: Update refs IMMEDIATELY (synchronous) before any async operation
+      transactionIdRef.current = txId;
+      currentReferenceRef.current = txReference;
+      console.log('🔧 Refs updated IMMEDIATELY - txId:', txId, 'ref:', txReference);
+      
+      // Then update state for UI
       setTransactionId(txId);
       setCurrentReference(txReference);
       
@@ -147,13 +158,21 @@ export function useParadisePix(): UseParadisePixReturn {
   }, []);
 
   const checkPaymentStatus = useCallback(async (): Promise<string | null> => {
+    // CRITICAL: Read from refs first to avoid stale closure issues
+    const txId = transactionIdRef.current || transactionId;
+    const ref = currentReferenceRef.current || currentReference;
+    
     console.log('=== CHECKING PAYMENT STATUS ===');
-    console.log('Transaction ID:', transactionId);
-    console.log('Current Reference:', currentReference);
+    console.log('Transaction ID (ref):', transactionIdRef.current);
+    console.log('Transaction ID (state):', transactionId);
+    console.log('Using txId:', txId);
+    console.log('Current Reference (ref):', currentReferenceRef.current);
+    console.log('Current Reference (state):', currentReference);
+    console.log('Using ref:', ref);
     
     // First check localStorage for webhook-updated status
-    if (currentReference) {
-      const storedTx = getTransactionByReference(currentReference);
+    if (ref) {
+      const storedTx = getTransactionByReference(ref);
       console.log('Stored transaction:', storedTx);
       
       if (storedTx && storedTx.status === 'approved') {
@@ -163,19 +182,19 @@ export function useParadisePix(): UseParadisePixReturn {
       }
     }
 
-    if (!transactionId) {
-      console.log('No transaction ID available yet');
+    if (!txId) {
+      console.log('❌ No transaction ID available yet (both ref and state are null)');
       return null;
     }
 
     try {
-      console.log('Querying Paradise API for status...');
+      console.log('Querying Paradise API for status with txId:', txId);
       
       const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
         body: {
           action: 'status',
-          id: transactionId,
-          reference: currentReference,
+          id: txId,
+          reference: ref,
         },
       });
 
@@ -197,27 +216,27 @@ export function useParadisePix(): UseParadisePixReturn {
       if (status === 'approved' || status === 'paid') {
         console.log('✅ Payment APPROVED via API!');
         setPaymentStatus('approved');
-        if (currentReference) {
-          updateTransactionStatus(currentReference, 'approved');
+        if (ref) {
+          updateTransactionStatus(ref, 'approved');
           // Track Purchase event on TikTok Pixel
-          const storedTx = getTransactionByReference(currentReference);
+          const storedTx = getTransactionByReference(ref);
           if (storedTx) {
-            trackPurchase(storedTx.amount / 100, 'BRL', currentReference);
+            trackPurchase(storedTx.amount / 100, 'BRL', ref);
           }
         }
         return 'approved';
       } else if (status === 'failed' || status === 'cancelled' || status === 'refunded') {
         console.log('❌ Payment FAILED');
         setPaymentStatus('failed');
-        if (currentReference) {
-          updateTransactionStatus(currentReference, 'failed');
+        if (ref) {
+          updateTransactionStatus(ref, 'failed');
         }
         return 'failed';
       } else if (status === 'expired') {
         console.log('⏰ Payment EXPIRED');
         setPaymentStatus('expired');
-        if (currentReference) {
-          updateTransactionStatus(currentReference, 'expired');
+        if (ref) {
+          updateTransactionStatus(ref, 'expired');
         }
         return 'expired';
       }
@@ -281,6 +300,10 @@ export function useParadisePix(): UseParadisePixReturn {
     setQrCode(null);
     setQrCodeBase64(null);
     setPaymentStatus('idle');
+    // CRITICAL: Also clear refs to avoid leaking to new payment attempts
+    transactionIdRef.current = null;
+    currentReferenceRef.current = null;
+    console.log('🔄 Reset complete - refs and state cleared');
   }, [stopPolling]);
 
   // Cleanup on unmount

@@ -47,6 +47,16 @@ const Upsell2Page = () => {
     }
   }, []);
 
+  // FALLBACK: Watch paymentStatus and redirect if approved
+  useEffect(() => {
+    if (paymentStatus === 'approved') {
+      console.log('🔄 FALLBACK Upsell2: paymentStatus is approved, redirecting to /upsell3');
+      toast.success("Pagamento confirmado!");
+      setShowModal(false);
+      navigate('/upsell3');
+    }
+  }, [paymentStatus, navigate]);
+
   const handleOpenModal = async () => {
     setShowModal(true);
     
