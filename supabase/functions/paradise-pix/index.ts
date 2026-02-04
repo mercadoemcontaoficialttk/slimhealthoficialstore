@@ -11,6 +11,13 @@ function getCorsHeaders(req: Request) {
   };
 }
 
+// Create a custom HTTP client to handle TLS compatibility issues with Paradise API
+// Forces HTTP/1.1 to avoid TLS 1.3 negotiation problems
+const httpClient = Deno.createHttpClient({
+  http1: true,
+  http2: false,
+});
+
 interface CreatePixRequest {
   action?: 'create' | 'status' | 'health';
   amount?: number; // em centavos
@@ -133,6 +140,8 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
+          // @ts-ignore - Deno-specific option for custom HTTP client
+          client: httpClient,
         });
 
         const data = await response.json();
@@ -199,6 +208,8 @@ async function handleStatusCheck(
           'Authorization': apiKey,
           'Content-Type': 'application/json',
         },
+        // @ts-ignore - Deno-specific option for custom HTTP client
+        client: httpClient,
       });
 
       const data = await response.json();
@@ -220,6 +231,8 @@ async function handleStatusCheck(
           'Authorization': apiKey,
           'Content-Type': 'application/json',
         },
+        // @ts-ignore - Deno-specific option for custom HTTP client
+        client: httpClient,
       });
 
       const data = await response.json();
