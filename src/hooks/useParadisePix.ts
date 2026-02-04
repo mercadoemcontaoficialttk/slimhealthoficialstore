@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/integrations/supabase/client';
 
 interface Customer {
   name: string;
@@ -81,14 +81,7 @@ export function useParadisePix(): UseParadisePixReturn {
   const onApprovedCallback = useRef<(() => void) | null>(null);
 
   const getEdgeFunctionUrl = () => {
-    const projectUrl = import.meta.env.VITE_SUPABASE_URL;
-    if (!projectUrl) {
-      throw new Error('VITE_SUPABASE_URL not configured');
-    }
-    // Convert project URL to functions URL
-    // From: https://xxx.supabase.co
-    // To: https://xxx.supabase.co/functions/v1/paradise-pix
-    return `${projectUrl}/functions/v1/paradise-pix`;
+    return `${SUPABASE_URL}/functions/v1/paradise-pix`;
   };
 
   const createPixPayment = useCallback(async (
@@ -110,7 +103,7 @@ export function useParadisePix(): UseParadisePixReturn {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           amount: Math.round(amount * 100), // Convert to cents
@@ -175,7 +168,7 @@ export function useParadisePix(): UseParadisePixReturn {
       const response = await fetch(`${edgeFunctionUrl}?action=status&id=${transactionId}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         },
       });
 
