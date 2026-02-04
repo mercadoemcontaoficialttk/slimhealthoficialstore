@@ -1,29 +1,51 @@
 
 
-## Plano: Remover Texto de Suporte
+## Plano: Remover Card de Endereço de Entrega
 
-### Alteracao
-Remover a mensagem "Em caso de duvidas, entre em contato pelo email suporte@slimhealth.com.br" da pagina de rastreio.
+### Alteração
+Remover o card "Endereço de Entrega" da página de rastreio conforme solicitado.
 
 ---
 
 ### Arquivo a Modificar
 
-| Arquivo | Acao |
+| Arquivo | Ação |
 |---------|------|
-| src/pages/RastreioPage.tsx | EDITAR - Remover div com mensagem de suporte (linhas 267-273) |
+| src/pages/RastreioPage.tsx | EDITAR - Remover card de endereço (linhas 175-206) |
 
 ---
 
-### Codigo a Remover
+### Código a Remover
 
 ```tsx
-{/* Mensagem de suporte (estática) */}
-<div className="text-center py-3">
-  <p className="text-sm text-gray-500">
-    Em caso de dúvidas, entre em contato pelo email{" "}
-    <span className="font-medium text-gray-700">suporte@slimhealth.com.br</span>
-  </p>
+{/* Card 4 - Delivery Address */}
+<div className="bg-gray-50 rounded-2xl p-5">
+  <div className="flex items-start gap-3">
+    <div className="w-10 h-10 rounded-full bg-gray-400 flex items-center justify-center flex-shrink-0">
+      <MapPin className="w-5 h-5 text-white" />
+    </div>
+    <div>
+      <h2 className="font-bold text-[#1a1a2e] mb-1">
+        Endereço de Entrega
+      </h2>
+      {endereco.rua ? (
+        <>
+          <p className="text-sm text-gray-600">
+            {endereco.rua}, {endereco.numero}
+            {endereco.complemento && ` - ${endereco.complemento}`}
+          </p>
+          <p className="text-sm text-gray-600">
+            {endereco.bairro} - {endereco.cidade}/{endereco.uf}
+          </p>
+          <p className="text-sm text-gray-500">
+            CEP: {endereco.cep}
+          </p>
+        </>
+      ) : (
+        <p className="text-sm text-gray-500">Endereço não disponível</p>
+      )}
+    </div>
+  </div>
 </div>
 ```
 
@@ -31,14 +53,13 @@ Remover a mensagem "Em caso de duvidas, entre em contato pelo email suporte@slim
 
 ### Resultado
 
-A pagina de rastreio ficara apenas com:
-- Card de confirmacao (verde)
+A página de rastreio ficará com:
+- Card de confirmação (verde)
 - Timeline de status
-- Previsao de entrega
-- Endereco de entrega
+- Previsão de entrega
 - Resumo do pedido
-- Badge de seguranca
+- Badge de segurança
 - Logos SlimHealth + CIMED
 
-Sem o texto de suporte entre o badge e os logos.
+Sem o card de endereço de entrega.
 
