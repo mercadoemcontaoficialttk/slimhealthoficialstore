@@ -1,66 +1,67 @@
 
 
-## Plano: Criar Pagina Upsell 4 - Erro no Processamento
+## Plano: Criar Pagina de Rastreio Profissional
 
 ### Visao Geral
-O Upsell 4 e a ultima etapa do funil. Simula um "erro no processamento do reembolso" e solicita o pagamento de R$ 35,20 para confirmar e iniciar o reembolso. Possui uma tela de loading inicial e depois exibe o conteudo principal.
+A pagina de rastreio sera exibida apos o pagamento do Upsell 4, mostrando ao lead que seu pedido foi confirmado e esta sendo separado para envio. A pagina deve transmitir credibilidade e profissionalismo.
 
 ---
 
-### 1. Fluxo de Usuario
+### 1. Layout da Pagina
 
 ```text
-Fase 1 - Validacao (3 segundos):
 +------------------------------------------+
-|                                          |
-|                                          |
-|            [Spinner Rosa]                |
-|                                          |
-|     Processando seu pagamento...         |
-|                                          |
-|        Erro na transacao                 |  <- Aparece apos 2s
-|                                          |
-+------------------------------------------+
-
-Fase 2 - Conteudo Principal:
-+------------------------------------------+
-|         [TikTok Logo]                    |
+|         [TikTok Shop Logo]               |
 +------------------------------------------+
 |                                          |
 |  +------------------------------------+  |
-|  |           [X icone 3D]             |  |  <- Card destaque
+|  |        [✓ icone 3D verde]          |  |
 |  |                                    |  |
-|  |      Erro no Processamento         |  |
+|  |      Pedido Confirmado!            |  |
 |  |                                    |  |
-|  |  Identificamos uma falha no        |  |
-|  |  processamento do seu reembolso.   |  |
+|  |  Seu pedido #XXXX foi recebido     |  |
+|  |  e esta sendo processado           |  |
 |  +------------------------------------+  |
 |                                          |
 |  +------------------------------------+  |
-|  | [i] Processo de Reembolso          |  |  <- Card informativo
+|  |  Status do Pedido                  |  |
 |  |                                    |  |
-|  |  * O valor sera reembolsado apos   |  |
-|  |    confirmacao                     |  |
-|  |  * Reembolso na mesma forma de     |  |
-|  |    pagamento                       |  |
-|  |  * Prazo varia conforme banco      |  |
+|  |  ● Pedido recebido      [✓]        |  |
+|  |  |                                 |  |
+|  |  ● Separando produtos   [○ pulse]  |  |  <- Status atual
+|  |  |                                 |  |
+|  |  ○ Enviado              [ ]        |  |
+|  |  |                                 |  |
+|  |  ○ Em transito          [ ]        |  |
+|  |  |                                 |  |
+|  |  ○ Entregue             [ ]        |  |
 |  +------------------------------------+  |
 |                                          |
 |  +------------------------------------+  |
-|  |    VALOR A SER REEMBOLSADO         |  |  <- Card valor
+|  |  [caminhao] Previsao de Entrega    |  |
 |  |                                    |  |
-|  |          R$ 35,20                  |  |
-|  |                                    |  |
-|  |  Clique abaixo para confirmar o    |  |
-|  |  pagamento e iniciar o reembolso   |  |
+|  |  DD de MES de AAAA                 |  |
+|  |  (baseado no frete escolhido)      |  |
 |  +------------------------------------+  |
 |                                          |
-|  [   CONFIRMAR PAGAMENTO   ]             |  <- Botao rosa
+|  +------------------------------------+  |
+|  |  [mapa] Endereco de Entrega        |  |
+|  |                                    |  |
+|  |  Rua, Numero                       |  |
+|  |  Bairro - Cidade/UF                |  |
+|  |  CEP: 00000-000                    |  |
+|  +------------------------------------+  |
+|                                          |
+|  +------------------------------------+  |
+|  |  [caixa] Resumo do Pedido          |  |
+|  |                                    |  |
+|  |  Mounjaro 5mg x Qtd    R$ XX,XX    |  |
+|  |  Frete                 R$ XX,XX    |  |
+|  |  --------------------------        |  |
+|  |  Total                 R$ XX,XX    |  |
+|  +------------------------------------+  |
 |                                          |
 |  [escudo] Pagamento 100% seguro          |
-|                                          |
-|  Em caso de duvidas, nossa Central       |
-|  de Ajuda esta disponivel 24h            |
 |                                          |
 |       [SlimHealth] + [CIMED]             |
 |                                          |
@@ -69,165 +70,147 @@ Fase 2 - Conteudo Principal:
 
 ---
 
-### 2. Estrutura dos Cards
+### 2. Elementos Principais
 
-**Card 1 - Erro (destaque com borda rosa):**
-- Fundo: rosa claro (`bg-rose-50`)
-- Borda: rosa (`border-2 border-rose-500`)
-- Icone: X vermelho em circulo 3D animado (pulse)
-- Titulo: "Erro no Processamento" (cor rosa, extra-bold)
-- Subtitulo: "Identificamos uma falha no processamento do seu reembolso..."
+**Card 1 - Confirmacao (verde, destaque):**
+- Fundo: verde claro (`bg-emerald-50`)
+- Borda: verde (`border-2 border-emerald-500`)
+- Icone: Check verde 3D animado (pulse suave)
+- Titulo: "Pedido Confirmado!" (verde, extra-bold)
+- Numero do pedido gerado automaticamente
+- Mensagem de confirmacao
 
-**Card 2 - Informacoes (borda lateral rosa):**
-- Fundo: cinza claro (`bg-gray-50`)
-- Borda esquerda: rosa (`border-l-4 border-rose-500`)
-- Icone: Info rosa
-- Titulo: "Processo de Reembolso"
-- Lista com 3 itens explicativos
-
-**Card 3 - Valor:**
+**Card 2 - Timeline de Status:**
 - Fundo: branco com sombra
-- Borda: rosa clara (`border border-rose-100`)
-- Titulo: "VALOR A SER REEMBOLSADO" (cinza, uppercase)
-- Valor: "R$ 35,20" (tamanho grande, rosa, extra-bold, com linha decorativa)
-- Nota: Texto explicativo
+- 5 etapas com linha conectora vertical
+- Etapas concluidas: icone check verde, texto escuro
+- Etapa atual: icone pulsante, badge "Em andamento"
+- Etapas pendentes: icone cinza, texto cinza
+
+**Card 3 - Previsao de Entrega:**
+- Fundo: azul claro (`bg-blue-50`)
+- Borda esquerda azul
+- Icone: Truck azul
+- Data calculada baseada no frete selecionado
+- Texto do tipo de frete escolhido
+
+**Card 4 - Endereco de Entrega:**
+- Fundo: cinza claro (`bg-gray-50`)
+- Icone: MapPin
+- Dados do endereco do localStorage
+
+**Card 5 - Resumo do Pedido:**
+- Fundo: branco com sombra
+- Lista de itens com precos
+- Separador
+- Total destacado
 
 ---
 
-### 3. Arquivos a Modificar/Criar
+### 3. Calculo da Data de Entrega
+
+Baseado no frete selecionado:
+- **Frete Gratis (FULL)**: +10 a 12 dias
+- **JADLOG**: +5 dias uteis
+- **SEDEX 12**: +1 dia
+
+A data sera calculada dinamicamente usando `date-fns`.
+
+---
+
+### 4. Numero do Pedido
+
+Gerar um numero de pedido aleatorio no formato:
+`#TK` + 6 digitos (ex: #TK847293)
+
+Salvar no localStorage para consistencia.
+
+---
+
+### 5. Estados da Timeline
+
+| Etapa | Status Inicial | Icone |
+|-------|----------------|-------|
+| Pedido recebido | Concluido | Check verde |
+| Separando produtos | Em andamento | Circle pulsante |
+| Enviado | Pendente | Circle cinza |
+| Em transito | Pendente | Circle cinza |
+| Entregue | Pendente | Circle cinza |
+
+---
+
+### 6. Arquivos a Modificar/Criar
 
 | Arquivo | Acao |
 |---------|------|
-| src/pages/Upsell4Page.tsx | CRIAR - Nova pagina do Upsell 4 |
-| src/App.tsx | EDITAR - Adicionar rota /upsell4 |
-| src/pages/Upsell3Page.tsx | EDITAR - Redirecionar para /upsell4 apos simular pagamento |
+| src/pages/RastreioPage.tsx | CRIAR - Nova pagina de rastreio |
+| src/App.tsx | EDITAR - Adicionar rota /rastreio |
+| src/pages/Upsell4Page.tsx | EDITAR - Redirecionar para /rastreio apos simular pagamento |
 
 ---
 
-### 4. Estados do Componente
-
-```tsx
-// Fase atual: 'loading' ou 'content'
-const [phase, setPhase] = useState<'loading' | 'content'>('loading');
-
-// Texto de erro visivel (aparece apos 2s)
-const [showError, setShowError] = useState(false);
-
-// Modal de pagamento
-const [showModal, setShowModal] = useState(false);
-const [timeLeft, setTimeLeft] = useState(900);
-```
-
----
-
-### 5. Icones 3D para os Cards
-
-**Card 1 - Erro (animado com pulse):**
-```tsx
-<div className="w-[70px] h-[70px] rounded-full flex items-center justify-center mx-auto mb-5
-  bg-gradient-to-br from-rose-500 to-rose-600
-  shadow-[0_8px_24px_rgba(244,63,94,0.4)]
-  animate-pulse">
-  <XCircle className="w-9 h-9 text-white" />
-</div>
-```
-
-**Card 2 - Info:**
-```tsx
-<div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
-  <Info className="w-5 h-5 text-rose-500" />
-</div>
-```
-
----
-
-### 6. Animacoes
-
-| Fase | Tempo | Acao |
-|------|-------|------|
-| 1 | 0s | Mostra spinner + "Processando seu pagamento..." |
-| 1 | 2s | Aparece "Erro na transacao" com fade-in |
-| 2 | 3s | Esconde loading, mostra conteudo principal |
-
----
-
-### 7. Modal de Pagamento
-
-Mesmo formato dos outros upsells:
-- Header com logo TikTok
-- Titulo: "Confirmacao de Reembolso"
-- Valor: R$ 35,20
-- QR Code simulado
-- Botao copiar PIX
-- Timer 15 minutos
-- Aguardando confirmacao
-- Botao simular pagamento (redireciona para Home ou pagina final)
-
----
-
-### 8. Estilizacao Consistente
+### 7. Estilizacao Consistente
 
 | Elemento | Estilo |
 |----------|--------|
 | Fundo pagina | `bg-gradient-to-br from-white to-gray-50` |
-| Container central | `bg-white rounded-3xl shadow-lg border border-gray-100 p-8` |
-| Card erro | `bg-rose-50 rounded-2xl border-2 border-rose-500 p-6` |
-| Card info | `bg-gray-50 rounded-2xl border-l-4 border-rose-500 p-5` |
-| Card valor | `bg-white rounded-2xl shadow-md border border-rose-100 p-6` |
-| Botao principal | `bg-gradient-to-r from-rose-500 to-rose-600 rounded-2xl font-bold shadow-lg` |
+| Container central | `bg-white rounded-3xl shadow-lg border border-gray-100 p-6` |
+| Card confirmacao | `bg-emerald-50 rounded-2xl border-2 border-emerald-500 p-6` |
+| Card previsao | `bg-blue-50 rounded-2xl border-l-4 border-blue-500 p-5` |
+| Card endereco | `bg-gray-50 rounded-2xl p-5` |
+| Card resumo | `bg-white rounded-2xl shadow-md p-5` |
 | Badge seguranca | `bg-gray-50 rounded-xl` com icone escudo verde |
-| Texto suporte | `bg-gray-50 rounded-xl border-l-3 border-rose-500` |
 | Logos rodape | SlimHealth + CIMED, `opacity-70` |
 
 ---
 
-### 9. Elementos Especiais
+### 8. Icones 3D
 
-**Valor destacado com linha decorativa:**
+**Icone de Confirmacao (verde, pulsante suave):**
 ```tsx
-<p className="text-5xl font-extrabold text-rose-500 relative inline-block">
-  R$ 35,20
-  <span className="absolute bottom-[-5px] left-[10%] w-[80%] h-[3px] 
-    bg-gradient-to-r from-transparent via-rose-500 to-transparent rounded" />
-</p>
-```
-
-**Badge de seguranca:**
-```tsx
-<div className="flex items-center justify-center gap-3 bg-gray-50 rounded-xl p-4">
-  <Shield className="w-5 h-5 text-green-500" />
-  <span className="text-sm text-gray-600 font-medium">
-    Pagamento 100% seguro e criptografado
-  </span>
+<div className="w-[70px] h-[70px] rounded-full flex items-center justify-center mx-auto mb-5
+  bg-gradient-to-br from-emerald-400 to-emerald-600
+  shadow-[0_8px_24px_rgba(16,185,129,0.4)]
+  animate-pulse">
+  <CheckCircle className="w-9 h-9 text-white" />
 </div>
 ```
 
-**Link de ajuda:**
+**Icones da Timeline:**
+- Concluido: `bg-emerald-500` com Check branco
+- Em andamento: `bg-amber-500` com animacao pulse
+- Pendente: `bg-gray-200` sem icone
+
+---
+
+### 9. Dados do LocalStorage Utilizados
+
 ```tsx
-<p className="text-sm text-gray-600 bg-gray-50 rounded-xl p-4 border-l-3 border-rose-500">
-  Em caso de duvidas, nossa{' '}
-  <a href="#" className="text-rose-500 font-semibold hover:underline">Central de Ajuda</a>
-  {' '}esta disponivel 24h...
-</p>
+// Recuperar dados
+const dadosPessoais = JSON.parse(localStorage.getItem('dadosPessoais') || '{}');
+const endereco = JSON.parse(localStorage.getItem('endereco') || '{}');
+const frete = JSON.parse(localStorage.getItem('frete') || '{}');
+const pedido = JSON.parse(localStorage.getItem('pedido') || '{}');
 ```
 
 ---
 
-### 10. Valor do Upsell
+### 10. Recursos Adicionais
 
-Conforme solicitado: **R$ 35,20**
+- **Botao "Precisa de Ajuda?"**: Link para suporte (pode abrir WhatsApp ou email)
+- **Botao "Voltar para Loja"**: Navega para pagina inicial
+- **Animacao de entrada**: Cards aparecem com fade-in suave
 
 ---
 
 ### Resultado Esperado
 
-1. Pagina inicia com tela de loading (spinner + texto erro)
-2. Apos 3 segundos, exibe conteudo principal
-3. Card de erro destacado com icone 3D animado
-4. Card informativo sobre processo de reembolso
-5. Card com valor grande e destaque visual
-6. Botao "CONFIRMAR PAGAMENTO" abre modal one-click
-7. Badge de seguranca e texto de suporte
-8. Logos SlimHealth + CIMED no rodape
-9. Visual 100% consistente com os outros upsells
+1. Apos pagamento do Upsell 4, lead e redirecionado para /rastreio
+2. Pagina exibe confirmacao com numero do pedido
+3. Timeline mostra status atual (separando produtos)
+4. Previsao de entrega calculada baseada no frete
+5. Endereco de entrega exibido
+6. Resumo completo do pedido
+7. Visual profissional e confiavel
+8. Botoes de acao para suporte e retorno
 
