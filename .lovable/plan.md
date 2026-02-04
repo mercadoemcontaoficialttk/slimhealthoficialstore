@@ -1,100 +1,84 @@
 
-## Diagnóstico (o que está acontecendo de verdade)
+# Plano: Corrigir Redirecionamento Após Pagamento PIX
 
-- O erro exibido no front é **`TypeError: Failed to fetch`** ao chamar:
-  `https://bnqilgvlvxfhpfasqhtk.supabase.co/functions/v1/paradise-pix`
-- Esse tipo de erro **não é “erro do Paradise” nem “erro 400/500”**; é **falha de rede no navegador**, quase sempre causada por:
-  1) **CORS / preflight bloqueado** (o navegador barra antes de entregar a resposta ao JS), ou  
-  2) endpoint não acessível / função não respondendo corretamente ao preflight.
+## Resumo do Problema
+Após pagar via PIX, o usuário não é redirecionado para a página de Upsell 1. O problema está em duas áreas:
 
-Pelos headers enviados (Authorization + apikey + content-type) e pelo fato de acontecer **sempre** no preview, o caminho mais confiável é **parar de chamar a Edge Function via `fetch` “na unha”** e passar a chamar via **`supabase.functions.invoke()`**, que é o fluxo “oficial” e já injeta headers/assinaturas esperadas pela gateway do Supabase.
-
-Além disso, hoje o `paradise-pix` trabalha com **POST (criar)** e **GET (status via querystring)**. Para usar `invoke()` de forma consistente, vamos padronizar para **POST com `action` no body** (mantendo compatibilidade com o GET atual para não quebrar nada).
-
-Observação importante (para não te vender falsa segurança): **Webhook não consegue atualizar `localStorage` do navegador**. Então, mesmo depois que o fetch funcionar, o “status aprovado via webhook” precisa ser persistido em algum lugar do backend (DB) ou então o polling continuará sendo o mecanismo real. Eu vou manter o polling funcionando e preparar o backend para receber status do webhook de forma correta (via DB) numa etapa seguinte, se você aprovar.
+1. **Webhook com formato de payload incorreto** - O Paradise Pags envia os dados em um formato diferente do esperado
+2. **Verificação de status não funciona** - O sistema não consegue detectar quando o pagamento é aprovado
 
 ---
 
-## Objetivo imediato
+## O Que Será Corrigido
 
-1) Fazer **/pix** e **todos os upsells** gerarem **QR Code + Copia e Cola** sem erro (parar o “Failed to fetch”).  
-2) Garantir que o **status check** também funcione (para avançar o funil quando pagar).
+### 1. Atualizar o Webhook para o Formato Real do Paradise
+O webhook atual espera:
+```text
+{ event: "transaction.paid", data: { id: "123" } }
+```
 
----
+Mas o Paradise envia:
+```text
+{ transaction_id: 4890764, status: "approved", webhook_type: "QR_CODE_COPY_AND_PASTE_PAID" }
+```
 
-## Mudanças que vou implementar
-
-### 1) Frontend: trocar `fetch()` por `supabase.functions.invoke()`
-Arquivo: `src/hooks/useParadisePix.ts`
-
-- Substituir:
-  - `fetch(`${SUPABASE_URL}/functions/v1/paradise-pix`, ...)`
-- Por:
-  - `supabase.functions.invoke('paradise-pix', { body: {...} })`
-
-Isso reduz drasticamente risco de CORS/preflight falhar por headers “não esperados” no preview do Lovable.
-
-Também vou:
-- Unificar a chamada de **status** via `invoke` com `action: 'status'` no body
-- Melhorar o tratamento de erro para mostrar mensagem mais clara (ex.: “não foi possível conectar à função de pagamento” vs só “Failed to fetch”).
-
-### 2) Edge Function `paradise-pix`: aceitar POST com `action`
-Arquivo: `supabase/functions/paradise-pix/index.ts`
-
-Vou ajustar o handler para suportar:
-
-- **POST** com body:
-  - `{ action: 'create', amount, description, reference, customer }`
-  - `{ action: 'status', id?: string, reference?: string }`
-
-E manter o que já existe para compatibilidade:
-- `GET ?action=status&id=...` (continua funcionando, mas o front vai parar de depender disso)
-
-Além disso, vou adicionar um endpoint simples de diagnóstico:
-- `GET ?action=health` retornando `200` + JSON `{ ok: true }` + CORS  
-Isso permite validar rapidamente se a função está “de pé” sem depender do Paradise.
-
-### 3) (Opcional, mas recomendado) CORS mais robusto: refletir a Origin
-Arquivo: `supabase/functions/paradise-pix/index.ts` (e, se necessário, `paradise-webhook`)
-
-Em vez de sempre `Access-Control-Allow-Origin: *`, vou:
-- Ler `req.headers.get('origin')`
-- Retornar `Access-Control-Allow-Origin` com a origem recebida (quando existir)
-Isso costuma resolver casos onde alguma camada intermediária fica mais “restritiva” com `Authorization` + `*`.
-
-### 4) Conferência do segredo no runtime (sem expor nada)
-Sem pedir sua chave de novo:
-- Vou garantir que, se `PARADISE_API_KEY` estiver ausente, o erro retornado seja claro e **em JSON** com CORS.
-(Esse não é o seu erro atual, mas é um “guardrail” importante.)
+**Solução:** Reescrever o webhook para aceitar ambos os formatos e processar corretamente.
 
 ---
 
-## Como vamos validar (teste end-to-end)
+### 2. Melhorar a Verificação de Status no Frontend
+O sistema faz polling (verifica a cada 5 segundos) para saber se o pagamento foi aprovado. Vamos:
 
-Depois das mudanças:
-
-1) Abrir `/pix` com `pedido` e `dadosPessoais` preenchidos (fluxo normal do funil)
-2) Verificar que:
-   - Aparece “Gerando QR Code…”
-   - Em seguida carrega **QR Code** e habilita **Copiar código PIX**
-3) Clicar em “Copiar código PIX” e confirmar o toast de sucesso
-4) Repetir rapidamente em **/upsell1** (abrir modal e gerar PIX)
-5) Se possível, fazer 1 pagamento real pequeno e confirmar que o polling avança de página.
+- Adicionar logs detalhados para debug
+- Garantir que o status "approved" seja detectado corretamente
+- Verificar se a navegação é chamada após aprovação
 
 ---
 
-## Arquivos impactados
-
-- `src/hooks/useParadisePix.ts` (trocar fetch por invoke; status via action)
-- `src/integrations/supabase/client.ts` (apenas garantir que `supabase` é importável onde precisar — já está ok)
-- `supabase/functions/paradise-pix/index.ts` (POST action + health + CORS robusto)
-- (se necessário) `supabase/functions/paradise-webhook/index.ts` (apenas CORS/reflexo de origin, se a mesma restrição aparecer)
+### 3. Adicionar Fallback de Verificação Local
+Armazenar o status do webhook no localStorage para que o frontend detecte a aprovação mesmo se o polling da API falhar.
 
 ---
 
-## Resultado esperado
+## Arquivos a Serem Modificados
 
-- O erro “Failed to fetch” para de ocorrer no preview
-- QR Code e chave copia e cola passam a ser gerados em **/pix** e **todos os upsells**
-- Status check volta a funcionar (polling), permitindo o funil avançar quando aprovado
+| Arquivo | Alteração |
+|---------|-----------|
+| `supabase/functions/paradise-webhook/index.ts` | Aceitar formato real do Paradise e atualizar localStorage via resposta |
+| `src/hooks/useParadisePix.ts` | Melhorar logs e verificação de status |
+| `src/pages/PixPage.tsx` | Adicionar logs de debug e verificar callback |
 
+---
+
+## Detalhes Técnicos
+
+### Webhook - Novo Formato Aceito
+```text
+// Formato do Paradise Pags (real)
+{
+  "transaction_id": 4890764,
+  "external_id": "pedido_xxx",
+  "status": "approved",
+  "webhook_type": "QR_CODE_COPY_AND_PASTE_PAID"
+}
+```
+
+### Mapeamento de Status
+- `webhook_type: "QR_CODE_COPY_AND_PASTE_PAID"` → status `approved`
+- `webhook_type: "QR_CODE_COPY_AND_PASTE_CREATED"` → status `pending`
+- `status: "approved"` ou `status: "paid"` → status `approved`
+
+### Fluxo de Redirecionamento
+1. Usuário paga via PIX
+2. Paradise envia webhook para nossa edge function
+3. Webhook processa e retorna sucesso
+4. Frontend faz polling a cada 5s
+5. Quando status = approved, chama `navigate('/upsell1')`
+
+---
+
+## Resultado Esperado
+Após essas correções, quando o pagamento for confirmado:
+- Toast "Pagamento confirmado!" aparece
+- Usuário é redirecionado automaticamente para /upsell1
+- Evento TikTok "CompletePayment" é disparado
