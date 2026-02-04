@@ -78,10 +78,10 @@ const Upsell4Page = () => {
   };
 
   const handleSimulatePayment = () => {
-    toast.success("Pagamento confirmado! Funil concluído.");
+    toast.success("Pagamento confirmado! Redirecionando para rastreio...");
     setShowModal(false);
-    // Navigate to home (end of funnel)
-    navigate("/");
+    // Navigate to tracking page
+    navigate("/rastreio");
   };
 
   return (
