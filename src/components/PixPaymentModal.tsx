@@ -133,7 +133,13 @@ export function PixPaymentModal({
                 <div className="w-48 h-48 bg-gray-100 border-2 border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                   {qrCodeBase64 ? (
                     <img 
-                      src={qrCodeBase64.startsWith('data:') ? qrCodeBase64 : `data:image/png;base64,${qrCodeBase64}`} 
+                      src={
+                        qrCodeBase64.startsWith('data:') 
+                          ? qrCodeBase64 
+                          : qrCodeBase64.startsWith('http') 
+                            ? qrCodeBase64 
+                            : `data:image/png;base64,${qrCodeBase64}`
+                      } 
                       alt="QR Code PIX" 
                       className="w-full h-full object-contain"
                     />

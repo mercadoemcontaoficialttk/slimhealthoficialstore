@@ -109,13 +109,21 @@ export function useParadisePix(): UseParadisePixReturn {
 
       console.log('PIX payment created:', data);
 
-      const txId = data.id;
+      // Paradise API returns transaction_id as the ID
+      const txId = data.transaction_id || data.id;
       setTransactionId(txId);
       setCurrentReference(txReference);
+      
+      // qr_code contains the PIX copy-paste code
       setQrCode(data.qr_code || data.pixCopiaECola);
-      setQrCodeBase64(data.qr_code_base64 || data.pixQrCode);
+      
+      // qr_code_base64 from Paradise is actually a URL to the QR code image, not base64
+      // So we store it directly as-is
+      const qrCodeImage = data.qr_code_base64 || data.pixQrCode;
+      setQrCodeBase64(qrCodeImage);
+      
+      console.log('QR Code URL/Base64:', qrCodeImage);
       setPaymentStatus('pending');
-
       // Store transaction in localStorage for webhook sync
       storeTransaction(txReference, {
         id: txId,
