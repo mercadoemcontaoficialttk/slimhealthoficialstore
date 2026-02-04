@@ -51,7 +51,7 @@ const Upsell1Page = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       {/* Header com Logo TikTok Shop */}
-      <div className="bg-white border-b border-gray-200 px-4 py-4 flex justify-center">
+      <div className="bg-white px-4 py-4 flex justify-center">
         <img src={tiktokLogo} alt="TikTok Shop" className="h-10 w-auto" />
       </div>
 
