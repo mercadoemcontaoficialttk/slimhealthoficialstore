@@ -69,6 +69,10 @@ const PixPage = () => {
   // Create PIX payment when data is ready
   useEffect(() => {
     if (pedido && dadosPessoais && !paymentInitialized && !isLoading) {
+      console.log('=== INITIALIZING PIX PAYMENT ===');
+      console.log('Pedido:', pedido);
+      console.log('Dados Pessoais:', dadosPessoais);
+      
       setPaymentInitialized(true);
       
       const customer = {
@@ -78,15 +82,22 @@ const PixPage = () => {
         phone: dadosPessoais.telefone,
       };
 
+      const orderReference = `pedido_${Date.now()}`;
+      console.log('Order Reference:', orderReference);
+
       createPixPayment(
         pedido.total,
         'Mounjaro 5mg - SlimHealth',
         customer,
-        `pedido_${Date.now()}`
+        orderReference
       ).then((success) => {
+        console.log('PIX payment created:', success);
         if (success) {
+          console.log('Starting polling for payment confirmation...');
           startPolling(() => {
+            console.log('🎉 PAYMENT APPROVED CALLBACK TRIGGERED!');
             toast.success("Pagamento confirmado!");
+            console.log('Navigating to /upsell1...');
             navigate('/upsell1');
           });
         }

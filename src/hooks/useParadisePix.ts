@@ -147,20 +147,29 @@ export function useParadisePix(): UseParadisePixReturn {
   }, []);
 
   const checkPaymentStatus = useCallback(async (): Promise<string | null> => {
+    console.log('=== CHECKING PAYMENT STATUS ===');
+    console.log('Transaction ID:', transactionId);
+    console.log('Current Reference:', currentReference);
+    
     // First check localStorage for webhook-updated status
     if (currentReference) {
       const storedTx = getTransactionByReference(currentReference);
+      console.log('Stored transaction:', storedTx);
+      
       if (storedTx && storedTx.status === 'approved') {
-        console.log('Found approved status in localStorage from webhook');
+        console.log('✅ Found APPROVED status in localStorage from webhook!');
         setPaymentStatus('approved');
         return 'approved';
       }
     }
 
-    if (!transactionId) return null;
+    if (!transactionId) {
+      console.log('No transaction ID available yet');
+      return null;
+    }
 
     try {
-      console.log('Checking payment status via supabase.functions.invoke...');
+      console.log('Querying Paradise API for status...');
       
       const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
         body: {
@@ -169,6 +178,8 @@ export function useParadisePix(): UseParadisePixReturn {
           reference: currentReference,
         },
       });
+
+      console.log('Status API response:', data);
 
       if (invokeError) {
         console.error('Status check invoke error:', invokeError);
@@ -181,12 +192,14 @@ export function useParadisePix(): UseParadisePixReturn {
       }
 
       const status = data.status?.toLowerCase();
+      console.log('Parsed status:', status);
       
       if (status === 'approved' || status === 'paid') {
+        console.log('✅ Payment APPROVED via API!');
         setPaymentStatus('approved');
         if (currentReference) {
           updateTransactionStatus(currentReference, 'approved');
-          // Track Purchase event on Facebook Pixel
+          // Track Purchase event on TikTok Pixel
           const storedTx = getTransactionByReference(currentReference);
           if (storedTx) {
             trackPurchase(storedTx.amount / 100, 'BRL', currentReference);
@@ -194,12 +207,14 @@ export function useParadisePix(): UseParadisePixReturn {
         }
         return 'approved';
       } else if (status === 'failed' || status === 'cancelled' || status === 'refunded') {
+        console.log('❌ Payment FAILED');
         setPaymentStatus('failed');
         if (currentReference) {
           updateTransactionStatus(currentReference, 'failed');
         }
         return 'failed';
       } else if (status === 'expired') {
+        console.log('⏰ Payment EXPIRED');
         setPaymentStatus('expired');
         if (currentReference) {
           updateTransactionStatus(currentReference, 'expired');
@@ -207,6 +222,7 @@ export function useParadisePix(): UseParadisePixReturn {
         return 'expired';
       }
       
+      console.log('Status still pending:', status);
       return status;
     } catch (err) {
       console.error('Error checking payment status:', err);
@@ -214,7 +230,15 @@ export function useParadisePix(): UseParadisePixReturn {
     }
   }, [transactionId, currentReference]);
 
+  const stopPolling = useCallback(() => {
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+      pollingInterval.current = null;
+    }
+  }, []);
+
   const startPolling = useCallback((onApproved: () => void) => {
+    console.log('=== STARTING PAYMENT POLLING ===');
     onApprovedCallback.current = onApproved;
     
     // Clear existing interval
@@ -222,25 +246,31 @@ export function useParadisePix(): UseParadisePixReturn {
       clearInterval(pollingInterval.current);
     }
 
-    // Poll every 5 seconds
+    // Do an immediate check first
+    checkPaymentStatus().then((status) => {
+      console.log('Immediate status check result:', status);
+      if (status === 'approved') {
+        console.log('🎉 Payment already approved! Calling callback...');
+        stopPolling();
+        onApprovedCallback.current?.();
+      }
+    });
+
+    // Then poll every 5 seconds
     pollingInterval.current = setInterval(async () => {
+      console.log('Polling check...');
       const status = await checkPaymentStatus();
       
       if (status === 'approved') {
+        console.log('🎉 Payment approved during polling! Calling callback...');
         stopPolling();
         onApprovedCallback.current?.();
       } else if (status === 'failed' || status === 'expired') {
+        console.log('Payment failed/expired, stopping polling');
         stopPolling();
       }
     }, 5000);
-  }, [checkPaymentStatus]);
-
-  const stopPolling = useCallback(() => {
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-      pollingInterval.current = null;
-    }
-  }, []);
+  }, [checkPaymentStatus, stopPolling]);
 
   const reset = useCallback(() => {
     stopPolling();
