@@ -103,7 +103,9 @@ export function useParadisePix(): UseParadisePixReturn {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // Supabase Functions gateway expects both headers
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({
           amount: Math.round(amount * 100), // Convert to cents
@@ -169,6 +171,7 @@ export function useParadisePix(): UseParadisePixReturn {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY,
         },
       });
 
