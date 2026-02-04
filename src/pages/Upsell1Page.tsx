@@ -3,6 +3,8 @@ import { X, Copy, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
+import slimhealthLogo from "@/assets/slimhealth-logo.png";
+import cimedLogo from "@/assets/cimed-logo.png";
 
 const Upsell1Page = () => {
   const [showModal, setShowModal] = useState(false);
@@ -47,7 +49,7 @@ const Upsell1Page = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-200 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header com Logo TikTok Shop */}
       <div className="bg-white border-b border-gray-200 px-4 py-4 flex justify-center">
         <img src={tiktokLogo} alt="TikTok Shop" className="h-10 w-auto" />
@@ -58,8 +60,8 @@ const Upsell1Page = () => {
         <div className="w-full max-w-md">
           {/* Mensagem de Parabéns */}
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              Parabéns! 🎉
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[#1a1a2e] mb-2">
+              Parabéns!
             </h1>
             <p className="text-gray-600 text-base leading-relaxed">
               Você acabou de garantir seu produto promocional através da TikTok Shop! 
@@ -91,12 +93,27 @@ const Upsell1Page = () => {
           </Button>
 
           {/* Card Aviso */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-6">
-            <p className="text-amber-800 text-sm leading-relaxed">
+          <div className="bg-white rounded-2xl shadow-lg p-6 mt-6">
+            <p className="text-gray-700 text-sm leading-relaxed">
               <strong>Atenção:</strong> Para receber seu produto do TikTok Shop, é necessário pagar a 
               NF-e (Taxa de Emissão de Nota Fiscal). Sem o pagamento, o envio não será 
               autorizado e o pedido será cancelado.
             </p>
+          </div>
+
+          {/* Logos SlimHealth + CIMED */}
+          <div className="flex items-center justify-center gap-3 mt-8 mb-8">
+            <img 
+              src={slimhealthLogo} 
+              alt="SlimHealth" 
+              className="h-7 object-contain opacity-70"
+            />
+            <span className="text-lg font-bold text-muted-foreground">+</span>
+            <img 
+              src={cimedLogo} 
+              alt="CIMED" 
+              className="h-5 object-contain opacity-70"
+            />
           </div>
         </div>
       </div>
