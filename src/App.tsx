@@ -13,6 +13,7 @@ import ConfirmacaoPage from "./pages/ConfirmacaoPage";
 import PixPage from "./pages/PixPage";
 import Upsell1Page from "./pages/Upsell1Page";
 import Upsell2Page from "./pages/Upsell2Page";
+import Upsell3Page from "./pages/Upsell3Page";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/pix" element={<PixPage />} />
           <Route path="/upsell1" element={<Upsell1Page />} />
           <Route path="/upsell2" element={<Upsell2Page />} />
+          <Route path="/upsell3" element={<Upsell3Page />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
