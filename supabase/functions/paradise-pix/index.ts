@@ -11,12 +11,8 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-// Create a custom HTTP client to handle TLS compatibility issues with Paradise API
-// Forces HTTP/1.1 to avoid TLS 1.3 negotiation problems
-const httpClient = Deno.createHttpClient({
-  http1: true,
-  http2: false,
-});
+// Paradise API base URL (correct according to documentation)
+const PARADISE_BASE_URL = 'https://multi.paradisepags.com/api/v1';
 
 interface CreatePixRequest {
   action?: 'create' | 'status' | 'health';
@@ -116,13 +112,12 @@ serve(async (req) => {
           );
         }
 
-        // Prepare payload for Paradise API
+        // Prepare payload for Paradise API according to documentation
         const payload = {
           amount: body.amount,
-          paymentMethod: 'pix',
           description: body.description,
           reference: body.reference || `ref_${Date.now()}`,
-          source: 'api_externa',
+          source: 'api_externa', // This makes productHash optional
           customer: {
             name: body.customer.name,
             email: body.customer.email,
@@ -132,20 +127,20 @@ serve(async (req) => {
         };
 
         console.log('Creating PIX transaction with payload:', JSON.stringify(payload));
+        console.log('Using API URL:', `${PARADISE_BASE_URL}/transaction.php`);
 
-        const response = await fetch('https://api.paradisepag.com/api/v1/transaction', {
+        const response = await fetch(`${PARADISE_BASE_URL}/transaction.php`, {
           method: 'POST',
           headers: {
-            'Authorization': PARADISE_API_KEY,
+            'X-API-Key': PARADISE_API_KEY, // Correct header according to documentation
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(payload),
-          // @ts-ignore - Deno-specific option for custom HTTP client
-          client: httpClient,
         });
 
         const data = await response.json();
         
+        console.log('Paradise API response status:', response.status);
         console.log('Paradise API response:', JSON.stringify(data));
 
         if (!response.ok) {
@@ -198,51 +193,35 @@ async function handleStatusCheck(
   }
 
   try {
-    // If we have a transaction ID, query directly
+    let queryUrl: string;
+    
+    // If we have a transaction ID, query by ID
     if (transactionId) {
       console.log('Checking status for transaction:', transactionId);
-      
-      const response = await fetch(`https://api.paradisepag.com/api/v1/transaction/${transactionId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': apiKey,
-          'Content-Type': 'application/json',
-        },
-        // @ts-ignore - Deno-specific option for custom HTTP client
-        client: httpClient,
-      });
-
-      const data = await response.json();
-      console.log('Status check response:', JSON.stringify(data));
-      
-      return new Response(
-        JSON.stringify(data),
-        { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // If we only have reference, search by reference
-    if (reference) {
+      queryUrl = `${PARADISE_BASE_URL}/query.php?action=get_transaction&id=${transactionId}`;
+    } else {
+      // If we only have reference, search by external_id (reference)
       console.log('Searching transaction by reference:', reference);
-      
-      const response = await fetch(`https://api.paradisepag.com/api/v1/transaction?reference=${reference}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': apiKey,
-          'Content-Type': 'application/json',
-        },
-        // @ts-ignore - Deno-specific option for custom HTTP client
-        client: httpClient,
-      });
-
-      const data = await response.json();
-      console.log('Reference search response:', JSON.stringify(data));
-      
-      return new Response(
-        JSON.stringify(data),
-        { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      queryUrl = `${PARADISE_BASE_URL}/query.php?action=list_transactions&external_id=${reference}`;
     }
+
+    console.log('Query URL:', queryUrl);
+
+    const response = await fetch(queryUrl, {
+      method: 'GET',
+      headers: {
+        'X-API-Key': apiKey, // Correct header according to documentation
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    console.log('Status check response:', JSON.stringify(data));
+    
+    return new Response(
+      JSON.stringify(data),
+      { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Status check error:', error);
     return new Response(
@@ -250,9 +229,4 @@ async function handleStatusCheck(
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-
-  return new Response(
-    JSON.stringify({ error: 'Invalid status check request' }),
-    { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
 }
