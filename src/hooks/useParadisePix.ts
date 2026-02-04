@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { trackPurchase } from '@/hooks/useFacebookPixel';
 
 interface Customer {
   name: string;
@@ -185,6 +186,11 @@ export function useParadisePix(): UseParadisePixReturn {
         setPaymentStatus('approved');
         if (currentReference) {
           updateTransactionStatus(currentReference, 'approved');
+          // Track Purchase event on Facebook Pixel
+          const storedTx = getTransactionByReference(currentReference);
+          if (storedTx) {
+            trackPurchase(storedTx.amount / 100, 'BRL', currentReference);
+          }
         }
         return 'approved';
       } else if (status === 'failed' || status === 'cancelled' || status === 'refunded') {
