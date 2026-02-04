@@ -33,31 +33,59 @@ serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
 
-    // GET - Check payment status
+    // GET - Check payment status (by ID or reference)
     if (req.method === 'GET' && action === 'status') {
       const transactionId = url.searchParams.get('id');
+      const reference = url.searchParams.get('reference');
       
-      if (!transactionId) {
+      if (!transactionId && !reference) {
         return new Response(
-          JSON.stringify({ error: 'Transaction ID is required' }),
+          JSON.stringify({ error: 'Transaction ID or reference is required' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      const response = await fetch(`https://api.paradisepag.com/api/v1/transaction/${transactionId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': PARADISE_API_KEY,
-          'Content-Type': 'application/json',
-        },
-      });
+      // If we have a transaction ID, query directly
+      if (transactionId) {
+        const response = await fetch(`https://api.paradisepag.com/api/v1/transaction/${transactionId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': PARADISE_API_KEY,
+            'Content-Type': 'application/json',
+          },
+        });
 
-      const data = await response.json();
-      
-      return new Response(
-        JSON.stringify(data),
-        { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+        const data = await response.json();
+        console.log('Status check response:', JSON.stringify(data));
+        
+        return new Response(
+          JSON.stringify(data),
+          { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // If we only have reference, search by reference
+      if (reference) {
+        console.log('Searching transaction by reference:', reference);
+        
+        // Try to get transaction by reference through Paradise API
+        // Note: This depends on Paradise API supporting reference lookup
+        const response = await fetch(`https://api.paradisepag.com/api/v1/transaction?reference=${reference}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': PARADISE_API_KEY,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+        console.log('Reference search response:', JSON.stringify(data));
+        
+        return new Response(
+          JSON.stringify(data),
+          { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // POST - Create PIX transaction
