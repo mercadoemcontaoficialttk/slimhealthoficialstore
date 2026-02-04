@@ -19,56 +19,42 @@ const reviews = [
     name: "Carlos Silva",
     avatar: "https://picsum.photos/200/200?random=101",
     stars: 5,
-    text: "Chegou hj!! Embalagem perfeita, tudo certinho. Segunda feira começo o tratamento, to super animado!!"
+    text: "Chegou hoje! Embalagem muito bem feita, tudo lacrado e dentro do prazo. Segunda começo o tratamento, estou bem animado com os resultados que vi de outras pessoas!"
   },
   {
     id: 2,
     name: "Ana Santos",
     avatar: "https://picsum.photos/200/200?random=102",
     stars: 5,
-    text: "gente ja perdi 12kg em 2 meses!! to chocada, nunca achei q fosse funcionar assim. recomendo mtooo"
+    text: "Gente, já perdi 12kg em 2 meses usando certinho como o médico orientou. Estou impressionada, nunca achei que fosse funcionar tão bem. Super recomendo!"
   },
   {
     id: 3,
     name: "João Pereira",
     avatar: "https://picsum.photos/200/200?random=103",
     stars: 4,
-    text: "minha esposa ta usando há 3 semanas e já perdeu 5kg. Vou comprar mais uma pra mim tbm"
+    text: "Minha esposa está usando há 3 semanas e já perdeu 5kg. O produto é original, veio com nota fiscal. Vou comprar mais uma caneta pra mim também."
   },
   {
     id: 4,
     name: "Fernanda Lima",
     avatar: "https://picsum.photos/200/200?random=104",
     stars: 5,
-    text: "Recebi ontem, veio rapido demais! Aplicação super facil, nem senti a agulha. Ansiosa pelos resultados"
+    text: "Recebi ontem, entrega mais rápida do que esperava! A aplicação foi super fácil, praticamente não senti nada. Ansiosa pelos resultados das próximas semanas."
   },
   {
     id: 5,
     name: "Roberto Mendes",
     avatar: "https://picsum.photos/200/200?random=105",
     stars: 5,
-    text: "Cara mudou minha vida!! Antes eu pesava 98kg, hoje to com 82kg. Melhor investimento q fiz"
+    text: "Mudou minha vida! Comecei pesando 98kg em janeiro e hoje estou com 82kg. Meus exames de glicemia melhoraram muito. Melhor investimento que fiz na minha saúde."
   },
   {
     id: 6,
-    name: "Mariana Costa",
-    avatar: "https://picsum.photos/200/200?random=106",
-    stars: 4,
-    text: "chegou antes do prazo, embalagem refrigerada certinho. Ja apliquei a primeira dose, zero dor!"
-  },
-  {
-    id: 7,
-    name: "Paulo Rodrigues",
-    avatar: "https://picsum.photos/200/200?random=107",
-    stars: 5,
-    text: "terceira compra já!! Perdi 15kg desde janeiro, meu medico ficou impressionado com os exames"
-  },
-  {
-    id: 8,
     name: "Lucia Ferreira",
     avatar: "https://picsum.photos/200/200?random=108",
     stars: 5,
-    text: "Produto original, lacrado. Entrega super rapida. To no segundo mês e ja emagreci 8kg, feliz demais"
+    text: "Produto original, lacrado e com selo de autenticidade. Entrega foi rápida e bem embalada. Estou no segundo mês e já emagreci 8kg, muito feliz!"
   }
 ];
 
@@ -254,7 +240,7 @@ const MounjaroPage = () => {
               <Star className="w-[18px] h-[18px] fill-current" />
               4.9
             </span>
-            <span className="text-sky-600">(8)</span>
+            <span className="text-sky-600">(6)</span>
             <span className="text-slate-500">• 39.8k vendido(s)</span>
           </div>
 
@@ -317,7 +303,7 @@ const MounjaroPage = () => {
         <section className="bg-white px-3 py-3">
           <div className="flex items-center justify-between">
             <h2 className="text-[14px] font-semibold text-slate-900">
-              Avaliações dos clientes <span className="text-slate-500 font-normal">(8)</span>
+              Avaliações dos clientes <span className="text-slate-500 font-normal">(6)</span>
             </h2>
             <button className="flex items-center gap-1 text-slate-600 text-[12px]">
               Ver mais
@@ -343,7 +329,7 @@ const MounjaroPage = () => {
               <div className="flex items-center gap-2">
                 <img src={review.avatar} alt={review.name} className="w-6 h-6 rounded-full object-cover" />
                 <div className="text-[13px] font-medium">{review.name}</div>
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600">
+                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
                   <Check className="w-3 h-3" />
                   Compra confirmada
                 </span>
