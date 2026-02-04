@@ -1,5 +1,1 @@
-[functions.paradise-pix]
-verify_jwt = false
-
-[functions.paradise-webhook]
-verify_jwt = false
+project_id = "iwhdppjqvrginaebgnmu"
