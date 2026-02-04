@@ -69,8 +69,11 @@ const Upsell2Page = () => {
           {/* Card 1 - Status do Pedido */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <CreditCard className="w-5 h-5 text-rose-500" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0
+                bg-gradient-to-br from-rose-100 via-rose-50 to-rose-200
+                shadow-[0_4px_12px_rgba(244,63,94,0.25),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-2px_4px_rgba(244,63,94,0.15)]
+                border border-rose-200/50">
+                <CreditCard className="w-6 h-6 text-rose-500 drop-shadow-sm" />
               </div>
               <div className="flex-1">
                 <h2 className="font-semibold text-[#1a1a2e] text-lg mb-3">Status do Pedido</h2>
@@ -86,8 +89,11 @@ const Upsell2Page = () => {
           {/* Card 2 - Pagamento Pendente */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <Info className="w-5 h-5 text-rose-500" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0
+                bg-gradient-to-br from-rose-100 via-rose-50 to-rose-200
+                shadow-[0_4px_12px_rgba(244,63,94,0.25),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-2px_4px_rgba(244,63,94,0.15)]
+                border border-rose-200/50">
+                <Info className="w-6 h-6 text-rose-500 drop-shadow-sm" />
               </div>
               <div className="flex-1">
                 <h2 className="font-semibold text-[#1a1a2e] text-lg mb-2">Pagamento Pendente</h2>
@@ -109,8 +115,11 @@ const Upsell2Page = () => {
           {/* Card 3 - Por que preciso pagar? */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <HelpCircle className="w-5 h-5 text-rose-500" />
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0
+                bg-gradient-to-br from-rose-100 via-rose-50 to-rose-200
+                shadow-[0_4px_12px_rgba(244,63,94,0.25),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-2px_4px_rgba(244,63,94,0.15)]
+                border border-rose-200/50">
+                <HelpCircle className="w-6 h-6 text-rose-500 drop-shadow-sm" />
               </div>
               <div className="flex-1">
                 <h2 className="font-semibold text-[#1a1a2e] text-lg mb-2">Por que preciso pagar a TENF?</h2>
