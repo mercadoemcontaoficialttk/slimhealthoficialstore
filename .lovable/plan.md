@@ -1,155 +1,132 @@
 
-
-## Plano: Integrar Gateway Paradise para Pagamentos PIX
+## Plano: Adicionar Webhook Paradise para Confirmacao Instantanea de Pagamentos
 
 ### Visao Geral
 
-Vou integrar o gateway de pagamento Paradise em todas as paginas de pagamento PIX do seu funil. Isso incluira:
-- Pagina principal de PIX (`/pix`)
-- Upsell 1 - Taxa NF (R$ 47,89)
-- Upsell 2 - TENF (R$ 26,75)
-- Upsell 3 - Correcao Frete (R$ 35,90)
-- Upsell 4 - Reembolso (R$ 35,20)
+Vou criar uma edge function dedicada para receber webhooks do Paradise. Isso garantira confirmacao instantanea dos pagamentos, aumentando a seguranca e confiabilidade do fluxo de vendas.
 
 ---
 
-### Arquitetura da Integracao
+### Arquitetura com Webhook
 
 ```text
 +------------------+     +------------------------+     +-------------------+
-|   Frontend       |     |   Edge Function        |     |   Paradise API    |
-|   (React Pages)  | --> |   (Supabase Cloud)     | --> |   (Gateway PIX)   |
+|   Paradise API   |     |   Edge Function        |     |   Frontend        |
+|   (Gateway PIX)  | --> |   (paradise-webhook)   | --> |   (Polling)       |
 +------------------+     +------------------------+     +-------------------+
         |                         |                              |
-        |  1. Envia dados         |  2. Cria transacao           |
-        |     do pedido           |     com API Key              |
+        |  1. Pagamento           |  2. Valida assinatura        |
+        |     aprovado            |     do webhook               |
         |                         |                              |
-        |  4. Recebe QR Code      |  3. Retorna qr_code          |
-        |     e chave PIX         |     + qr_code_base64         |
+        |                         |  3. Salva status no          |
+        |                         |     localStorage/DB          |
+        |                         |                              |
+        |                         |  4. Retorna 200 OK           |
         +-------------------------+------------------------------+
                                   |
-                                  |  5. Polling: verifica status
-                                  |     a cada 5 segundos
+                                  |  5. Frontend polling
+                                  |     detecta status approved
                                   |
                                   v
                         +-------------------+
-                        |  Status approved  |
-                        |  -> Navega para   |
-                        |     proxima etapa |
+                        |  Navega para      |
+                        |  proxima etapa    |
                         +-------------------+
 ```
 
 ---
 
-### Etapa 1: Armazenar Chave API de Forma Segura
+### Etapa 1: Criar Edge Function para Webhook
 
-Vou armazenar sua chave API (`sk_caa2a7490b8445f76c74563fbd9b48ab03d507b7ab2be1a76a90453514e29923`) como um secret no Lovable Cloud. Isso garante que a chave nunca seja exposta no frontend.
+Criarei uma nova edge function `paradise-webhook` que:
 
-**Secret a criar:**
-- Nome: `PARADISE_API_KEY`
-- Valor: `sk_caa2a7490b8445f76c74563fbd9b48ab03d507b7ab2be1a76a90453514e29923`
+1. Recebe POST do Paradise quando pagamento muda de status
+2. Valida a assinatura/origem do webhook (seguranca)
+3. Atualiza o status da transacao
+4. Retorna 200 OK para confirmar recebimento
 
----
+**Arquivo:** `supabase/functions/paradise-webhook/index.ts`
 
-### Etapa 2: Criar Edge Function para Pagamentos
-
-Criarei uma edge function chamada `paradise-pix` que ira:
-
-1. **Criar transacao PIX**: Recebe dados do pedido e cria cobranca
-2. **Consultar status**: Verifica se pagamento foi aprovado
-
-**Arquivo:** `supabase/functions/paradise-pix/index.ts`
-
-**Endpoints:**
-
-| Acao | Metodo | Payload |
-|------|--------|---------|
-| Criar PIX | POST | `{ amount, description, reference, customer }` |
-| Consultar Status | GET | `?action=status&id={transactionId}` |
-
-**Campos enviados para Paradise:**
+**Payload esperado do Paradise (baseado na documentacao):**
 
 ```text
 {
-  "amount": 6790,              // Valor em centavos
-  "description": "Mounjaro 5mg",
-  "reference": "pedido_123456",
-  "source": "api_externa",     // Ignora validacao de productHash
-  "customer": {
-    "name": "Nome do Cliente",
-    "email": "email@exemplo.com",
-    "document": "12345678900",  // CPF
-    "phone": "11999999999"
+  "event": "transaction.paid",
+  "data": {
+    "id": "txn_abc123",
+    "status": "approved",
+    "reference": "pedido_123456",
+    "amount": 6790,
+    "paidAt": "2024-01-15T10:30:00Z"
   }
 }
 ```
 
-**Resposta esperada da Paradise:**
-
-```text
-{
-  "status": "pending",
-  "id": "txn_abc123",
-  "qr_code": "00020101021226940014...",      // Chave PIX copia-cola
-  "qr_code_base64": "data:image/png;base64,..." // Imagem QR Code
-}
-```
+**Eventos suportados:**
+- `transaction.paid` - Pagamento confirmado
+- `transaction.failed` - Pagamento falhou
+- `transaction.expired` - PIX expirou
 
 ---
 
-### Etapa 3: Configurar TOML para Edge Function
+### Etapa 2: Configurar TOML para Webhook
 
-**Arquivo:** `supabase/config.toml`
+**Arquivo:** `supabase/config.toml` (adicionar)
 
 ```text
-[functions.paradise-pix]
+[functions.paradise-webhook]
 verify_jwt = false
 ```
 
 ---
 
-### Etapa 4: Atualizar Paginas de Pagamento
+### Etapa 3: Atualizar Edge Function Principal
 
-Cada pagina de pagamento sera atualizada para:
+Modificar `paradise-pix` para incluir:
 
-1. **Ao montar**: Chamar edge function para criar transacao PIX
-2. **Exibir**: QR Code real (base64) + chave PIX real
-3. **Polling**: Verificar status a cada 5 segundos
-4. **Ao aprovar**: Navegar automaticamente para proxima etapa
+1. Salvar transacoes com reference unico
+2. Endpoint para consultar status por reference (nao apenas por ID)
 
-**Paginas a modificar:**
-
-| Pagina | Valor | Proxima Etapa |
-|--------|-------|---------------|
-| PixPage.tsx | Total do pedido | /upsell1 |
-| Upsell1Page.tsx | R$ 47,89 | /upsell2 |
-| Upsell2Page.tsx | R$ 26,75 | /upsell3 |
-| Upsell3Page.tsx | R$ 35,90 | /upsell4 |
-| Upsell4Page.tsx | R$ 35,20 | /rastreio |
+Isso permite que o frontend verifique o status usando a reference que ele mesmo criou.
 
 ---
 
-### Etapa 5: Criar Hook Reutilizavel
+### Etapa 4: Criar Sistema de Notificacao em Tempo Real
 
-Criarei um hook `useParadisePix` para reutilizar a logica de pagamento em todas as paginas:
+Para o frontend receber atualizacoes instantaneas do webhook, temos duas opcoes:
 
-**Arquivo:** `src/hooks/useParadisePix.ts`
+**Opcao A - Polling Otimizado (Recomendado - Mais Simples)**
+- Manter o polling atual de 5 segundos
+- Webhook atualiza status que o polling detecta rapidamente
 
-**Funcionalidades:**
-- `createPixPayment(amount, description, customer)` - Cria transacao
-- `checkPaymentStatus(transactionId)` - Verifica status
-- `isLoading` - Estado de carregamento
-- `qrCode` / `qrCodeBase64` - Dados do PIX
-- `paymentStatus` - Status atual (pending/approved/failed)
-- `startPolling()` / `stopPolling()` - Controle do polling
+**Opcao B - Broadcast Channel (Avancado)**
+- Usar BroadcastChannel API para notificar abas abertas
+- Mais complexo mas instantaneo
+
+Vou implementar a **Opcao A** pois:
+- Ja funciona com a estrutura atual
+- Menos complexidade
+- Webhook garante que o status esteja atualizado quando polling verificar
 
 ---
 
-### Etapa 6: Criar Cliente Supabase
+### Etapa 5: Armazenamento de Transacoes
 
-Como o projeto ainda nao tem Supabase configurado, criarei o cliente:
+Para o webhook funcionar corretamente, vou adicionar armazenamento temporario das transacoes usando o localStorage do frontend.
 
-**Arquivo:** `src/integrations/supabase/client.ts`
+**Estrutura:**
+```text
+{
+  "paradise_transactions": {
+    "pedido_123456": {
+      "id": "txn_abc123",
+      "status": "pending",
+      "amount": 6790,
+      "createdAt": "2024-01-15T10:00:00Z"
+    }
+  }
+}
+```
 
 ---
 
@@ -157,44 +134,68 @@ Como o projeto ainda nao tem Supabase configurado, criarei o cliente:
 
 | Arquivo | Acao |
 |---------|------|
-| supabase/functions/paradise-pix/index.ts | CRIAR - Edge function |
-| supabase/config.toml | CRIAR - Configuracao |
-| src/integrations/supabase/client.ts | CRIAR - Cliente Supabase |
-| src/hooks/useParadisePix.ts | CRIAR - Hook reutilizavel |
-| src/pages/PixPage.tsx | EDITAR - Integrar gateway |
-| src/pages/Upsell1Page.tsx | EDITAR - Integrar gateway |
-| src/pages/Upsell2Page.tsx | EDITAR - Integrar gateway |
-| src/pages/Upsell3Page.tsx | EDITAR - Integrar gateway |
-| src/pages/Upsell4Page.tsx | EDITAR - Integrar gateway |
+| supabase/functions/paradise-webhook/index.ts | CRIAR - Edge function webhook |
+| supabase/config.toml | EDITAR - Adicionar config webhook |
+| supabase/functions/paradise-pix/index.ts | EDITAR - Adicionar storage de transacoes |
+| src/hooks/useParadisePix.ts | EDITAR - Usar localStorage para status |
 
 ---
 
-### Fluxo de Pagamento Atualizado
+### Fluxo Completo com Webhook
 
-1. Usuario chega na pagina de PIX
-2. Frontend chama edge function para criar transacao
-3. Edge function envia dados para Paradise API
-4. Paradise retorna QR Code + chave PIX
-5. Frontend exibe QR Code real
-6. Polling verifica status a cada 5 segundos
-7. Quando status = "approved":
-   - Mostra toast de sucesso
-   - Navega automaticamente para proxima etapa
-8. Se tempo expirar (15 min), mostra opcao de recriar PIX
+1. **Usuario faz PIX** (qualquer pagina)
+2. Frontend cria transacao via `paradise-pix`
+3. Paradise retorna QR Code
+4. Usuario paga no app do banco
+5. **Paradise envia webhook** para `paradise-webhook`
+6. Webhook atualiza status da transacao
+7. Frontend polling detecta `status: approved`
+8. **Navega automaticamente** para proxima etapa
 
 ---
 
-### Seguranca
+### URL do Webhook
 
-- Chave API armazenada como secret (nunca exposta)
-- Edge function valida dados antes de enviar
-- Valor em centavos previne erros de arredondamento
-- CORS configurado corretamente para web app
-- Reference unico por transacao para rastreabilidade
+Apos criar a edge function, a URL do webhook sera:
+
+```text
+https://[PROJECT_ID].supabase.co/functions/v1/paradise-webhook
+```
+
+Esta URL deve ser configurada no painel do Paradise:
+- Acesse: https://multi.paradisepags.com/settings/webhooks
+- Adicione a URL acima
+- Selecione eventos: `transaction.paid`, `transaction.failed`, `transaction.expired`
 
 ---
 
-### Remocao dos Botoes de Simulacao
+### Seguranca do Webhook
 
-Apos a integracao funcionar, removerei os botoes "Simular Pagamento" de todas as paginas, pois o fluxo sera automatico via webhook/polling.
+Para garantir que apenas o Paradise possa enviar webhooks:
+
+1. **Validar IP de origem** (se Paradise fornecer lista de IPs)
+2. **Verificar assinatura HMAC** (se Paradise suportar)
+3. **Validar estrutura do payload**
+4. **Rate limiting** (evitar flood)
+
+Vou implementar validacao basica do payload e logs para monitoramento.
+
+---
+
+### Beneficios do Webhook
+
+| Aspecto | Sem Webhook (Atual) | Com Webhook |
+|---------|---------------------|-------------|
+| Confirmacao | 5-10s (polling) | Instantanea |
+| Confiabilidade | Depende do frontend | Backend garantido |
+| Servidor | Muitas requisicoes | Menos requisicoes |
+| Experiencia | Usuario espera | Transicao fluida |
+
+---
+
+### Proximos Passos Apos Implementacao
+
+1. Eu vou fornecer a URL do webhook
+2. Voce configura no painel do Paradise
+3. Testar pagamento real para validar
 
