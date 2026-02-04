@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Copy, Clock } from "lucide-react";
 import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import slimHealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
@@ -106,9 +105,9 @@ const PixPage = () => {
           </div>
         </div>
         
-        {/* Progress bar */}
-        <div className="mt-3">
-          <Progress value={100} className="h-2 bg-gray-200" />
+        {/* Progress Bar - 100% */}
+        <div className="h-1 bg-slate-200 mt-3">
+          <div className="h-full w-full bg-rose-500" />
         </div>
       </div>
 
