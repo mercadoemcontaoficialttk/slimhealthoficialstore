@@ -1,84 +1,75 @@
 
-# Plano: Corrigir Redirecionamento Após Pagamento PIX
+## Objetivo (urgente)
+Garantir que o lead seja redirecionado automaticamente em todas as etapas do funil assim que cada pagamento for aprovado:
 
-## Resumo do Problema
-Após pagar via PIX, o usuário não é redirecionado para a página de Upsell 1. O problema está em duas áreas:
+- PIX (checkout) aprovado → `/upsell1`
+- Upsell 1 aprovado → `/upsell2`
+- Upsell 2 aprovado → `/upsell3`
+- Upsell 3 aprovado → `/upsell4`
+- Upsell 4 aprovado → `/rastreio`
 
-1. **Webhook com formato de payload incorreto** - O Paradise Pags envia os dados em um formato diferente do esperado
-2. **Verificação de status não funciona** - O sistema não consegue detectar quando o pagamento é aprovado
+## Diagnóstico (por que está falhando mesmo com webhook chegando)
+O problema mais provável não é o webhook nem o gateway em si (os logs mostram transação “approved”), e sim um bug de “estado desatualizado” no front:
 
----
+- `createPixPayment()` faz `setTransactionId(...)` e `setCurrentReference(...)` (estado React).
+- Logo em seguida, o código chama `startPolling(...)`.
+- Porém, nesse momento, **o React ainda não re-renderizou** com o novo `transactionId/reference`.
+- Resultado: o `startPolling()` que foi chamado está “preso” (closure) com um `checkPaymentStatus()` que ainda enxerga `transactionId = null` / `reference = null`, então:
+  - o polling roda, mas consulta “sem ID”
+  - nunca detecta “approved”
+  - nunca chama o callback que faz `navigate(...)`
 
-## O Que Será Corrigido
+Esse padrão existe no checkout (`/pix`) e também em todos os upsells (1 a 4), então o funil inteiro fica instável.
 
-### 1. Atualizar o Webhook para o Formato Real do Paradise
-O webhook atual espera:
-```text
-{ event: "transaction.paid", data: { id: "123" } }
-```
+## Estratégia de correção (robusta e única para todas as páginas)
+Consertar a lógica no **hook `useParadisePix`** para que o polling sempre use os valores “mais recentes” do `transactionId` e `reference`, mesmo antes do re-render.
 
-Mas o Paradise envia:
-```text
-{ transaction_id: 4890764, status: "approved", webhook_type: "QR_CODE_COPY_AND_PASTE_PAID" }
-```
+### Solução principal (corrige o funil inteiro)
+1. **Adicionar refs internas no hook**:
+   - `transactionIdRef`
+   - `currentReferenceRef`
 
-**Solução:** Reescrever o webhook para aceitar ambos os formatos e processar corretamente.
+2. **No `createPixPayment`**, quando receber `txId` e `txReference`:
+   - atualizar `transactionIdRef.current = txId` e `currentReferenceRef.current = txReference` **imediatamente** (sincrono)
+   - depois manter os `setTransactionId(...)` e `setCurrentReference(...)` como hoje para UI/estado
 
----
+3. **No `checkPaymentStatus`**, ao invés de confiar no state (que pode estar atrasado), ler primeiro:
+   - `const txId = transactionIdRef.current || transactionId`
+   - `const ref = currentReferenceRef.current || currentReference`
+   Assim, mesmo que o re-render ainda não tenha acontecido, o status check funciona.
 
-### 2. Melhorar a Verificação de Status no Frontend
-O sistema faz polling (verifica a cada 5 segundos) para saber se o pagamento foi aprovado. Vamos:
+4. **No `startPolling`**, garantir que ele chame `checkPaymentStatus()` que lê das refs (ou usar uma ref para a função), para nunca ficar preso ao estado antigo.
 
-- Adicionar logs detalhados para debug
-- Garantir que o status "approved" seja detectado corretamente
-- Verificar se a navegação é chamada após aprovação
+5. **No `reset`**, limpar também as refs (senão podem “vazar” para uma tentativa nova).
 
----
+### Reforço (opcional, mas recomendado para “blindar” redirect)
+Adicionar em cada página (PixPage + Upsell1-4) um fallback simples:
+- um `useEffect` que observa `paymentStatus`
+- se ficar `approved`, faz o `navigate(...)` correspondente
+Isso garante que mesmo se o callback de polling falhar por qualquer motivo, o redirect acontece.
 
-### 3. Adicionar Fallback de Verificação Local
-Armazenar o status do webhook no localStorage para que o frontend detecte a aprovação mesmo se o polling da API falhar.
+## Arquivos envolvidos
+- `src/hooks/useParadisePix.ts` (correção central e definitiva)
+- (Opcional reforço)  
+  - `src/pages/PixPage.tsx`  
+  - `src/pages/Upsell1Page.tsx`  
+  - `src/pages/Upsell2Page.tsx`  
+  - `src/pages/Upsell3Page.tsx`  
+  - `src/pages/Upsell4Page.tsx`
 
----
+## Teste de validação (obrigatório)
+1. Abrir o fluxo normal até `/pix` e gerar um pagamento.
+2. Pagar e **não recarregar a página**.
+3. Confirmar no console que o polling está consultando com `Transaction ID` preenchido (não null).
+4. Assim que o status virar `approved`, validar:
+   - toast de sucesso
+   - redirect automático para `/upsell1`
+5. Repetir o mesmo procedimento em cada upsell, confirmando a sequência até `/rastreio`.
 
-## Arquivos a Serem Modificados
+## Observação importante sobre webhook vs front
+Mesmo o webhook “chegando” no backend, ele não consegue atualizar diretamente o `localStorage` do navegador. Então o front precisa detectar o “approved” via polling (consulta) — e por isso essa correção de polling com refs é crítica para funcionar 100% do tempo.
 
-| Arquivo | Alteração |
-|---------|-----------|
-| `supabase/functions/paradise-webhook/index.ts` | Aceitar formato real do Paradise e atualizar localStorage via resposta |
-| `src/hooks/useParadisePix.ts` | Melhorar logs e verificação de status |
-| `src/pages/PixPage.tsx` | Adicionar logs de debug e verificar callback |
-
----
-
-## Detalhes Técnicos
-
-### Webhook - Novo Formato Aceito
-```text
-// Formato do Paradise Pags (real)
-{
-  "transaction_id": 4890764,
-  "external_id": "pedido_xxx",
-  "status": "approved",
-  "webhook_type": "QR_CODE_COPY_AND_PASTE_PAID"
-}
-```
-
-### Mapeamento de Status
-- `webhook_type: "QR_CODE_COPY_AND_PASTE_PAID"` → status `approved`
-- `webhook_type: "QR_CODE_COPY_AND_PASTE_CREATED"` → status `pending`
-- `status: "approved"` ou `status: "paid"` → status `approved`
-
-### Fluxo de Redirecionamento
-1. Usuário paga via PIX
-2. Paradise envia webhook para nossa edge function
-3. Webhook processa e retorna sucesso
-4. Frontend faz polling a cada 5s
-5. Quando status = approved, chama `navigate('/upsell1')`
-
----
-
-## Resultado Esperado
-Após essas correções, quando o pagamento for confirmado:
-- Toast "Pagamento confirmado!" aparece
-- Usuário é redirecionado automaticamente para /upsell1
-- Evento TikTok "CompletePayment" é disparado
+## Resultado esperado
+Após a correção no hook, qualquer etapa que chame:
+- `createPixPayment(...)` → `startPolling(() => navigate(...))`
+passa a redirecionar corretamente, sem depender do timing de re-render do React, e o funil inteiro volta a avançar automaticamente.
