@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+ import { useState, useEffect } from "react";
+ import { useUtmCapture } from "@/hooks/useUtmCapture";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, Lock, Users, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,10 @@ const PRECO_UNITARIO = 67.90;
 
 const DadosPessoaisPage = () => {
   const navigate = useNavigate();
+   
+   // Capture UTM params (in case user lands directly here)
+   useUtmCapture();
+ 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
