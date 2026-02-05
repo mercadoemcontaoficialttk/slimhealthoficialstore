@@ -34,6 +34,12 @@ interface CreatePixRequest {
     utm_term?: string;
     src?: string;
     sck?: string;
+     gclid?: string;
+     fbclid?: string;
+     tracking_id?: string;
+     page_path?: string;
+     product_name?: string;
+     funnel_step?: string;
   };
 }
 
@@ -139,6 +145,9 @@ serve(async (req) => {
 
         console.log('Creating PIX transaction with payload:', JSON.stringify(payload));
         console.log('Tracking data received:', JSON.stringify(body.tracking));
+         console.log('Tracking ID:', body.tracking?.tracking_id);
+         console.log('Page Path:', body.tracking?.page_path);
+         console.log('Funnel Step:', body.tracking?.funnel_step);
         console.log('Using API URL:', `${PARADISE_BASE_URL}/transaction.php`);
 
         const response = await fetch(`${PARADISE_BASE_URL}/transaction.php`, {

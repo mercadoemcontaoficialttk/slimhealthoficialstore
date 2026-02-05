@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, Lock, Users, ShieldCheck, Loader2, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
+ import { useTrackingService } from "@/hooks/useTrackingService";
 import foto1 from "@/assets/mounjaro/foto1.png";
 import fullLogo from "@/assets/frete/full-logo.jpeg";
 import jadlogLogo from "@/assets/frete/jadlog-logo.jpeg";
@@ -14,6 +15,9 @@ const PRECO_UNITARIO = 67.90;
 const EnderecoPage = () => {
   const navigate = useNavigate();
   
+   // Capture tracking
+   useTrackingService();
+   
   // Recuperar dados da página anterior
   const [quantidade, setQuantidade] = useState(() => {
     const dadosPessoais = JSON.parse(localStorage.getItem('dadosPessoais') || '{}');

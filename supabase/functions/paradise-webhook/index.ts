@@ -155,6 +155,12 @@ interface ParadiseWebhookPayload {
     utm_term?: string;
     src?: string;
     sck?: string;
+     gclid?: string;
+     fbclid?: string;
+     tracking_id?: string;
+     page_path?: string;
+     product_name?: string;
+     funnel_step?: string;
   };
   product?: {
     name?: string;
@@ -189,6 +195,10 @@ serve(async (req) => {
     console.log('Full payload:', JSON.stringify(body, null, 2));
     console.log('Timestamp:', new Date().toISOString());
 
+     // Log tracking data specifically for debugging
+     console.log('=== TRACKING DATA FROM PAYLOAD ===');
+     console.log('Tracking object:', JSON.stringify(body.tracking, null, 2));
+ 
     // Detect payload format and extract data
     let transactionId: string;
     let mappedStatus: string;
@@ -295,6 +305,14 @@ serve(async (req) => {
     console.log('Reference:', reference);
     console.log('Amount:', amount);
 
+     // Log the extracted tracking for UTMify
+     console.log('=== TRACKING FOR UTMIFY ===');
+     console.log('tracking_id:', tracking?.tracking_id);
+     console.log('funnel_step:', tracking?.funnel_step);
+     console.log('product_name:', tracking?.product_name);
+     console.log('utm_source:', tracking?.utm_source);
+     console.log('utm_campaign:', tracking?.utm_campaign);
+ 
     // Initialize Supabase client for potential future DB storage
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -366,8 +384,8 @@ serve(async (req) => {
       },
       products: [
         {
-          id: product?.hash || 'mounjaro-5mg',
-          name: product?.name || 'Mounjaro 5mg - SlimHealth',
+           id: tracking?.funnel_step || product?.hash || 'mounjaro-5mg',
+           name: tracking?.product_name || product?.name || 'Mounjaro 5mg - SlimHealth',
           quantity: 1,
           priceInCents: amount || 0,
         },
@@ -380,6 +398,10 @@ serve(async (req) => {
         utm_term: tracking?.utm_term,
         src: tracking?.src,
         sck: tracking?.sck,
+         gclid: tracking?.gclid,
+         fbclid: tracking?.fbclid,
+         tracking_id: tracking?.tracking_id,
+         page_path: tracking?.page_path,
       },
       isTest: false,
     };

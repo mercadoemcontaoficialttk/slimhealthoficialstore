@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPurchase } from '@/hooks/useTikTokPixel';
+ import { getTrackingDataForApi } from '@/hooks/useTrackingService';
 
 interface Customer {
   name: string;
@@ -17,51 +18,23 @@ interface TrackingParams {
   utm_term?: string;
   src?: string;
   sck?: string;
+   gclid?: string;
+   fbclid?: string;
+   tracking_id?: string;
+   page_path?: string;
+   product_name?: string;
+   funnel_step?: string;
 }
 
-// Helper to get UTM params from localStorage or URL
-const getTrackingParams = (): TrackingParams => {
-  const tracking: TrackingParams = {};
-  
-  // Try to get from localStorage first (usually saved on landing)
-  try {
-    const storedUtm = localStorage.getItem('utm_params');
-    if (storedUtm) {
-      const parsed = JSON.parse(storedUtm);
-      if (parsed.utm_source) tracking.utm_source = parsed.utm_source;
-      if (parsed.utm_medium) tracking.utm_medium = parsed.utm_medium;
-      if (parsed.utm_campaign) tracking.utm_campaign = parsed.utm_campaign;
-      if (parsed.utm_content) tracking.utm_content = parsed.utm_content;
-      if (parsed.utm_term) tracking.utm_term = parsed.utm_term;
-      if (parsed.src) tracking.src = parsed.src;
-      if (parsed.sck) tracking.sck = parsed.sck;
-    }
-  } catch {
-    // Ignore localStorage errors
-  }
-  
-  // Also check current URL params (override localStorage if present)
-  if (typeof window !== 'undefined') {
-    const urlParams = new URLSearchParams(window.location.search);
-    const utmSource = urlParams.get('utm_source');
-    const utmMedium = urlParams.get('utm_medium');
-    const utmCampaign = urlParams.get('utm_campaign');
-    const utmContent = urlParams.get('utm_content');
-    const utmTerm = urlParams.get('utm_term');
-    const src = urlParams.get('src');
-    const sck = urlParams.get('sck');
-    
-    if (utmSource) tracking.utm_source = utmSource;
-    if (utmMedium) tracking.utm_medium = utmMedium;
-    if (utmCampaign) tracking.utm_campaign = utmCampaign;
-    if (utmContent) tracking.utm_content = utmContent;
-    if (utmTerm) tracking.utm_term = utmTerm;
-    if (src) tracking.src = src;
-    if (sck) tracking.sck = sck;
-  }
-  
-  return tracking;
-};
+ // Helper to get tracking params using centralized service
+ const getTrackingParams = (productName?: string, funnelStep?: string): TrackingParams => {
+   const trackingData = getTrackingDataForApi();
+   return {
+     ...trackingData,
+     product_name: productName,
+     funnel_step: funnelStep,
+   };
+ };
 
 interface UseParadisePixReturn {
   isLoading: boolean;
@@ -71,6 +44,7 @@ interface UseParadisePixReturn {
   qrCodeBase64: string | null;
   paymentStatus: 'idle' | 'pending' | 'approved' | 'failed' | 'expired';
   createPixPayment: (amount: number, description: string, customer: Customer, reference?: string) => Promise<boolean>;
+   createPixPaymentWithTracking: (amount: number, description: string, customer: Customer, reference: string, productName: string, funnelStep: string) => Promise<boolean>;
   checkPaymentStatus: () => Promise<string | null>;
   startPolling: (onApproved: () => void) => void;
   stopPolling: () => void;
@@ -146,7 +120,7 @@ export function useParadisePix(): UseParadisePixReturn {
 
     try {
       console.log('Creating PIX payment via supabase.functions.invoke...');
-      const trackingData = getTrackingParams();
+       const trackingData = getTrackingParams('Mounjaro 5mg', 'main_product');
       console.log('📊 Tracking params being sent:', trackingData);
       
       const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
@@ -363,6 +337,80 @@ export function useParadisePix(): UseParadisePixReturn {
     console.log('🔄 Reset complete - refs and state cleared');
   }, [stopPolling]);
 
+   const createPixPaymentWithTracking = useCallback(async (
+     amount: number,
+     description: string,
+     customer: Customer,
+     reference: string,
+     productName: string,
+     funnelStep: string
+   ): Promise<boolean> => {
+     setIsLoading(true);
+     setError(null);
+     setPaymentStatus('idle');
+ 
+     try {
+       console.log('Creating PIX payment with full tracking...');
+       const trackingData = getTrackingParams(productName, funnelStep);
+       console.log('📊 Full tracking params:', trackingData);
+       
+       const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
+         body: {
+           action: 'create',
+           amount: Math.round(amount * 100),
+           description,
+           reference,
+           customer,
+           tracking: trackingData,
+         },
+       });
+ 
+       if (invokeError) {
+         console.error('Invoke error:', invokeError);
+         throw new Error(invokeError.message || 'Não foi possível conectar à função de pagamento');
+       }
+ 
+       if (data?.error) {
+         throw new Error(data.error);
+       }
+ 
+       console.log('PIX payment created:', data);
+ 
+       const txId = data.transaction_id || data.id;
+       
+       transactionIdRef.current = txId;
+       currentReferenceRef.current = reference;
+       console.log('🔧 Refs updated - txId:', txId, 'ref:', reference);
+       
+       setTransactionId(txId);
+       setCurrentReference(reference);
+       setQrCode(data.qr_code || data.pixCopiaECola);
+       
+       const qrCodeImage = data.qr_code_base64 || data.pixQrCode;
+       setQrCodeBase64(qrCodeImage);
+       
+       setPaymentStatus('pending');
+       
+       storeTransaction(reference, {
+         id: txId,
+         reference,
+         status: 'pending',
+         amount: Math.round(amount * 100),
+         createdAt: new Date().toISOString(),
+       });
+       
+       return true;
+     } catch (err) {
+       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao criar pagamento';
+       setError(errorMessage);
+       setPaymentStatus('failed');
+       console.error('Error creating PIX payment:', err);
+       return false;
+     } finally {
+       setIsLoading(false);
+     }
+   }, []);
+ 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -378,6 +426,7 @@ export function useParadisePix(): UseParadisePixReturn {
     qrCodeBase64,
     paymentStatus,
     createPixPayment,
+     createPixPaymentWithTracking,
     checkPaymentStatus,
     startPolling,
     stopPolling,

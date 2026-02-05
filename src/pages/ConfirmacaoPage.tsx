@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Minus, Plus, Lock, ShieldCheck, Check } from "lucide-react";
+ import { useTrackingService } from "@/hooks/useTrackingService";
 import foto1 from "@/assets/mounjaro/foto1.png";
 import canetasImg from "@/assets/bumps/canetas.webp";
 import kitTransporteImg from "@/assets/bumps/kit-transporte.webp";
@@ -48,6 +49,9 @@ interface OrderBump {
 }
 
 const ConfirmacaoPage = () => {
+   // Capture tracking
+   useTrackingService();
+   
   const navigate = useNavigate();
   
   // Recuperar dados do localStorage

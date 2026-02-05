@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PixPaymentModal } from "@/components/PixPaymentModal";
 import { useParadisePix } from "@/hooks/useParadisePix";
+ import { useTrackingService } from "@/hooks/useTrackingService";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
@@ -17,6 +18,9 @@ const Upsell3Page = () => {
   const navigate = useNavigate();
   const card3Ref = useRef<HTMLDivElement>(null);
   
+   // Capture tracking
+   useTrackingService();
+   
   // Phase control
   const [phase, setPhase] = useState<'verification' | 'cards'>('verification');
   const [progress, setProgress] = useState(0);
@@ -44,7 +48,7 @@ const Upsell3Page = () => {
     qrCode,
     qrCodeBase64,
     paymentStatus,
-    createPixPayment,
+     createPixPaymentWithTracking,
     startPolling,
     stopPolling,
     reset,
@@ -144,11 +148,13 @@ const Upsell3Page = () => {
       phone: dadosPessoais.telefone,
     };
 
-    const success = await createPixPayment(
+     const success = await createPixPaymentWithTracking(
       UPSELL_AMOUNT,
       UPSELL_DESCRIPTION,
       customer,
-      `upsell3_${Date.now()}`
+       `upsell3_${Date.now()}`,
+       'Correção de Frete',
+       'upsell3'
     );
 
     if (success) {
