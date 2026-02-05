@@ -146,6 +146,8 @@ export function useParadisePix(): UseParadisePixReturn {
 
     try {
       console.log('Creating PIX payment via supabase.functions.invoke...');
+      const trackingData = getTrackingParams();
+      console.log('📊 Tracking params being sent:', trackingData);
       
       const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
         body: {
@@ -154,7 +156,7 @@ export function useParadisePix(): UseParadisePixReturn {
           description,
           reference: txReference,
           customer,
-          tracking: getTrackingParams(),
+          tracking: trackingData,
         },
       });
 
