@@ -138,6 +138,7 @@ serve(async (req) => {
         };
 
         console.log('Creating PIX transaction with payload:', JSON.stringify(payload));
+        console.log('Tracking data received:', JSON.stringify(body.tracking));
         console.log('Using API URL:', `${PARADISE_BASE_URL}/transaction.php`);
 
         const response = await fetch(`${PARADISE_BASE_URL}/transaction.php`, {
