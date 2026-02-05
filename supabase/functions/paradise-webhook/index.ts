@@ -276,45 +276,72 @@ serve(async (req) => {
     }
 
     // Send to UTMify if payment is approved
-    if (mappedStatus === 'approved') {
-      console.log('=== PAYMENT APPROVED - SENDING TO UTMIFY ===');
-      
-      const utmifyPayload = {
-        orderId: reference || transactionId,
-        platform: 'SlimHealth',
-        paymentMethod: 'pix',
-        status: 'paid',
-        createdAt: createdAt || new Date().toISOString(),
-        approvedAt: paidAt || new Date().toISOString(),
-        customer: {
-          name: customer?.name,
-          email: customer?.email,
-          phone: customer?.phone,
-          document: customer?.document,
-        },
-        products: [
-          {
-            id: product?.hash || 'mounjaro-5mg',
-            name: product?.name || 'Mounjaro 5mg - SlimHealth',
-            quantity: 1,
-            priceInCents: amount || 0,
-          },
-        ],
-        trackingParameters: {
-          utm_source: tracking?.utm_source,
-          utm_medium: tracking?.utm_medium,
-          utm_campaign: tracking?.utm_campaign,
-          utm_content: tracking?.utm_content,
-          utm_term: tracking?.utm_term,
-          src: tracking?.src,
-          sck: tracking?.sck,
-        },
-        isTest: false,
-      };
-
-      const utmifyResult = await sendToUtmify(utmifyPayload);
-      console.log('UTMify Result:', JSON.stringify(utmifyResult));
+    // Send ALL status updates to UTMify for full visibility
+    console.log('=== SENDING STATUS UPDATE TO UTMIFY ===');
+    
+    // Map our status to UTMify status format
+    let utmifyStatus: string;
+    let approvedAt: string | undefined;
+    let refundedAt: string | undefined;
+    
+    switch (mappedStatus) {
+      case 'approved':
+        utmifyStatus = 'paid';
+        approvedAt = paidAt || new Date().toISOString();
+        break;
+      case 'pending':
+        utmifyStatus = 'waiting_payment';
+        break;
+      case 'expired':
+        utmifyStatus = 'refused';
+        break;
+      case 'failed':
+        utmifyStatus = 'refused';
+        break;
+      case 'refunded':
+        utmifyStatus = 'refunded';
+        refundedAt = new Date().toISOString();
+        break;
+      default:
+        utmifyStatus = 'waiting_payment';
     }
+    
+    const utmifyPayload = {
+      orderId: reference || transactionId,
+      platform: 'SlimHealth',
+      paymentMethod: 'pix',
+      status: utmifyStatus,
+      createdAt: createdAt || new Date().toISOString(),
+      ...(approvedAt && { approvedAt }),
+      ...(refundedAt && { refundedAt }),
+      customer: {
+        name: customer?.name,
+        email: customer?.email,
+        phone: customer?.phone,
+        document: customer?.document,
+      },
+      products: [
+        {
+          id: product?.hash || 'mounjaro-5mg',
+          name: product?.name || 'Mounjaro 5mg - SlimHealth',
+          quantity: 1,
+          priceInCents: amount || 0,
+        },
+      ],
+      trackingParameters: {
+        utm_source: tracking?.utm_source,
+        utm_medium: tracking?.utm_medium,
+        utm_campaign: tracking?.utm_campaign,
+        utm_content: tracking?.utm_content,
+        utm_term: tracking?.utm_term,
+        src: tracking?.src,
+        sck: tracking?.sck,
+      },
+      isTest: false,
+    };
+
+    const utmifyResult = await sendToUtmify(utmifyPayload);
+    console.log('UTMify Result:', JSON.stringify(utmifyResult));
 
     // Return success response to Paradise with all extracted data
     // This allows the frontend to use the reference to update localStorage
