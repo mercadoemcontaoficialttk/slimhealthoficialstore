@@ -19,6 +19,7 @@ async function sendToUtmify(data: {
   status: string;
   createdAt: string;
   approvedAt?: string;
+   refundedAt?: string;
   customer: {
     name?: string;
     email?: string;
@@ -42,6 +43,49 @@ async function sendToUtmify(data: {
   };
   isTest?: boolean;
 }) {
+   // Clean tracking parameters - UTMify requires string or null, not undefined
+   const cleanedTracking = {
+     utm_source: data.trackingParameters?.utm_source || null,
+     utm_medium: data.trackingParameters?.utm_medium || null,
+     utm_campaign: data.trackingParameters?.utm_campaign || null,
+     utm_content: data.trackingParameters?.utm_content || null,
+     utm_term: data.trackingParameters?.utm_term || null,
+     src: data.trackingParameters?.src || null,
+     sck: data.trackingParameters?.sck || null,
+   };
+ 
+   // Build the payload according to UTMify API requirements
+   const utmifyPayload = {
+     orderId: data.orderId,
+     platform: data.platform,
+     paymentMethod: data.paymentMethod,
+     status: data.status,
+     createdAt: data.createdAt,
+     approvedDate: data.approvedAt || data.createdAt, // Required field
+     ...(data.refundedAt && { refundedAt: data.refundedAt }),
+     customer: {
+       name: data.customer.name || null,
+       email: data.customer.email || null,
+       phone: data.customer.phone || null,
+       document: data.customer.document || null,
+     },
+     products: data.products.map(p => ({
+       id: p.id,
+       name: p.name,
+       planId: p.id, // Required by UTMify
+       planName: p.name, // Required by UTMify
+       quantity: p.quantity,
+       priceInCents: p.priceInCents,
+     })),
+     trackingParameters: cleanedTracking,
+     commission: {
+       totalPriceInCents: data.products.reduce((sum, p) => sum + p.priceInCents, 0),
+       gatewayFeeInCents: 0, // Gateway fee not tracked
+       userCommissionInCents: 0, // Commission not tracked
+     },
+     isTest: data.isTest || false,
+   };
+ 
   const utmifyToken = Deno.env.get('UTMIFY_API_TOKEN');
   
   if (!utmifyToken) {
@@ -51,7 +95,7 @@ async function sendToUtmify(data: {
 
   try {
     console.log('=== SENDING TO UTMIFY ===');
-    console.log('Payload:', JSON.stringify(data, null, 2));
+     console.log('Payload:', JSON.stringify(utmifyPayload, null, 2));
 
     const response = await fetch(UTMIFY_API_URL, {
       method: 'POST',
@@ -59,7 +103,7 @@ async function sendToUtmify(data: {
         'Content-Type': 'application/json',
         'x-api-token': utmifyToken,
       },
-      body: JSON.stringify(data),
+       body: JSON.stringify(utmifyPayload),
     });
 
     const responseText = await response.text();
