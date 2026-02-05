@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+ import { useState, useEffect } from "react";
+ import { useUtmCapture } from "@/hooks/useUtmCapture";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Copy, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -37,6 +38,10 @@ interface DadosPessoais {
 
 const PixPage = () => {
   const navigate = useNavigate();
+   
+   // Ensure UTM params are captured
+   useUtmCapture();
+ 
   const [pedido, setPedido] = useState<Pedido | null>(null);
   const [dadosPessoais, setDadosPessoais] = useState<DadosPessoais | null>(null);
   const [timeLeft, setTimeLeft] = useState(900); // 15 minutos

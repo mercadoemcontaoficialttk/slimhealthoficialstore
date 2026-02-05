@@ -1,4 +1,5 @@
-import { useState } from "react";
+ import { useState } from "react";
+ import { useUtmCapture } from "@/hooks/useUtmCapture";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,9 @@ const Index = () => {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
+ 
+   // Capture UTM params on landing
+   useUtmCapture();
 
   const handleContinue = () => {
     if (step === 1) {
