@@ -9,6 +9,60 @@ interface Customer {
   phone: string;
 }
 
+interface TrackingParams {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  src?: string;
+  sck?: string;
+}
+
+// Helper to get UTM params from localStorage or URL
+const getTrackingParams = (): TrackingParams => {
+  const tracking: TrackingParams = {};
+  
+  // Try to get from localStorage first (usually saved on landing)
+  try {
+    const storedUtm = localStorage.getItem('utm_params');
+    if (storedUtm) {
+      const parsed = JSON.parse(storedUtm);
+      if (parsed.utm_source) tracking.utm_source = parsed.utm_source;
+      if (parsed.utm_medium) tracking.utm_medium = parsed.utm_medium;
+      if (parsed.utm_campaign) tracking.utm_campaign = parsed.utm_campaign;
+      if (parsed.utm_content) tracking.utm_content = parsed.utm_content;
+      if (parsed.utm_term) tracking.utm_term = parsed.utm_term;
+      if (parsed.src) tracking.src = parsed.src;
+      if (parsed.sck) tracking.sck = parsed.sck;
+    }
+  } catch {
+    // Ignore localStorage errors
+  }
+  
+  // Also check current URL params (override localStorage if present)
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const utmSource = urlParams.get('utm_source');
+    const utmMedium = urlParams.get('utm_medium');
+    const utmCampaign = urlParams.get('utm_campaign');
+    const utmContent = urlParams.get('utm_content');
+    const utmTerm = urlParams.get('utm_term');
+    const src = urlParams.get('src');
+    const sck = urlParams.get('sck');
+    
+    if (utmSource) tracking.utm_source = utmSource;
+    if (utmMedium) tracking.utm_medium = utmMedium;
+    if (utmCampaign) tracking.utm_campaign = utmCampaign;
+    if (utmContent) tracking.utm_content = utmContent;
+    if (utmTerm) tracking.utm_term = utmTerm;
+    if (src) tracking.src = src;
+    if (sck) tracking.sck = sck;
+  }
+  
+  return tracking;
+};
+
 interface UseParadisePixReturn {
   isLoading: boolean;
   error: string | null;
@@ -100,6 +154,7 @@ export function useParadisePix(): UseParadisePixReturn {
           description,
           reference: txReference,
           customer,
+          tracking: getTrackingParams(),
         },
       });
 

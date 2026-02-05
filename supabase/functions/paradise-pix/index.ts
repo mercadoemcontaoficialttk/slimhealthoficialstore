@@ -26,6 +26,15 @@ interface CreatePixRequest {
     document: string;
     phone: string;
   };
+  tracking?: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_content?: string;
+    utm_term?: string;
+    src?: string;
+    sck?: string;
+  };
 }
 
 serve(async (req) => {
@@ -124,6 +133,8 @@ serve(async (req) => {
             document: body.customer.document.replace(/\D/g, ''), // Remove non-digits
             phone: body.customer.phone.replace(/\D/g, ''), // Remove non-digits
           },
+          // Add tracking object for UTMify integration
+          ...(body.tracking && Object.keys(body.tracking).length > 0 && { tracking: body.tracking }),
         };
 
         console.log('Creating PIX transaction with payload:', JSON.stringify(payload));

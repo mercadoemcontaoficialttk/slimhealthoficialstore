@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, ShoppingCart, MoreHorizontal, Star, Bookmark, Zap, Check, Truck, Store, MessageCircle, Shield, X } from "lucide-react";
+import { useUtmCapture } from "@/hooks/useUtmCapture";
 
 // Assets
 import foto1 from "@/assets/mounjaro/foto1.png";
@@ -67,6 +68,9 @@ const reviews = [
 ];
 
 const MounjaroPage = () => {
+  // Capture UTM params on landing
+  useUtmCapture();
+
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [countdown, setCountdown] = useState({ minutes: 9, seconds: 37 });
