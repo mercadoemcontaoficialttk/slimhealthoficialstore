@@ -1,5 +1,5 @@
  import { useState, useEffect } from "react";
- import { useUtmCapture } from "@/hooks/useUtmCapture";
+ import { useTrackingService } from "@/hooks/useTrackingService";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Copy, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -39,8 +39,8 @@ interface DadosPessoais {
 const PixPage = () => {
   const navigate = useNavigate();
    
-   // Ensure UTM params are captured
-   useUtmCapture();
+   // Capture UTM params with robust tracking service
+   useTrackingService();
  
   const [pedido, setPedido] = useState<Pedido | null>(null);
   const [dadosPessoais, setDadosPessoais] = useState<DadosPessoais | null>(null);
@@ -54,6 +54,7 @@ const PixPage = () => {
     qrCodeBase64,
     paymentStatus,
     createPixPayment,
+     createPixPaymentWithTracking,
     startPolling,
     reset,
   } = useParadisePix();
@@ -90,11 +91,13 @@ const PixPage = () => {
       const orderReference = `pedido_${Date.now()}`;
       console.log('Order Reference:', orderReference);
 
-      createPixPayment(
-        pedido.total,
-        'Mounjaro 5mg - SlimHealth',
+       createPixPaymentWithTracking(
+         pedido.total,
+         'Mounjaro 5mg - SlimHealth',
         customer,
-        orderReference
+         orderReference,
+         'Mounjaro 5mg - SlimHealth',
+         'main_product'
       ).then((success) => {
         console.log('PIX payment created:', success);
         if (success) {

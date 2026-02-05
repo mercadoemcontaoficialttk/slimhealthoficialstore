@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PixPaymentModal } from "@/components/PixPaymentModal";
 import { useParadisePix } from "@/hooks/useParadisePix";
+ import { useTrackingService } from "@/hooks/useTrackingService";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
@@ -13,6 +14,10 @@ const UPSELL_DESCRIPTION = "NF-e (Taxa de Emissão de NF)";
 
 const Upsell1Page = () => {
   const navigate = useNavigate();
+   
+   // Capture tracking
+   useTrackingService();
+   
   const [showModal, setShowModal] = useState(false);
   const [dadosPessoais, setDadosPessoais] = useState<{
     nome: string;
@@ -27,7 +32,7 @@ const Upsell1Page = () => {
     qrCode,
     qrCodeBase64,
     paymentStatus,
-    createPixPayment,
+     createPixPaymentWithTracking,
     startPolling,
     stopPolling,
     reset,
@@ -66,11 +71,13 @@ const Upsell1Page = () => {
       phone: dadosPessoais.telefone,
     };
 
-    const success = await createPixPayment(
+     const success = await createPixPaymentWithTracking(
       UPSELL_AMOUNT,
       UPSELL_DESCRIPTION,
       customer,
-      `upsell1_${Date.now()}`
+       `upsell1_${Date.now()}`,
+       'NF-e Taxa de Emissão',
+       'upsell1'
     );
 
     if (success) {

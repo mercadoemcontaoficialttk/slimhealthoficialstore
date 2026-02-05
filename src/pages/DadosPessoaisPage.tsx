@@ -1,5 +1,5 @@
  import { useState, useEffect } from "react";
- import { useUtmCapture } from "@/hooks/useUtmCapture";
+ import { useTrackingService } from "@/hooks/useTrackingService";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Minus, Plus, Lock, Users, ShieldCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,8 +14,8 @@ const PRECO_UNITARIO = 67.90;
 const DadosPessoaisPage = () => {
   const navigate = useNavigate();
    
-   // Capture UTM params (in case user lands directly here)
-   useUtmCapture();
+   // Capture UTM params with robust tracking service
+   useTrackingService();
  
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");

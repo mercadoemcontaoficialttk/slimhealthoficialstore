@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PixPaymentModal } from "@/components/PixPaymentModal";
 import { useParadisePix } from "@/hooks/useParadisePix";
+ import { useTrackingService } from "@/hooks/useTrackingService";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
@@ -15,6 +16,9 @@ const UPSELL_DESCRIPTION = "Confirmação de Reembolso";
 const Upsell4Page = () => {
   const navigate = useNavigate();
   
+   // Capture tracking
+   useTrackingService();
+   
   // Phase control
   const [phase, setPhase] = useState<'loading' | 'content'>('loading');
   const [showError, setShowError] = useState(false);
@@ -34,7 +38,7 @@ const Upsell4Page = () => {
     qrCode,
     qrCodeBase64,
     paymentStatus,
-    createPixPayment,
+     createPixPaymentWithTracking,
     startPolling,
     stopPolling,
     reset,
@@ -93,11 +97,13 @@ const Upsell4Page = () => {
       phone: dadosPessoais.telefone,
     };
 
-    const success = await createPixPayment(
+     const success = await createPixPaymentWithTracking(
       UPSELL_AMOUNT,
       UPSELL_DESCRIPTION,
       customer,
-      `upsell4_${Date.now()}`
+       `upsell4_${Date.now()}`,
+       'Confirmação de Reembolso',
+       'upsell4'
     );
 
     if (success) {
