@@ -8,6 +8,75 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
+// UTMify API configuration
+const UTMIFY_API_URL = 'https://api.utmify.com.br/api-credentials/orders';
+
+// Function to send conversion to UTMify
+async function sendToUtmify(data: {
+  orderId: string;
+  platform: string;
+  paymentMethod: string;
+  status: string;
+  createdAt: string;
+  approvedAt?: string;
+  customer: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    document?: string;
+  };
+  products: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    priceInCents: number;
+  }>;
+  trackingParameters?: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_content?: string;
+    utm_term?: string;
+    src?: string;
+    sck?: string;
+  };
+  isTest?: boolean;
+}) {
+  const utmifyToken = Deno.env.get('UTMIFY_API_TOKEN');
+  
+  if (!utmifyToken) {
+    console.error('UTMIFY_API_TOKEN not configured');
+    return { success: false, error: 'Token not configured' };
+  }
+
+  try {
+    console.log('=== SENDING TO UTMIFY ===');
+    console.log('Payload:', JSON.stringify(data, null, 2));
+
+    const response = await fetch(UTMIFY_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-token': utmifyToken,
+      },
+      body: JSON.stringify(data),
+    });
+
+    const responseText = await response.text();
+    console.log('UTMify Response Status:', response.status);
+    console.log('UTMify Response:', responseText);
+
+    if (!response.ok) {
+      return { success: false, error: `UTMify error: ${response.status} - ${responseText}` };
+    }
+
+    return { success: true, response: responseText };
+  } catch (error) {
+    console.error('UTMify fetch error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
 // Old format (expected)
 interface LegacyWebhookPayload {
   event: string;
@@ -28,6 +97,26 @@ interface ParadiseWebhookPayload {
   webhook_type?: string;
   amount?: number;
   paid_at?: string;
+  customer?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    document?: string;
+  };
+  tracking?: {
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    utm_content?: string;
+    utm_term?: string;
+    src?: string;
+    sck?: string;
+  };
+  product?: {
+    name?: string;
+    hash?: string;
+  };
+  timestamp?: string;
 }
 
 serve(async (req) => {
@@ -62,6 +151,10 @@ serve(async (req) => {
     let reference: string | undefined;
     let amount: number | undefined;
     let paidAt: string | undefined;
+    let customer: ParadiseWebhookPayload['customer'] | undefined;
+    let tracking: ParadiseWebhookPayload['tracking'] | undefined;
+    let product: ParadiseWebhookPayload['product'] | undefined;
+    let createdAt: string | undefined;
 
     // Check if it's the real Paradise format (flat structure with transaction_id)
     if (body.transaction_id !== undefined || body.webhook_type !== undefined) {
@@ -72,6 +165,10 @@ serve(async (req) => {
       reference = paradisePayload.external_id;
       amount = paradisePayload.amount;
       paidAt = paradisePayload.paid_at;
+      customer = body.customer;
+      tracking = body.tracking;
+      product = body.product;
+      createdAt = body.timestamp;
 
       // Map webhook_type to status
       const webhookType = paradisePayload.webhook_type || '';
@@ -142,6 +239,10 @@ serve(async (req) => {
       reference = body.reference || body.external_id;
       amount = body.amount;
       paidAt = body.paid_at || body.paidAt;
+      customer = body.customer;
+      tracking = body.tracking;
+      product = body.product;
+      createdAt = body.timestamp;
     }
 
     console.log('=== PROCESSED DATA ===');
@@ -172,6 +273,47 @@ serve(async (req) => {
     }
     if (paidAt) {
       console.log(`Paid at: ${paidAt}`);
+    }
+
+    // Send to UTMify if payment is approved
+    if (mappedStatus === 'approved') {
+      console.log('=== PAYMENT APPROVED - SENDING TO UTMIFY ===');
+      
+      const utmifyPayload = {
+        orderId: reference || transactionId,
+        platform: 'SlimHealth',
+        paymentMethod: 'pix',
+        status: 'paid',
+        createdAt: createdAt || new Date().toISOString(),
+        approvedAt: paidAt || new Date().toISOString(),
+        customer: {
+          name: customer?.name,
+          email: customer?.email,
+          phone: customer?.phone,
+          document: customer?.document,
+        },
+        products: [
+          {
+            id: product?.hash || 'mounjaro-5mg',
+            name: product?.name || 'Mounjaro 5mg - SlimHealth',
+            quantity: 1,
+            priceInCents: amount || 0,
+          },
+        ],
+        trackingParameters: {
+          utm_source: tracking?.utm_source,
+          utm_medium: tracking?.utm_medium,
+          utm_campaign: tracking?.utm_campaign,
+          utm_content: tracking?.utm_content,
+          utm_term: tracking?.utm_term,
+          src: tracking?.src,
+          sck: tracking?.sck,
+        },
+        isTest: false,
+      };
+
+      const utmifyResult = await sendToUtmify(utmifyPayload);
+      console.log('UTMify Result:', JSON.stringify(utmifyResult));
     }
 
     // Return success response to Paradise with all extracted data
