@@ -9,6 +9,8 @@ import aulaPlayImg from "@/assets/bumps/aula-play.jpg";
 import pixLogo from "@/assets/pix-logo.png";
 import slimHealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
+import anvisaLogo from "@/assets/anvisa-logo.png";
+import govbrLogo from "@/assets/govbr-logo.png";
 
 const PRECO_UNITARIO = 67.90;
 
@@ -371,6 +373,12 @@ const ConfirmacaoPage = () => {
             </div>
           </div>
         </section>
+
+        {/* ANVISA + gov.br Logos */}
+        <div className="mx-3 mt-4 mb-2 flex items-center justify-center gap-6 opacity-60">
+          <img src={anvisaLogo} alt="ANVISA" className="h-10 w-auto" />
+          <img src={govbrLogo} alt="gov.br" className="h-6 w-auto" />
+        </div>
       </main>
 
       {/* Security Badges */}

@@ -5,6 +5,8 @@ import { ptBR } from "date-fns/locale";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
+import anvisaLogo from "@/assets/anvisa-logo.png";
+import govbrLogo from "@/assets/govbr-logo.png";
 
 interface TimelineStep {
   id: number;
@@ -247,6 +249,12 @@ const RastreioPage = () => {
                 alt="CIMED" 
                 className="h-5 object-contain opacity-70"
               />
+            </div>
+
+            {/* ANVISA + gov.br Logos */}
+            <div className="mx-3 mt-4 mb-2 flex items-center justify-center gap-6 opacity-60">
+              <img src={anvisaLogo} alt="ANVISA" className="h-10 w-auto" />
+              <img src={govbrLogo} alt="gov.br" className="h-6 w-auto" />
             </div>
           </div>
         </div>
