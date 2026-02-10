@@ -1,22 +1,21 @@
 
-## Adicionar Banner + Texto na Pagina de Dados Pessoais
 
-### O que sera feito
+## Ajustes na Pagina de Dados Pessoais
 
-1. **Copiar o banner** (`Gemini_Generated_Image_bhf7fsbhf7fsbhf7.png`) para `src/assets/banners/estoque-interno.png`
+### 1. Reduzir o texto abaixo do banner
+- Diminuir o tamanho da fonte de `text-sm` para `text-xs`
+- Reduzir o padding horizontal
+- Resultado: texto mais compacto e proporcional ao banner, como na referencia
 
-2. **Editar `src/pages/DadosPessoaisPage.tsx`** -- adicionar entre o header (progress bar) e o product card:
-   - A imagem do banner com cantos arredondados, ocupando a largura total (dentro do container `mx-3 mt-3`)
-   - Abaixo do banner, um paragrafo centralizado em cinza com o texto:
-     > "Este valor é mais baixo porque este lote fazia parte do estoque interno destinado a funcionários da SlimHealth e Cimed. Como restaram algumas unidades, a empresa decidiu liberar o último lote ao público mantendo o mesmo valor interno de R$ 67,90."
-
-### Posicionamento
-
-O banner e texto ficam logo apos o header (com a barra de progresso), antes da section do product card -- exatamente como mostrado na imagem de referencia.
+### 2. Adicionar logos ANVISA + gov.br centralizadas
+- Copiar as duas imagens para `src/assets/`:
+  - `anvisa-logo-png_seeklogo-9430.png` -> `src/assets/anvisa-logo.png`
+  - `logo-2.png` -> `src/assets/govbr-logo.png`
+- Adicionar uma section abaixo dos security badges (acima do footer fixo) com as duas logos centralizadas lado a lado
+- Logos pequenas (h-10 para ANVISA, h-6 para gov.br) com opacidade sutil, como no print de referencia
 
 ### Detalhes tecnicos
+- Importar as imagens como modulos ES6
+- Container com `flex items-center justify-center gap-6` e fundo cinza claro
+- Posicionar entre o formulario e os security badges fixos
 
-- Importar a imagem do banner como modulo ES6
-- Banner: `rounded-xl overflow-hidden` dentro de `mx-3 mt-3`
-- Texto: `text-center text-sm text-slate-500 font-medium px-4 mt-2` abaixo do banner
-- Nenhuma outra alteracao na pagina
