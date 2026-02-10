@@ -9,6 +9,8 @@ import foto1 from "@/assets/mounjaro/foto1.png";
 import slimHealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
 import bannerEstoque from "@/assets/banners/estoque-interno.png";
+import anvisaLogo from "@/assets/anvisa-logo.png";
+import govbrLogo from "@/assets/govbr-logo.png";
 
 const PRECO_UNITARIO = 67.90;
 
@@ -127,7 +129,7 @@ const DadosPessoaisPage = () => {
         <div className="mx-3 mt-3 rounded-xl overflow-hidden">
           <img src={bannerEstoque} alt="Estoque interno" className="w-full" />
         </div>
-        <p className="text-center text-sm text-slate-500 font-medium px-4 mt-2">
+        <p className="text-center text-xs text-slate-500 font-medium px-3 mt-2">
           Este valor é mais baixo porque este lote fazia parte do estoque interno destinado a funcionários da SlimHealth e Cimed. Como restaram algumas unidades, a empresa decidiu liberar o último lote ao público mantendo o mesmo valor interno de R$ 67,90.
         </p>
 
@@ -237,6 +239,12 @@ const DadosPessoaisPage = () => {
             </div>
           </div>
         </section>
+
+        {/* ANVISA + gov.br Logos */}
+        <div className="mx-3 mt-4 mb-2 flex items-center justify-center gap-6 opacity-60">
+          <img src={anvisaLogo} alt="ANVISA" className="h-10 w-auto" />
+          <img src={govbrLogo} alt="gov.br" className="h-6 w-auto" />
+        </div>
       </main>
 
       {/* Security Badges */}
