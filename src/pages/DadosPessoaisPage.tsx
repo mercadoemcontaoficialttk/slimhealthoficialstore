@@ -129,7 +129,7 @@ const DadosPessoaisPage = () => {
         <div className="mx-3 mt-3 rounded-xl overflow-hidden">
           <img src={bannerEstoque} alt="Estoque interno" className="w-full" />
         </div>
-        <p className="text-center text-xs text-slate-500 font-medium px-3 mt-2">
+        <p className="text-center text-[10px] leading-tight text-slate-400 px-4 mt-1.5">
           Este valor é mais baixo porque este lote fazia parte do estoque interno destinado a funcionários da SlimHealth e Cimed. Como restaram algumas unidades, a empresa decidiu liberar o último lote ao público mantendo o mesmo valor interno de R$ 67,90.
         </p>
 
