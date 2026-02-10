@@ -1,20 +1,14 @@
 
 
-## Trocar logo gov.br em todas as paginas do funil
+## Trocar banner da pagina Dados Pessoais
 
 ### O que sera feito
 
-1. Salvar a nova imagem enviada como `src/assets/govbr-logo.png` (substituindo a atual)
-2. Nenhuma alteracao de codigo necessaria -- os 4 arquivos ja importam de `@/assets/govbr-logo.png`
-
-### Paginas afetadas (automaticamente pela troca do arquivo)
-- `/dados-pessoais` - DadosPessoaisPage.tsx
-- `/endereco` - EnderecoPage.tsx
-- `/confirmacao` - ConfirmacaoPage.tsx
-- `/pix` - PixPage.tsx
+1. Salvar a nova imagem como `src/assets/banners/estoque-interno.png` (substituindo a atual)
+2. Nenhuma alteracao de codigo necessaria -- o import em `DadosPessoaisPage.tsx` ja aponta para `@/assets/banners/estoque-interno.png`
 
 ### Detalhes tecnicos
-- Copiar `user-uploads://Gov.br_logo.svg_1.png` para `src/assets/govbr-logo.png`, sobrescrevendo o arquivo antigo
-- Como todos os imports apontam para o mesmo caminho, a troca do arquivo e suficiente
+- Copiar `user-uploads://WhatsApp_Image_2026-02-10_at_13.06.01.jpeg` para `src/assets/banners/estoque-interno.png`
+- O banner sera atualizado automaticamente em `/dados-pessoais`
 - Nenhum arquivo `.tsx` precisa ser editado
 
