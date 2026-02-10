@@ -8,6 +8,7 @@ import { trackInitiateCheckout } from "@/hooks/useTikTokPixel";
 import foto1 from "@/assets/mounjaro/foto1.png";
 import slimHealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
+import bannerEstoque from "@/assets/banners/estoque-interno.png";
 
 const PRECO_UNITARIO = 67.90;
 
@@ -122,6 +123,14 @@ const DadosPessoaisPage = () => {
 
       {/* Main Content */}
       <main className="flex-1 max-w-screen-sm mx-auto w-full pb-32">
+        {/* Banner Estoque Interno */}
+        <div className="mx-3 mt-3 rounded-xl overflow-hidden">
+          <img src={bannerEstoque} alt="Estoque interno" className="w-full" />
+        </div>
+        <p className="text-center text-sm text-slate-500 font-medium px-4 mt-2">
+          Este valor é mais baixo porque este lote fazia parte do estoque interno destinado a funcionários da SlimHealth e Cimed. Como restaram algumas unidades, a empresa decidiu liberar o último lote ao público mantendo o mesmo valor interno de R$ 67,90.
+        </p>
+
         {/* Product Card */}
         <section className="bg-white mx-3 mt-3 rounded-xl p-3 shadow-sm">
           <div className="flex gap-3">
