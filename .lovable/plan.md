@@ -1,44 +1,29 @@
 
 
-## Adicionar logos ANVISA + gov.br no funil principal (sem upsells)
+## Remover logos ANVISA + gov.br da Index e manter apenas no funil principal
 
-### Escopo atualizado
+### Contexto
+As logos na pagina Index (/) estao deixando os modais/cards muito grandes e prejudicando a estetica. O usuario quer manter as logos apenas nas paginas do funil de checkout.
 
-As logos serao adicionadas apenas nas paginas do funil principal:
+### Alteracao
 
-| Pagina | Arquivo |
-|--------|---------|
-| Index (funil inicial) | `src/pages/Index.tsx` |
-| Endereco | `src/pages/EnderecoPage.tsx` |
-| Confirmacao | `src/pages/ConfirmacaoPage.tsx` |
-| Pagamento PIX | `src/pages/PixPage.tsx` |
-| Rastreio | `src/pages/RastreioPage.tsx` |
+**Arquivo: `src/pages/Index.tsx`**
+- Remover os imports de `anvisaLogo` e `govbrLogo`
+- Remover o bloco JSX das logos ANVISA + gov.br (linhas 147-150)
 
-### Paginas excluidas
-- MounjaroPage (pagina do produto, conforme solicitado antes)
-- Upsell1Page, Upsell2Page, Upsell3Page, Upsell4Page (conforme solicitado agora)
+### Paginas que manterao as logos (sem alteracao)
+- `/dados-pessoais` - DadosPessoaisPage.tsx
+- `/endereco` - EnderecoPage.tsx
+- `/confirmacao` - ConfirmacaoPage.tsx
+- `/pix` - PixPage.tsx
 
-### Alteracoes em cada arquivo
+### Paginas sem logos (sem alteracao necessaria)
+- `/` - Index.tsx (remover)
+- `/mounjaro` - MounjaroPage.tsx (ja nao tem)
+- `/rastreio` - RastreioPage.tsx (remover tambem, pois esta fora do funil principal ate o pix)
+- Upsells (ja nao tem)
 
-1. Adicionar imports no topo:
-   - `import anvisaLogo from "@/assets/anvisa-logo.png";`
-   - `import govbrLogo from "@/assets/govbr-logo.png";`
-
-2. Inserir o bloco de logos no rodape/final do conteudo de cada pagina:
-
-```text
-<div className="mx-3 mt-4 mb-2 flex items-center justify-center gap-6 opacity-60">
-  <img src={anvisaLogo} alt="ANVISA" className="h-10 w-auto" />
-  <img src={govbrLogo} alt="gov.br" className="h-6 w-auto" />
-</div>
-```
-
-### Posicionamento por pagina
-- **Index.tsx**: Dentro do CardContent, abaixo do logo CIMED (steps 2/3) ou abaixo do botao (step 1)
-- **EnderecoPage.tsx**: Acima do footer fixo, abaixo dos security badges
-- **ConfirmacaoPage.tsx**: Acima do footer fixo, abaixo dos security badges
-- **PixPage.tsx**: No final do conteudo scrollavel
-- **RastreioPage.tsx**: No final da pagina, abaixo das logos SlimHealth+CIMED existentes
-
-Nenhuma outra alteracao nos arquivos. Estilo identico ao ja implementado em DadosPessoaisPage.
+### Resumo
+- Editar `src/pages/Index.tsx`: remover imports e bloco de logos
+- Editar `src/pages/RastreioPage.tsx`: remover imports e bloco de logos
 
