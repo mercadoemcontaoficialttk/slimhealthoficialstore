@@ -1,21 +1,20 @@
 
 
-## Ajustes na Pagina de Dados Pessoais
+## Reduzir ainda mais o texto abaixo do banner
 
-### 1. Reduzir o texto abaixo do banner
-- Diminuir o tamanho da fonte de `text-sm` para `text-xs`
-- Reduzir o padding horizontal
-- Resultado: texto mais compacto e proporcional ao banner, como na referencia
+### Alteracao
 
-### 2. Adicionar logos ANVISA + gov.br centralizadas
-- Copiar as duas imagens para `src/assets/`:
-  - `anvisa-logo-png_seeklogo-9430.png` -> `src/assets/anvisa-logo.png`
-  - `logo-2.png` -> `src/assets/govbr-logo.png`
-- Adicionar uma section abaixo dos security badges (acima do footer fixo) com as duas logos centralizadas lado a lado
-- Logos pequenas (h-10 para ANVISA, h-6 para gov.br) com opacidade sutil, como no print de referencia
+No arquivo `src/pages/DadosPessoaisPage.tsx`, linha 132, trocar as classes do paragrafo:
 
-### Detalhes tecnicos
-- Importar as imagens como modulos ES6
-- Container com `flex items-center justify-center gap-6` e fundo cinza claro
-- Posicionar entre o formulario e os security badges fixos
+- De: `text-xs text-slate-500 font-medium px-3 mt-2`
+- Para: `text-[10px] leading-tight text-slate-400 px-4 mt-1.5`
+
+Isso resulta em:
+- Fonte ainda menor (10px ao inves de 12px)
+- Cor mais sutil (slate-400 ao inves de slate-500)
+- Espacamento entre linhas mais compacto (leading-tight)
+- Remove o `font-medium` para ficar mais leve visualmente
+- Margem superior reduzida para ficar mais colado ao banner
+
+Nenhuma outra alteracao no arquivo.
 
