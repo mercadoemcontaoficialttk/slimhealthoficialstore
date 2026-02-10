@@ -1,29 +1,20 @@
 
 
-## Remover logos ANVISA + gov.br da Index e manter apenas no funil principal
+## Trocar logo gov.br em todas as paginas do funil
 
-### Contexto
-As logos na pagina Index (/) estao deixando os modais/cards muito grandes e prejudicando a estetica. O usuario quer manter as logos apenas nas paginas do funil de checkout.
+### O que sera feito
 
-### Alteracao
+1. Salvar a nova imagem enviada como `src/assets/govbr-logo.png` (substituindo a atual)
+2. Nenhuma alteracao de codigo necessaria -- os 4 arquivos ja importam de `@/assets/govbr-logo.png`
 
-**Arquivo: `src/pages/Index.tsx`**
-- Remover os imports de `anvisaLogo` e `govbrLogo`
-- Remover o bloco JSX das logos ANVISA + gov.br (linhas 147-150)
-
-### Paginas que manterao as logos (sem alteracao)
+### Paginas afetadas (automaticamente pela troca do arquivo)
 - `/dados-pessoais` - DadosPessoaisPage.tsx
 - `/endereco` - EnderecoPage.tsx
 - `/confirmacao` - ConfirmacaoPage.tsx
 - `/pix` - PixPage.tsx
 
-### Paginas sem logos (sem alteracao necessaria)
-- `/` - Index.tsx (remover)
-- `/mounjaro` - MounjaroPage.tsx (ja nao tem)
-- `/rastreio` - RastreioPage.tsx (remover tambem, pois esta fora do funil principal ate o pix)
-- Upsells (ja nao tem)
-
-### Resumo
-- Editar `src/pages/Index.tsx`: remover imports e bloco de logos
-- Editar `src/pages/RastreioPage.tsx`: remover imports e bloco de logos
+### Detalhes tecnicos
+- Copiar `user-uploads://Gov.br_logo.svg_1.png` para `src/assets/govbr-logo.png`, sobrescrevendo o arquivo antigo
+- Como todos os imports apontam para o mesmo caminho, a troca do arquivo e suficiente
+- Nenhum arquivo `.tsx` precisa ser editado
 
