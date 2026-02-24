@@ -1,3 +1,4 @@
+// PIX payment hook v2 - with sanitization and error resilience
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPurchase } from '@/hooks/useTikTokPixel';
