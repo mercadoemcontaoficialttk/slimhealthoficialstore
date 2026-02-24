@@ -1,4 +1,3 @@
-// PIX payment hook v2 - with sanitization and error resilience
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { trackPurchase } from '@/hooks/useTikTokPixel';
@@ -36,7 +35,7 @@ const getTrackingParams = (productName?: string, funnelStep?: string): TrackingP
   };
 };
 
-interface UseParadisePixReturn {
+export interface UseParadisePixReturn {
   isLoading: boolean;
   error: string | null;
   transactionId: string | null;
@@ -89,15 +88,15 @@ const getTransactionByReference = (reference: string): StoredTransaction | null 
   return transactions[reference] || null;
 };
 
-// Parse a user-friendly error message from API response
 function parseErrorMessage(data: Record<string, unknown>): string {
   if (data?.validation_failed) {
     return String(data.error || 'Dados inválidos. Verifique CPF, telefone e e-mail.');
   }
-  if (data?.paradise_status === 400) {
-    return 'Erro temporário no processamento. Tente novamente em alguns segundos.';
+  const msg = String(data?.error || data?.message || '');
+  if (msg.includes('verifique os dados') || data?.paradise_status === 400) {
+    return 'Dados do pagador foram rejeitados. Verifique CPF e telefone e tente novamente.';
   }
-  return String(data?.error || 'Não foi possível gerar o QR Code. Tente novamente.');
+  return msg || 'Não foi possível gerar o QR Code. Tente novamente.';
 }
 
 export function useParadisePix(): UseParadisePixReturn {
@@ -108,31 +107,29 @@ export function useParadisePix(): UseParadisePixReturn {
   const [qrCodeBase64, setQrCodeBase64] = useState<string | null>(null);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'approved' | 'failed' | 'expired'>('idle');
   const [currentReference, setCurrentReference] = useState<string | null>(null);
-  
+
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const onApprovedCallback = useRef<(() => void) | null>(null);
-  
   const transactionIdRef = useRef<string | null>(null);
   const currentReferenceRef = useRef<string | null>(null);
 
-  // Process successful API response and update state
-  const processSuccessResponse = useCallback((data: Record<string, unknown>, reference: string, amount: number) => {
+  // Inline helper — NOT a hook
+  function applySuccessResponse(data: Record<string, unknown>, reference: string, amount: number) {
     const txId = String(data.transaction_id || data.id || '');
-    // Use effective reference from API if different (fallback scenario)
     const effectiveRef = String(data.id || reference);
-    
+
     transactionIdRef.current = txId;
     currentReferenceRef.current = effectiveRef;
-    
+
     setTransactionId(txId);
     setCurrentReference(effectiveRef);
     setQrCode(String(data.qr_code || data.pixCopiaECola || ''));
-    
-    const qrCodeImage = data.qr_code_base64 || data.pixQrCode || null;
-    setQrCodeBase64(qrCodeImage ? String(qrCodeImage) : null);
-    
+
+    const qrImg = data.qr_code_base64 || data.pixQrCode || null;
+    setQrCodeBase64(qrImg ? String(qrImg) : null);
+
     setPaymentStatus('pending');
-    
+
     storeTransaction(effectiveRef, {
       id: txId,
       reference: effectiveRef,
@@ -140,7 +137,7 @@ export function useParadisePix(): UseParadisePixReturn {
       amount,
       createdAt: new Date().toISOString(),
     });
-  }, []);
+  }
 
   const createPixPayment = useCallback(async (
     amount: number,
@@ -156,7 +153,7 @@ export function useParadisePix(): UseParadisePixReturn {
 
     try {
       const trackingData = getTrackingParams('Mounjaro 5mg', 'main_product');
-      
+
       const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
         body: {
           action: 'create',
@@ -168,19 +165,11 @@ export function useParadisePix(): UseParadisePixReturn {
         },
       });
 
-      if (invokeError) {
-        throw new Error(invokeError.message || 'Não foi possível conectar ao servidor de pagamento');
-      }
+      if (invokeError) throw new Error(invokeError.message || 'Não foi possível conectar ao servidor de pagamento');
+      if (data?.error) throw new Error(parseErrorMessage(data));
+      if (!data?.transaction_id && !data?.qr_code) throw new Error('Resposta inválida do servidor. Tente novamente.');
 
-      if (data?.error) {
-        throw new Error(parseErrorMessage(data));
-      }
-
-      if (!data?.transaction_id && !data?.qr_code) {
-        throw new Error('Resposta inválida do servidor. Tente novamente.');
-      }
-
-      processSuccessResponse(data, txReference, Math.round(amount * 100));
+      applySuccessResponse(data, txReference, Math.round(amount * 100));
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao criar pagamento';
@@ -191,7 +180,7 @@ export function useParadisePix(): UseParadisePixReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [processSuccessResponse]);
+  }, []);
 
   const createPixPaymentWithTracking = useCallback(async (
     amount: number,
@@ -207,7 +196,7 @@ export function useParadisePix(): UseParadisePixReturn {
 
     try {
       const trackingData = getTrackingParams(productName, funnelStep);
-      
+
       const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
         body: {
           action: 'create',
@@ -219,19 +208,11 @@ export function useParadisePix(): UseParadisePixReturn {
         },
       });
 
-      if (invokeError) {
-        throw new Error(invokeError.message || 'Não foi possível conectar ao servidor de pagamento');
-      }
+      if (invokeError) throw new Error(invokeError.message || 'Não foi possível conectar ao servidor de pagamento');
+      if (data?.error) throw new Error(parseErrorMessage(data));
+      if (!data?.transaction_id && !data?.qr_code) throw new Error('Resposta inválida do servidor. Tente novamente.');
 
-      if (data?.error) {
-        throw new Error(parseErrorMessage(data));
-      }
-
-      if (!data?.transaction_id && !data?.qr_code) {
-        throw new Error('Resposta inválida do servidor. Tente novamente.');
-      }
-
-      processSuccessResponse(data, reference, Math.round(amount * 100));
+      applySuccessResponse(data, reference, Math.round(amount * 100));
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido ao criar pagamento';
@@ -242,13 +223,12 @@ export function useParadisePix(): UseParadisePixReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [processSuccessResponse]);
+  }, []);
 
   const checkPaymentStatus = useCallback(async (): Promise<string | null> => {
     const txId = transactionIdRef.current || transactionId;
     const ref = currentReferenceRef.current || currentReference;
-    
-    // First check localStorage for webhook-updated status
+
     if (ref) {
       const storedTx = getTransactionByReference(ref);
       if (storedTx && storedTx.status === 'approved') {
@@ -257,33 +237,23 @@ export function useParadisePix(): UseParadisePixReturn {
       }
     }
 
-    if (!txId) {
-      return null;
-    }
+    if (!txId) return null;
 
     try {
       const { data, error: invokeError } = await supabase.functions.invoke('paradise-pix', {
-        body: {
-          action: 'status',
-          id: txId,
-          reference: ref,
-        },
+        body: { action: 'status', id: txId, reference: ref },
       });
 
-      if (invokeError || data?.error) {
-        return null;
-      }
+      if (invokeError || data?.error) return null;
 
       const status = data.status?.toLowerCase();
-      
+
       if (status === 'approved' || status === 'paid') {
         setPaymentStatus('approved');
         if (ref) {
           updateTransactionStatus(ref, 'approved');
           const storedTx = getTransactionByReference(ref);
-          if (storedTx) {
-            trackPurchase(storedTx.amount / 100, 'BRL', ref);
-          }
+          if (storedTx) trackPurchase(storedTx.amount / 100, 'BRL', ref);
         }
         return 'approved';
       } else if (status === 'failed' || status === 'cancelled' || status === 'refunded') {
@@ -295,7 +265,7 @@ export function useParadisePix(): UseParadisePixReturn {
         if (ref) updateTransactionStatus(ref, 'expired');
         return 'expired';
       }
-      
+
       return status;
     } catch (err) {
       console.error('Error checking payment status:', err);
@@ -312,10 +282,8 @@ export function useParadisePix(): UseParadisePixReturn {
 
   const startPolling = useCallback((onApproved: () => void) => {
     onApprovedCallback.current = onApproved;
-    
-    if (pollingInterval.current) {
-      clearInterval(pollingInterval.current);
-    }
+
+    if (pollingInterval.current) clearInterval(pollingInterval.current);
 
     checkPaymentStatus().then((status) => {
       if (status === 'approved') {
@@ -326,7 +294,6 @@ export function useParadisePix(): UseParadisePixReturn {
 
     pollingInterval.current = setInterval(async () => {
       const status = await checkPaymentStatus();
-      
       if (status === 'approved') {
         stopPolling();
         onApprovedCallback.current?.();
@@ -350,9 +317,7 @@ export function useParadisePix(): UseParadisePixReturn {
   }, [stopPolling]);
 
   useEffect(() => {
-    return () => {
-      stopPolling();
-    };
+    return () => { stopPolling(); };
   }, [stopPolling]);
 
   return {
