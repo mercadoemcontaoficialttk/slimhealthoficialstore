@@ -1,24 +1,23 @@
 
 
-## Trocar valor de R$ 67,90 para R$ 67,23 em todo o front-end
+## Trocar chave API da Paradise Pags
 
-### Arquivos que serao editados
+### Situacao atual
+- A chave `PARADISE_API_KEY` esta armazenada como segredo no backend (Lovable Cloud)
+- Ela e acessada apenas pela Edge Function `paradise-pix` via `Deno.env.get('PARADISE_API_KEY')`
+- **Nenhum arquivo do frontend** contem a chave -- ela nao aparece em nenhum `.tsx`, upsell ou pagina
 
-1. **`src/pages/DadosPessoaisPage.tsx`**
-   - Linha 15: `PRECO_UNITARIO = 67.90` → `67.23`
-   - Linha 133: texto descritivo "R$ 67,90" → "R$ 67,23"
+### O que sera feito
+1. Atualizar o segredo `PARADISE_API_KEY` no backend com o novo valor:
+   `sk_920f90a287d09114180f38a093abf8c00f6f1fd257c4f180161734e1e2f408e2`
 
-2. **`src/pages/EnderecoPage.tsx`**
-   - Linha 15: `PRECO_UNITARIO = 67.90` → `67.23`
+### O que NAO precisa ser feito
+- Nenhuma alteracao em arquivos do frontend
+- Nenhuma alteracao nas Edge Functions (o codigo ja le o segredo dinamicamente)
+- Nenhuma alteracao nos upsells ou paginas de checkout
 
-3. **`src/pages/ConfirmacaoPage.tsx`**
-   - Linha 15: `PRECO_UNITARIO = 67.90` → `67.23`
-
-4. **`src/pages/MounjaroPage.tsx`**
-   - Linha 207: texto "R$ 67,90" → "R$ 67,23"
-
-### Impacto
-- O valor exibido em todas as paginas do funil (produto, dados pessoais, endereco, confirmacao) sera atualizado
-- O calculo do total (produto + frete + bumps) sera recalculado automaticamente com o novo valor base
-- O QR Code PIX na pagina `/pix` ja usa o total calculado, entao tambem refletira o novo valor sem alteracao adicional
+### Detalhes tecnicos
+- A Edge Function `supabase/functions/paradise-pix/index.ts` usa `Deno.env.get('PARADISE_API_KEY')` na linha 68
+- Ao atualizar o segredo, todas as proximas chamadas da funcao usarao automaticamente a nova chave
+- A funcao sera re-deployada para garantir que o novo valor seja carregado
 
