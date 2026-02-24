@@ -134,27 +134,34 @@ const Upsell3Page = () => {
   }, [phase]);
 
   const handleOpenModal = async () => {
-    setShowModal(true);
-    
-    if (!dadosPessoais) {
-      toast.error("Dados do cliente não encontrados");
+    if (!dadosPessoais || !dadosPessoais.nome || !dadosPessoais.cpf || !dadosPessoais.email || !dadosPessoais.telefone) {
+      toast.error("Dados pessoais não encontrados. Por favor, volte e preencha seus dados.");
       return;
     }
 
+    // Pre-validate CPF (digits only, must be 11)
+    const cpfDigits = dadosPessoais.cpf.replace(/\D/g, '');
+    if (cpfDigits.length !== 11) {
+      toast.error("CPF inválido. Volte e corrija seus dados.");
+      return;
+    }
+
+    setShowModal(true);
+
     const customer = {
-      name: dadosPessoais.nome,
-      email: dadosPessoais.email,
-      document: dadosPessoais.cpf,
-      phone: dadosPessoais.telefone,
+      name: dadosPessoais.nome.trim(),
+      email: dadosPessoais.email.trim(),
+      document: cpfDigits,
+      phone: dadosPessoais.telefone.replace(/\D/g, ''),
     };
 
-     const success = await createPixPaymentWithTracking(
+    const success = await createPixPaymentWithTracking(
       UPSELL_AMOUNT,
       UPSELL_DESCRIPTION,
       customer,
-       `upsell3_${Date.now()}`,
-       'Correção de Frete',
-       'upsell3'
+      `upsell3_${Date.now()}`,
+      'Correção de Frete',
+      'upsell3'
     );
 
     if (success) {

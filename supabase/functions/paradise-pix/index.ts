@@ -11,15 +11,15 @@ function getCorsHeaders(req: Request) {
   };
 }
 
-// Paradise API base URL (correct according to documentation)
+// Paradise API base URL
 const PARADISE_BASE_URL = 'https://multi.paradisepags.com/api/v1';
 
 interface CreatePixRequest {
   action?: 'create' | 'status' | 'health';
-  amount?: number; // em centavos
+  amount?: number;
   description?: string;
   reference?: string;
-  id?: string; // transaction ID for status check
+  id?: string;
   customer?: {
     name: string;
     email: string;
@@ -34,19 +34,54 @@ interface CreatePixRequest {
     utm_term?: string;
     src?: string;
     sck?: string;
-     gclid?: string;
-     fbclid?: string;
-     tracking_id?: string;
-     page_path?: string;
-     product_name?: string;
-     funnel_step?: string;
+    gclid?: string;
+    fbclid?: string;
+    tracking_id?: string;
+    page_path?: string;
+    product_name?: string;
+    funnel_step?: string;
   };
+}
+
+// Sanitize customer data to ensure clean payloads
+function sanitizeCustomer(customer: { name: string; email: string; document: string; phone: string }) {
+  return {
+    name: (customer.name || '').trim(),
+    email: (customer.email || '').trim().toLowerCase(),
+    document: (customer.document || '').replace(/\D/g, ''),
+    phone: (customer.phone || '').replace(/\D/g, ''),
+  };
+}
+
+// Validate customer fields before sending to gateway
+function validateCustomer(customer: { name: string; email: string; document: string; phone: string }): string | null {
+  if (!customer.name || customer.name.length < 2) return 'Nome inválido';
+  if (!customer.email || !customer.email.includes('@') || !customer.email.includes('.')) return 'Email inválido';
+  if (!customer.document || customer.document.length !== 11) return 'CPF deve ter 11 dígitos';
+  if (!customer.phone || (customer.phone.length < 10 || customer.phone.length > 11)) return 'Telefone inválido';
+  return null;
+}
+
+// Try to create a transaction with the Paradise API, with optional fallback
+async function attemptCreateTransaction(
+  payload: Record<string, unknown>,
+  apiKey: string,
+): Promise<{ response: Response; data: Record<string, unknown> }> {
+  const response = await fetch(`${PARADISE_BASE_URL}/transaction.php`, {
+    method: 'POST',
+    headers: {
+      'X-API-Key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json();
+  return { response, data };
 }
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
 
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { status: 200, headers: corsHeaders });
   }
@@ -58,17 +93,16 @@ serve(async (req) => {
       console.error('PARADISE_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'Chave de API não configurada no servidor' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const url = new URL(req.url);
     
-    // GET requests - health check or legacy status check
+    // GET requests
     if (req.method === 'GET') {
       const action = url.searchParams.get('action');
       
-      // Health check endpoint
       if (action === 'health') {
         return new Response(
           JSON.stringify({ ok: true, timestamp: new Date().toISOString() }),
@@ -76,7 +110,6 @@ serve(async (req) => {
         );
       }
       
-      // Legacy status check via GET (kept for compatibility)
       if (action === 'status') {
         const transactionId = url.searchParams.get('id');
         const reference = url.searchParams.get('reference');
@@ -84,7 +117,7 @@ serve(async (req) => {
         if (!transactionId && !reference) {
           return new Response(
             JSON.stringify({ error: 'Transaction ID or reference is required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
@@ -93,18 +126,17 @@ serve(async (req) => {
       
       return new Response(
         JSON.stringify({ error: 'Invalid GET action. Use ?action=health or ?action=status' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // POST requests - unified handler with action in body
+    // POST requests
     if (req.method === 'POST') {
       const body: CreatePixRequest = await req.json();
-      const action = body.action || 'create'; // default to create for backwards compatibility
+      const action = body.action || 'create';
 
       console.log('POST request received, action:', action);
 
-      // Health check via POST
       if (action === 'health') {
         return new Response(
           JSON.stringify({ ok: true, timestamp: new Date().toISOString() }),
@@ -112,86 +144,113 @@ serve(async (req) => {
         );
       }
 
-      // Status check via POST
       if (action === 'status') {
         return await handleStatusCheck(body.id || null, body.reference || null, PARADISE_API_KEY, corsHeaders);
       }
 
-      // Create PIX transaction
       if (action === 'create') {
-        // Validate required fields
         if (!body.amount || !body.description || !body.customer) {
           return new Response(
-            JSON.stringify({ error: 'Missing required fields: amount, description, customer' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ error: 'Campos obrigatórios faltando: amount, description, customer' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        // Prepare payload for Paradise API according to documentation
-        const payload = {
+        // Sanitize customer data
+        const cleanCustomer = sanitizeCustomer(body.customer);
+        
+        // Validate before calling gateway
+        const validationError = validateCustomer(cleanCustomer);
+        if (validationError) {
+          console.error('Validation failed:', validationError);
+          return new Response(
+            JSON.stringify({ error: validationError, validation_failed: true }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const txReference = body.reference || `ref_${Date.now()}`;
+
+        // Build base payload
+        const basePayload: Record<string, unknown> = {
           amount: body.amount,
           description: body.description,
-          reference: body.reference || `ref_${Date.now()}`,
-          source: 'api_externa', // This makes productHash optional
-          customer: {
-            name: body.customer.name,
-            email: body.customer.email,
-            document: body.customer.document.replace(/\D/g, ''), // Remove non-digits
-            phone: body.customer.phone.replace(/\D/g, ''), // Remove non-digits
-          },
-          // Add tracking object for UTMify integration
-          ...(body.tracking && Object.keys(body.tracking).length > 0 && { tracking: body.tracking }),
+          reference: txReference,
+          source: 'api_externa',
+          customer: cleanCustomer,
         };
 
-        console.log('Creating PIX transaction with payload:', JSON.stringify(payload));
-        console.log('Tracking data received:', JSON.stringify(body.tracking));
-         console.log('Tracking ID:', body.tracking?.tracking_id);
-         console.log('Page Path:', body.tracking?.page_path);
-         console.log('Funnel Step:', body.tracking?.funnel_step);
-        console.log('Using API URL:', `${PARADISE_BASE_URL}/transaction.php`);
+        // Attempt A: with tracking
+        const hasTracking = body.tracking && Object.keys(body.tracking).length > 0;
+        const payloadWithTracking = hasTracking
+          ? { ...basePayload, tracking: body.tracking }
+          : basePayload;
 
-        const response = await fetch(`${PARADISE_BASE_URL}/transaction.php`, {
-          method: 'POST',
-          headers: {
-            'X-API-Key': PARADISE_API_KEY, // Correct header according to documentation
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
+        console.log('Creating PIX transaction (attempt A):', JSON.stringify(payloadWithTracking));
+        console.log('Tracking ID:', body.tracking?.tracking_id);
+        console.log('Funnel Step:', body.tracking?.funnel_step);
 
-        const data = await response.json();
-        
-        console.log('Paradise API response status:', response.status);
-        console.log('Paradise API response:', JSON.stringify(data));
+        let result = await attemptCreateTransaction(payloadWithTracking, PARADISE_API_KEY);
 
-        if (!response.ok) {
-          console.error('Paradise API error:', JSON.stringify(data));
-          // Return 200 with error details so supabase.functions.invoke doesn't throw FunctionsHttpError
+        console.log('Attempt A - status:', result.response.status, 'response:', JSON.stringify(result.data));
+
+        // If attempt A failed with 400 and we had tracking, retry without tracking
+        if (!result.response.ok && result.response.status === 400 && hasTracking) {
+          console.log('⚠️ Attempt A failed (400). Retrying without tracking (attempt B)...');
+          
+          // New reference to avoid duplicate
+          const fallbackReference = `${txReference}_fb`;
+          const fallbackPayload = { ...basePayload, reference: fallbackReference };
+          
+          result = await attemptCreateTransaction(fallbackPayload, PARADISE_API_KEY);
+          console.log('Attempt B - status:', result.response.status, 'response:', JSON.stringify(result.data));
+        }
+
+        // If still failed, try with minimal payload
+        if (!result.response.ok && result.response.status === 400) {
+          console.log('⚠️ Attempt B failed (400). Retrying with minimal payload (attempt C)...');
+          
+          const minimalReference = `min_${Date.now()}`;
+          const minimalPayload = {
+            amount: body.amount,
+            description: body.description,
+            reference: minimalReference,
+            source: 'api_externa',
+            customer: cleanCustomer,
+          };
+          
+          result = await attemptCreateTransaction(minimalPayload, PARADISE_API_KEY);
+          console.log('Attempt C - status:', result.response.status, 'response:', JSON.stringify(result.data));
+        }
+
+        if (!result.response.ok) {
+          console.error('All attempts failed. Final error:', JSON.stringify(result.data));
           return new Response(
             JSON.stringify({ 
-              error: data?.message || 'Failed to create transaction', 
-              details: data,
-              paradise_status: response.status 
+              error: result.data?.message || 'Não foi possível processar seu pagamento. Tente novamente.',
+              details: result.data,
+              paradise_status: result.response.status 
             }),
             { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
+        // Success
         return new Response(
-          JSON.stringify(data),
+          JSON.stringify(result.data),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
       return new Response(
         JSON.stringify({ error: 'Invalid action. Use: create, status, or health' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error: unknown) {
@@ -200,7 +259,7 @@ serve(async (req) => {
     const corsHeaders = getCorsHeaders(req);
     return new Response(
       JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
@@ -215,19 +274,17 @@ async function handleStatusCheck(
   if (!transactionId && !reference) {
     return new Response(
       JSON.stringify({ error: 'Transaction ID or reference is required' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
   try {
     let queryUrl: string;
     
-    // If we have a transaction ID, query by ID
     if (transactionId) {
       console.log('Checking status for transaction:', transactionId);
       queryUrl = `${PARADISE_BASE_URL}/query.php?action=get_transaction&id=${transactionId}`;
     } else {
-      // If we only have reference, search by external_id (reference)
       console.log('Searching transaction by reference:', reference);
       queryUrl = `${PARADISE_BASE_URL}/query.php?action=list_transactions&external_id=${reference}`;
     }
@@ -237,7 +294,7 @@ async function handleStatusCheck(
     const response = await fetch(queryUrl, {
       method: 'GET',
       headers: {
-        'X-API-Key': apiKey, // Correct header according to documentation
+        'X-API-Key': apiKey,
         'Content-Type': 'application/json',
       },
     });
@@ -247,13 +304,13 @@ async function handleStatusCheck(
     
     return new Response(
       JSON.stringify(data),
-      { status: response.ok ? 200 : response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Status check error:', error);
     return new Response(
       JSON.stringify({ error: 'Failed to check payment status' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 }
