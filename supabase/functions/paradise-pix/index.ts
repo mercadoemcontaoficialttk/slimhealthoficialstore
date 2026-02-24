@@ -165,9 +165,15 @@ serve(async (req) => {
         console.log('Paradise API response:', JSON.stringify(data));
 
         if (!response.ok) {
+          console.error('Paradise API error:', JSON.stringify(data));
+          // Return 200 with error details so supabase.functions.invoke doesn't throw FunctionsHttpError
           return new Response(
-            JSON.stringify({ error: 'Failed to create transaction', details: data }),
-            { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ 
+              error: data?.message || 'Failed to create transaction', 
+              details: data,
+              paradise_status: response.status 
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
