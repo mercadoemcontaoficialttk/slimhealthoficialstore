@@ -12,7 +12,7 @@ import cimedLogo from "@/assets/cimed-logo.png";
 import anvisaLogo from "@/assets/anvisa-logo.png";
 import govbrLogo from "@/assets/govbr-logo.png";
 
-const PRECO_UNITARIO = 67.90;
+const PRECO_UNITARIO = 67.23;
 
 interface DadosPessoais {
   nome: string;

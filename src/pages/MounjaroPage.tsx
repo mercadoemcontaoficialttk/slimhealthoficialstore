@@ -204,7 +204,7 @@ const MounjaroPage = () => {
               <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-white/90 text-[#ff3b66] px-1.5 py-[2px] rounded-md">
                 -96%
               </span>
-              <span className="text-[22px] font-extrabold leading-none">R$ 67,90</span>
+              <span className="text-[22px] font-extrabold leading-none">R$ 67,23</span>
             </div>
             <div className="mt-1 text-[12px] text-white/70 line-through">R$ 1.789,87</div>
           </div>
