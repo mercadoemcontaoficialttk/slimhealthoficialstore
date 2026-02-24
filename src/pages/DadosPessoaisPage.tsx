@@ -12,7 +12,7 @@ import bannerEstoque from "@/assets/banners/estoque-interno.png";
 import anvisaLogo from "@/assets/anvisa-logo.png";
 import govbrLogo from "@/assets/govbr-logo.png";
 
-const PRECO_UNITARIO = 67.90;
+const PRECO_UNITARIO = 67.23;
 
 const DadosPessoaisPage = () => {
   const navigate = useNavigate();
@@ -130,7 +130,7 @@ const DadosPessoaisPage = () => {
           <img src={bannerEstoque} alt="Estoque interno" className="w-full" />
         </div>
         <p className="text-center text-[10px] leading-tight text-slate-400 px-4 mt-1.5">
-          Este valor é mais baixo porque este lote fazia parte do estoque interno destinado a funcionários da SlimHealth e Cimed. Como restaram algumas unidades, a empresa decidiu liberar o último lote ao público mantendo o mesmo valor interno de R$ 67,90.
+          Este valor é mais baixo porque este lote fazia parte do estoque interno destinado a funcionários da SlimHealth e Cimed. Como restaram algumas unidades, a empresa decidiu liberar o último lote ao público mantendo o mesmo valor interno de R$ 67,23.
         </p>
 
         {/* Product Card */}
