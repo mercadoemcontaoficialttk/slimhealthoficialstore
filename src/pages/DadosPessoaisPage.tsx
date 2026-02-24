@@ -87,7 +87,27 @@ const DadosPessoaisPage = () => {
     setQuantidade(prev => Math.max(1, prev + delta));
   };
 
-  const isFormValid = nome.trim() && email.trim() && telefone.length >= 14 && cpf.length === 14;
+  // CPF digit validation
+  const isValidCpf = (cpfStr: string): boolean => {
+    const digits = cpfStr.replace(/\D/g, '');
+    if (digits.length !== 11) return false;
+    // Reject all-same-digit CPFs
+    if (/^(\d)\1{10}$/.test(digits)) return false;
+    // Verify check digits
+    let sum = 0;
+    for (let i = 0; i < 9; i++) sum += parseInt(digits[i]) * (10 - i);
+    let rem = (sum * 10) % 11;
+    if (rem === 10) rem = 0;
+    if (rem !== parseInt(digits[9])) return false;
+    sum = 0;
+    for (let i = 0; i < 10; i++) sum += parseInt(digits[i]) * (11 - i);
+    rem = (sum * 10) % 11;
+    if (rem === 10) rem = 0;
+    if (rem !== parseInt(digits[10])) return false;
+    return true;
+  };
+
+  const isFormValid = nome.trim().length >= 3 && email.trim().includes('@') && email.trim().includes('.') && telefone.length >= 14 && cpf.length === 14 && isValidCpf(cpf);
 
   const handleContinuar = () => {
     if (isFormValid) {
