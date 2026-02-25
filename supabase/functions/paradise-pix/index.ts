@@ -161,8 +161,10 @@ async function handleStatusCheck(transactionId: string | null, reference: string
     const queryUrl = transactionId
       ? `${PARADISE_BASE_URL}/query.php?action=get_transaction&id=${transactionId}`
       : `${PARADISE_BASE_URL}/query.php?action=list_transactions&external_id=${reference}`;
+    console.log('Status check URL:', queryUrl);
     const response = await fetch(queryUrl, { headers: { 'X-API-Key': apiKey, 'Content-Type': 'application/json' } });
     const data = await response.json();
+    console.log('Status check response:', JSON.stringify(data));
     return jsonResponse(data, corsHeaders);
   } catch (error) {
     console.error('Status check error:', error);

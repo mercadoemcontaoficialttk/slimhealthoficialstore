@@ -117,7 +117,6 @@ const Upsell4Page = () => {
   };
 
   const handleCloseModal = () => {
-    stopPolling();
     setShowModal(false);
   };
 

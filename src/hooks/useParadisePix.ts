@@ -244,11 +244,23 @@ export function useParadisePix(): UseParadisePixReturn {
         body: { action: 'status', id: txId, reference: ref },
       });
 
-      if (invokeError || data?.error) return null;
+      if (invokeError || data?.error) {
+        console.warn('Status check returned error:', data?.error || invokeError?.message);
+        return null;
+      }
 
-      const status = data.status?.toLowerCase();
+      // Robust status extraction: check multiple possible response shapes
+      const rawStatus = (
+        data.status ||
+        data.data?.status ||
+        data.transaction?.status ||
+        data.result?.status ||
+        ''
+      );
+      const status = String(rawStatus).toLowerCase();
+      console.log('Payment status response:', JSON.stringify(data), '→ parsed status:', status);
 
-      if (status === 'approved' || status === 'paid') {
+      if (status === 'approved' || status === 'paid' || status === 'completed' || status === 'confirmed') {
         setPaymentStatus('approved');
         if (ref) {
           updateTransactionStatus(ref, 'approved');
