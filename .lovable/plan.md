@@ -1,111 +1,56 @@
 
-Objetivo imediato: eliminar definitivamente a falha no `/upsell3` e garantir que o QR de pagamento seja gerado quando os dados forem válidos, com tratamento correto quando os dados estiverem inválidos.
+## Corrigir QR Codes em todas as paginas de pagamento
 
-Diagnóstico (com evidência real do projeto)
-- A chamada frontend para o backend está funcionando.
-- O backend está respondendo corretamente (HTTP 200 + JSON de erro estruturado).
-- O bloqueio acontece no gateway externo com `paradise_status: 400`.
-- No request capturado, os dados enviados foram:
-  - `document: 99989878908` (CPF inválido pelos dígitos verificadores)
-  - `name: "Adryan Gonçalves - 02"` (nome com sufixo numérico, potencialmente rejeitável)
-- O próprio log da função mostra tentativa A/B/C e todas rejeitadas pelo adquirente.
-- Também foi comprovado em log que, com CPF válido, o mesmo fluxo de upsell3 gera transação com sucesso.
-- Conclusão: o problema principal não é “modal”, nem “rota”, nem “hook quebrado” neste momento; é consistência/qualidade de dados + UX de recuperação quando há dado inválido/stale no `localStorage`.
+### Problema identificado
 
-Escopo da correção (para ficar estável e previsível)
-1) Validar e normalizar dados do pagador de forma centralizada no frontend.
-2) Bloquear chamada de criação PIX quando os dados estiverem inválidos no upsell3.
-3) Exibir erro acionável (não genérico) para o usuário corrigir dados.
-4) Fortalecer validação server-side com mesma regra (dupla proteção).
-5) Garantir renderização visual do QR mesmo quando o gateway não mandar `qr_code_base64` (apenas copia e cola).
-6) Eliminar risco residual de inconsistência no hook (manter assinatura estável de hooks, sem ramificações de hook em runtime).
+Existem dois problemas principais afetando os QR Codes:
 
-Arquivos a ajustar
-- `src/pages/Upsell3Page.tsx`
-- `src/hooks/useParadisePix.ts`
-- `src/components/PixPaymentModal.tsx`
-- `src/pages/DadosPessoaisPage.tsx`
-- `supabase/functions/paradise-pix/index.ts`
-- (novo util compartilhado) `src/lib/paymentCustomer.ts` para normalização/validação
+1. **PixPage (/pix)**: O QR Code nunca aparece visualmente porque a API retorna `qr_code_base64: null`. O codigo atual so renderiza o QR se `qrCodeBase64` existir - caso contrario mostra um spinner eterno de "Carregando...". Precisa do mesmo fallback que o `PixPaymentModal` ja tem (gerar imagem via `api.qrserver.com`).
 
-Plano de implementação detalhado (ordem de execução)
+2. **Upsell1, Upsell2, Upsell4**: Enviam dados do cliente com mascaras (ex: `"083.593.873-54"`, `"(88) 99815-5378"`) diretamente ao backend sem sanitizar. O backend ja limpa isso, mas nao ha validacao preventiva - um CPF invalido so e detectado depois de chamar a API. Precisam usar `validateCustomerForPix` como o Upsell3 ja faz.
 
-1) Criar util único de validação/normalização de cliente (frontend)
-- Implementar em `src/lib/paymentCustomer.ts`:
-  - `sanitizeCustomerName(name)` (trim, remover ruído numérico no final, colapsar espaços).
-  - `sanitizeDocument(cpf)` (somente dígitos).
-  - `sanitizePhone(phone)` (somente dígitos).
-  - `isValidCpf(cpfDigits)` com dígitos verificadores.
-  - `validateCustomerForPix({name,email,document,phone})` retornando erros por campo.
-- Benefício:
-  - evita divergência de regra entre páginas;
-  - reduz erro silencioso vindo de `localStorage` antigo.
+### Arquivos a alterar
 
-2) Corrigir o fluxo do Upsell3 para não tentar pagamento com dado inválido
-- Em `Upsell3Page.tsx`:
-  - Ao carregar `dadosPessoais`, normalizar antes de usar.
-  - Antes de abrir modal e criar pagamento, validar com util central.
-  - Se inválido:
-    - não chamar `createPixPaymentWithTracking`;
-    - mostrar mensagem objetiva com motivo (CPF inválido / telefone inválido / nome inválido);
-    - oferecer caminho de correção (redirigir para `/dados-pessoais` ou CTA “corrigir dados”).
-  - Proteger contra clique duplo e retry concorrente quando `isLoading=true`.
-- Resultado:
-  - para dados válidos: segue direto e gera cobrança;
-  - para dados inválidos: não “queima tentativa” no gateway e orienta correção.
+**1. `src/pages/PixPage.tsx`** (Prioridade maxima)
+- Corrigir renderizacao do QR Code: adicionar fallback para gerar imagem via URL quando `qrCodeBase64` for null mas `qrCode` existir
+- Usar `validateCustomerForPix` para sanitizar dados antes de enviar ao backend
+- Substituir o bloco do QR (linhas 248-265) para usar a mesma logica do PixPaymentModal
 
-3) Ajustar mensagens de erro no hook para serem diagnósticas
-- Em `useParadisePix.ts`:
-  - Melhorar `parseErrorMessage` para distinguir:
-    - erro de validação local/backend (`validation_failed`);
-    - rejeição de adquirente por dados (`details.message` contendo “verifique os dados informados”);
-    - indisponibilidade temporária real.
-  - Parar de tratar todo `paradise_status: 400` como “erro temporário”.
-- Resultado:
-  - usuário recebe ação correta (corrigir dados vs tentar depois);
-  - suporte técnico fica mais simples.
+**2. `src/pages/Upsell1Page.tsx`**
+- Importar e usar `validateCustomerForPix` no `handleOpenModal`
+- Sanitizar dados antes de chamar `createPixPaymentWithTracking`
+- Bloquear chamada se dados forem invalidos (CPF, telefone)
 
-4) Garantir exibição visual do QR mesmo sem base64
-- Em `PixPaymentModal.tsx`:
-  - Quando `qrCodeBase64` vier vazio, mas existir `qrCode` (copia e cola), gerar fallback visual para renderização do QR.
-  - Manter botão de copiar sempre funcional.
-- Resultado:
-  - evita cenário “pagamento criado mas QR visual não aparece”.
+**3. `src/pages/Upsell2Page.tsx`**
+- Mesma correcao do Upsell1: sanitizar com `validateCustomerForPix`
 
-5) Endurecer validação no backend (mesma regra crítica)
-- Em `supabase/functions/paradise-pix/index.ts`:
-  - Reusar lógica equivalente de CPF válido (dígitos verificadores), telefone e nome limpo.
-  - Retornar `validation_failed: true` + mensagem específica por campo.
-  - Manter fallback A/B/C para compatibilidade com o gateway.
-- Resultado:
-  - dupla camada de proteção;
-  - não depende só do frontend.
+**4. `src/pages/Upsell4Page.tsx`**
+- Mesma correcao do Upsell1: sanitizar com `validateCustomerForPix`
 
-6) Ajuste na origem dos dados (dados pessoais)
-- Em `DadosPessoaisPage.tsx`:
-  - já existe validação de CPF; complementar com validação mais forte de nome e e-mail.
-  - salvar dados já normalizados para reduzir lixo no funil.
-- Resultado:
-  - evita propagação de dado ruim para upsells.
+### Detalhes tecnicos
 
-Risco e mitigação
-- Risco: usuário testar direto `/upsell3` com `localStorage` antigo inválido.
-  - Mitigação: validação no upsell3 + redirecionamento para correção.
-- Risco: gateway aceitar/rejeitar por regras internas não documentadas.
-  - Mitigação: mensagens específicas + logs estruturados por tentativa e motivo.
-- Risco: QR visual ausente quando API não enviar base64.
-  - Mitigação: fallback visual a partir do payload copia-e-cola.
+**Correcao do QR no PixPage** - Substituir o bloco condicional:
+```text
+ANTES: if (qrCodeBase64) -> mostra imagem, else -> mostra spinner
+DEPOIS: construir qrImageSrc com fallback (igual ao PixPaymentModal):
+  - Se qrCodeBase64 existe -> usa base64
+  - Se so qrCode existe -> gera via api.qrserver.com
+  - Se nenhum -> mostra "Carregando"
+```
 
-Critérios de aceite
-- `/upsell3` com dados válidos gera QR e permite pagamento.
-- `/upsell3` com CPF inválido não chama gateway; mostra erro claro de correção.
-- Erro no modal deixa de ser genérico “temporário” quando o problema é dado inválido.
-- Quando houver `qrCode` sem `qrCodeBase64`, QR visual ainda aparece via fallback.
-- Nenhum erro de hooks (“Rendered more hooks than during the previous render”) durante navegação normal e abertura/fechamento de modal.
+**Sanitizacao nos Upsells** - Em cada `handleOpenModal`:
+```text
+ANTES: passa dadosPessoais.cpf diretamente (com mascara)
+DEPOIS: chama validateCustomerForPix(parsed) -> usa validation.customer (ja sanitizado)
+```
 
-Validação pós-implementação (obrigatória)
-1) Teste end-to-end completo do funil: `/dados-pessoais` → `/endereco` → `/confirmacao` → `/pix` → `/upsell1` → `/upsell2` → `/upsell3`.
-2) Em `/upsell3`, testar cenário com dados válidos e confirmar geração de QR.
-3) Testar cenário com CPF inválido no storage e confirmar bloqueio + orientação para correção.
-4) Validar no backend logs de tentativa e classificação de erro.
-5) Repetir teste em mobile (viewport menor) para confirmar modal e QR renderizando corretamente.
+### O que NAO precisa mudar
+- `PixPaymentModal.tsx` - ja tem o fallback correto
+- `Upsell3Page.tsx` - ja usa validateCustomerForPix
+- `paradise-pix/index.ts` - backend ja sanitiza e valida
+- `useParadisePix.ts` - hook estavel, sem alteracao
+
+### Resultado esperado
+- QR Code visual aparece em TODAS as paginas de pagamento (PixPage e modais dos upsells)
+- Dados do cliente sao sempre sanitizados antes de enviar ao backend
+- CPFs invalidos sao bloqueados no frontend com mensagem clara
