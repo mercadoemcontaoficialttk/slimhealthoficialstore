@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PixPaymentModal } from "@/components/PixPaymentModal";
 import { useParadisePix } from "@/hooks/useParadisePix";
+import { validateCustomerForPix } from "@/lib/paymentCustomer";
  import { useTrackingService } from "@/hooks/useTrackingService";
 import tiktokLogo from "@/assets/upsell/tiktok-shop.png";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
@@ -70,17 +71,17 @@ const Upsell2Page = () => {
       return;
     }
 
-    const customer = {
-      name: dadosPessoais.nome,
-      email: dadosPessoais.email,
-      document: dadosPessoais.cpf,
-      phone: dadosPessoais.telefone,
-    };
+    const validation = validateCustomerForPix(dadosPessoais);
+    if (!validation.valid) {
+      toast.error(validation.errors[0]);
+      setShowModal(false);
+      return;
+    }
 
      const success = await createPixPaymentWithTracking(
       UPSELL_AMOUNT,
       UPSELL_DESCRIPTION,
-      customer,
+      validation.customer,
        `upsell2_${Date.now()}`,
        'TENF - Taxa de Nota Fiscal',
        'upsell2'
