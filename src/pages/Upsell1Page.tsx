@@ -91,7 +91,7 @@ const Upsell1Page = () => {
   };
 
   const handleCloseModal = () => {
-    stopPolling();
+    // Don't stop polling — let fallback useEffect detect approval even after modal close
     setShowModal(false);
   };
 
