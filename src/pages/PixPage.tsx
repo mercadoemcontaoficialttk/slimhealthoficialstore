@@ -5,6 +5,7 @@ import { ChevronLeft, Copy, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useParadisePix } from "@/hooks/useParadisePix";
+import { validateCustomerForPix } from "@/lib/paymentCustomer";
 import slimHealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
 import anvisaLogo from "@/assets/anvisa-logo.png";
@@ -83,12 +84,12 @@ const PixPage = () => {
       
       setPaymentInitialized(true);
       
-      const customer = {
-        name: dadosPessoais.nome,
-        email: dadosPessoais.email,
-        document: dadosPessoais.cpf,
-        phone: dadosPessoais.telefone,
-      };
+      const validation = validateCustomerForPix(dadosPessoais);
+      if (!validation.valid) {
+        console.warn('❌ Dados inválidos no PixPage:', validation.errors);
+        toast.error(validation.errors[0]);
+        return;
+      }
 
       const orderReference = `pedido_${Date.now()}`;
       console.log('Order Reference:', orderReference);
@@ -96,7 +97,7 @@ const PixPage = () => {
        createPixPaymentWithTracking(
          pedido.total,
          'Mounjaro 5mg - SlimHealth',
-        customer,
+        validation.customer,
          orderReference,
          'Mounjaro 5mg - SlimHealth',
          'main_product'
@@ -245,24 +246,30 @@ const PixPage = () => {
             <>
               <div className="flex justify-center mb-4">
                 <div className="w-48 h-48 bg-gray-100 border-2 border-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-                  {qrCodeBase64 ? (
-                    <img 
-                      src={
-                        qrCodeBase64.startsWith('data:') 
-                          ? qrCodeBase64 
-                          : qrCodeBase64.startsWith('http') 
-                            ? qrCodeBase64 
-                            : `data:image/png;base64,${qrCodeBase64}`
-                      } 
-                      alt="QR Code PIX" 
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="text-center text-gray-400 p-4">
-                      <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                      <p className="text-sm">Carregando...</p>
-                    </div>
-                  )}
+                  {(() => {
+                    const qrImageSrc = qrCodeBase64
+                      ? qrCodeBase64.startsWith('data:')
+                        ? qrCodeBase64
+                        : qrCodeBase64.startsWith('http')
+                          ? qrCodeBase64
+                          : `data:image/png;base64,${qrCodeBase64}`
+                      : qrCode
+                        ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCode)}`
+                        : null;
+                    
+                    return qrImageSrc ? (
+                      <img 
+                        src={qrImageSrc}
+                        alt="QR Code PIX" 
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <div className="text-center text-gray-400 p-4">
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                        <p className="text-sm">Carregando...</p>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
