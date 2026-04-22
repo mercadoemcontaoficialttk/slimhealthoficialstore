@@ -42,8 +42,8 @@ const Index = () => {
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: `url(${presellBg})` }}
     >
-      <Card className="w-full max-w-md shadow-xl rounded-3xl animate-fade-in">
-        <CardContent className="p-10 flex flex-col items-center gap-8">
+      <Card className="w-full max-w-sm shadow-xl rounded-3xl animate-fade-in">
+        <CardContent className="p-6 flex flex-col items-center gap-6">
           {step === 1 && (
             <>
               {/* Partnership Tagline */}
