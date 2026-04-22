@@ -40,7 +40,7 @@ const Index = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      className="min-h-screen flex flex-col items-center justify-center gap-6 p-4 bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: `url(${presellBg})` }}
     >
       <Card className="w-full max-w-sm shadow-xl rounded-3xl animate-fade-in">
@@ -142,16 +142,15 @@ const Index = () => {
               Continuar
             </Button>
           )}
-          
-          {/* Anvisa Logo - All steps */}
-          <img 
-            src={anvisaLogo} 
-            alt="ANVISA" 
-            className="h-10 object-contain opacity-50 mt-2"
-          />
-
         </CardContent>
       </Card>
+
+      {/* Anvisa Logo - outside card, on yellow background */}
+      <img
+        src={anvisaLogo}
+        alt="ANVISA"
+        className="h-10 object-contain opacity-50"
+      />
     </div>
   );
 };
