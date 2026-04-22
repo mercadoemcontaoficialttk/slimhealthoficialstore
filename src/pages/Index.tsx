@@ -129,7 +129,7 @@ const Index = () => {
               disabled={!isButtonEnabled()}
               className={`w-full h-14 text-lg font-bold rounded-2xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                 isButtonEnabled() 
-                  ? "bg-cta hover:bg-cta/90 text-white" 
+                  ? "bg-[#FFD400] hover:bg-[#FFD400]/90 text-black" 
                   : "bg-[#C5CAD4] text-white cursor-not-allowed hover:scale-100"
               }`}
             >
