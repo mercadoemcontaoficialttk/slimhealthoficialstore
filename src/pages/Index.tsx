@@ -46,6 +46,11 @@ const Index = () => {
         <CardContent className="p-10 flex flex-col items-center gap-8">
           {step === 1 && (
             <>
+              {/* Partnership Tagline */}
+              <p className="text-[10px] tracking-[0.18em] font-medium text-gray-500 uppercase text-center -mb-2">
+                Produto Original SlimHealth em Parceria com Cimed & Co.
+              </p>
+
               {/* Logos Section */}
               <div className="flex items-center justify-center gap-4">
               <img 
