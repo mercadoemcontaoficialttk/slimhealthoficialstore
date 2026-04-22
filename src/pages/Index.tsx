@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import slimhealthLogo from "@/assets/slimhealth-logo.png";
 import cimedLogo from "@/assets/cimed-logo.png";
+import presellBg from "@/assets/presell-bg.png";
 // PrizeWheel disponível em @/components/PrizeWheel para uso futuro
 
 const STOCK_QUANTITY = 19;
@@ -37,7 +38,10 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${presellBg})` }}
+    >
       <Card className="w-full max-w-md shadow-xl rounded-3xl animate-fade-in">
         <CardContent className="p-10 flex flex-col items-center gap-8">
           {step === 1 && (
